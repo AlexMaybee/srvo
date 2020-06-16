@@ -17,8 +17,9 @@ class ServioPopup
             dateFrom: '',
             dateTo: '',
             roomCategory: '',
-            adults: 0,
+            adults: 1,
             childs: 0,
+            childsAges: '',
             companyId: 0,
         }
         this.list = {
@@ -31,14 +32,40 @@ class ServioPopup
             reserveData: {},
         }
         this.company = {
-            id: 0,
-            title: '',
+            // id: 0,
+            // title: '',
+        }
+        this.deal = {
+            id : 0,
+            reserveId: 0,
         }
 
 
         /*
         * По шагам
         * */
+
+        // 0.1 Получение Id сделки (для получения отве., контакта, записи в поля)
+        this.getDealIdAndReserveId()
+
+        //если сделка уже создана, то проверяем поле с ID резерва
+        //Если резерва нет, то отображаем форму, иначе отображаем инфу о резерве + кнопки редактирования резерва
+        if(this.deal.id > 0 && this.deal.id === 0)
+        {
+            //здесь popup с формой
+            console.log('DEAL ID > 0');
+        }
+        else if(this.deal.id > 0 && this.deal.id > 0)
+        {
+            //здесь popup с полученным по id данными резерва
+        }
+        else
+        {
+            //иначе форма без возможности резерва
+        }
+
+        console.log('DEAL I',this.deal);
+
 
         // 1. Заполнение полей "с" и "по" текущими датой и + 1 день
         this.fillDatesOnStart()
@@ -56,10 +83,6 @@ class ServioPopup
 
         let servioBtn = document.getElementById('servio') //.addEventListener('click',this.makePopup({'yyy':'iii'}))
 
-
-
-
-
         if(servioBtn !==  null)
         {
             let self = this
@@ -73,7 +96,24 @@ class ServioPopup
                 let htmlContent = this.returnFormHtmlInPopup()
 
 
-                this.makePopup('servio-hotel-reservation',htmlContent,'Hotel Reservation')
+                let popupBtnevents =
+                    {
+                        onPopupClose: function(PopupWindow) {
+                            // Событие при закрытии окна
+                            PopupWindow.destroy()
+                        },
+
+                        // События при показе окна
+                        onPopupShow: function() {
+
+
+                            // 8. Создание резерва.
+                            $('#add_servio_reserve').click(function () {
+                                self.addReservation()
+                            });
+                        },
+                    }
+                this.makePopup('servio-hotel-reservation',htmlContent,'Hotel Reservation',popupBtnevents)
 
 
                 //4.Изменение поля Date_From
@@ -94,11 +134,20 @@ class ServioPopup
                     }
                 }
 
+                //4. Изменение Селекта
+                let roomsCategorySelect = document.getElementById('roomCategory')
+                if(roomsCategorySelect !== null)
+                {
+                    roomsCategorySelect.onchange =  function () {
+                        self.changeRoomCategory();
+                    }
+                }
+
                 // 6,7 Изменение значений в полях Adults и Childs
                 let adultsAndChildFields = document.querySelectorAll('#adults, #childs')
                 if(adultsAndChildFields.length > 0)
                 {
-                    let roomCatField = document.getElementById('roomCategory')
+                    // let roomCatField = document.getElementById('roomCategory')
                     for(let elem of adultsAndChildFields)
                     {
                         //запрос категорий при изменении значений полей
@@ -118,6 +167,47 @@ class ServioPopup
 
         console.log('FILTERS',this.filters);
 
+    }
+
+    /*
+    * Get deal id
+    * */
+    getDealIdAndReserveId()
+    {
+        let matchMassive, result = false, self = this
+        if(matchMassive = window.location.href.match(/\/crm\/deal\/details\/([\d]+)/i))
+        {
+            this.deal.id = Number(matchMassive[1])
+
+            if(this.deal.id > 0)
+            {
+                this.makeAjaxRequest(this.url.ajax,
+                    {
+                        'ACTION' : 'GET_DEAL_RESERVE_ID',
+                        'DEAL_ID' : this.deal.id
+                    },
+                    function (response) {
+                        self.deal.reserveId = response;
+                        // console.log('DEAL RESERVE ID',self.deal);
+                    })
+            }
+            // if(this.deal.id  > 0)
+            // {
+            //     // console.log('DEAL DATA',this.deal.id);
+            //     this.makeAjaxRequest(this.url.ajax,
+            //         {
+            //             'ACTION' : 'GET_DEAL_DATA',
+            //             'DEAL_ID' : this.deal.id
+            //         },
+            //         function (response) {
+            //             console.log('DEAL DATA',response);
+            //         })
+            // }
+
+            console.log('DEAL URI',matchMassive)
+        }
+
+        // console.log('DEAL URI',dealUri)
     }
 
     /*
@@ -225,7 +315,6 @@ class ServioPopup
                    <div class="form-group col-sm">
                        <label for="roomCategory">Room Category</label>
                        <select id="roomCategory" name="roomCategory" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus"
-                                onchange=""
                               >
                            <option value="">Select...</option>
                            <option value="1">One</option>
@@ -255,8 +344,9 @@ class ServioPopup
                     </table>
                 </div>
                   
-                 <button type="button" id="add_servio_reserve" class="mt-2 ui-btn ui-btn-danger-dark ui-btn-icon-task ui-btn-round" 
-                    onclick="">Reserve!</button>
+                 <button type="button" id="add_servio_reserve" class="mt-2 ui-btn ui-btn-danger-dark ui-btn-icon-task ui-btn-round">
+                    Reserve!
+                 </button>
         
                     
                   <div id="test_table"></div>
@@ -265,8 +355,10 @@ class ServioPopup
             </form>`
     }
 
-    makePopup(popupTechName,htmlContent,popupTitle)
+    makePopup(popupTechName,htmlContent,popupTitle,myBtnevents)
     {
+
+
 
         let PopupProductProvider = BX.PopupWindowManager.create(popupTechName, BX('element'), {
             content: htmlContent,
@@ -292,13 +384,32 @@ class ServioPopup
                 backgroundColor: 'black',
                 opacity: 500
             },
-            events: {
-                onPopupClose: function(PopupWindow) {
-                    // Событие при закрытии окна
-                    PopupProductProvider.destroy()
-                }
-            }
+            events: myBtnevents,
+            // events: {
+            //     onPopupClose: function(PopupWindow) {
+            //         // Событие при закрытии окна
+            //         PopupWindow.destroy()
+            //     },
+            //     onPopupShow: function() {
+            //         // Событие при показе окна
+            //         $('#add_servio_reserve').click(function () {
+            //             console.log('modal show test!');
+            //
+            //         });
+            //     },
+            // }
         })
+
+
+        // if(!myBtnevents)
+        // {
+        myBtnevents = {
+            onPopupClose: function (PopupWindow) {
+                // Событие при закрытии окна
+                PopupWindow.destroy()
+            },
+        }
+        // }
 
         //вызов окна
         PopupProductProvider.show();
@@ -392,74 +503,103 @@ class ServioPopup
 
                 if(response.error ===  false)
                 {
-                    let roomSelect = document.getElementById('roomCategory'),
-                        options = '<option value="">Select...</option>';
+                    // let roomSelect = document.getElementById('roomCategory'),
+                    //     options = '<option value="">Select...</option>';
 
-                    for(let option of response.result.rooms)
+
+                    if(response.result.rooms !==  undefined)
                     {
-                        options += `<option value="${option.Id}">${option.CategoryName} (${option.FreeRoom} rooms)</option>`
+                        // for(let option of response.result.rooms)
+                        // {
+                        //     options += `<option value="${option.Id}">${option.CategoryName} (${option.FreeRoom} rooms)</option>`
+                        // }
+
+
+                        // self.list.roomCategory = response.result.rooms;
+                        // self.list.categoryPriceData = response.result.priceLists;
+                        // self.showPriceLists(); //отображение на странице
+
+                        console.log('priceLists',response.result.rooms);
+
+                        // roomSelect.innerHTML = options
+                        self.list.roomCategory = response.result.rooms;
+                        self.ShowPicesAndSelect(response.result.rooms); //отображение на странице
+                    }
+                    else
+                    {
+                        self.list.errors.push(response.error);
                     }
 
-
-                    // self.list.roomCategory = response.result.rooms;
-                    // self.list.categoryPriceData = response.result.priceLists;
-                    // self.showPriceLists(); //отображение на странице
-
-
-                    roomSelect.innerHTML = options
-                    self.list.roomCategory = response.result.rooms;
-                    self.showPriceListsNew(response.result.priceLists); //отображение на странице
                 }
                 else
                 {
                     self.list.errors.push(response.error);
                 }
 
+                console.log('Err',self.list.errors);
             })
     }
 
-    showPriceListsNew(priceRowsArr)
+    ShowPicesAndSelect(priceRowsArr)
     {
-        let i = 1, tableHtml = '', body = '', row,
+        let i = 1, tableHtml = '', body = '', row,key,value,
             // parentForm = document.getElementById('test_table')
-            parentForm = document.getElementById('servio_price_info')
+            parentForm = document.getElementById('servio_price_info'),
+            roomSelect = document.getElementById('roomCategory'),
+            options = '<option value="">Select...</option>'
+
+
+        console.log('res',priceRowsArr);
+
+
+        // console.log('row',Object.keys(priceRowsArr).length);
 
         if(Object.keys(priceRowsArr).length > 0)
         {
-            for(let row of priceRowsArr)
-            {
+            // for(row in priceRowsArr)
+            Object.entries(priceRowsArr).forEach(([key, row]) => {
+                // console.log('row',key,row);
+
+                options +=  `<option value="${row.roomTypeId}">${row.roomTypeName} (${row.FreeRoom} rooms)</option>`
+
                 body +=
                     `
                     <tr>
                         <td>${i}</td>
-                        <td>${row.roomTypeName}</td>
-                        <td>${row.dates}</td>
+                        <td>${row['roomTypeName']}</td>
+                        <td>${row['dates']}</td>
                         <td>${row.totalDays}</td>
                         <td>${row.totalPrice}, ${row.currency}</td>
                     </tr>
                     `
                 i++
-            }
+            })
 
             tableHtml =
                 `
                 <table class="table table-sm table-responsive">
                     <thead>
                         <tr>
-                            <th scope="col-sm">#</th>                        
-                            <th scope="col-sm">Type</th>                        
-                            <th scope="col-sm">Dates</th>                        
-                            <th scope="col-sm">Days Total</th>                        
-                            <th scope="col-sm">Total Price</th>                        
-                        </tr>   
-                    </thead> 
+                            <th scope="col-sm">#</th>
+                            <th scope="col-sm">Type</th>
+                            <th scope="col-sm">Dates</th>
+                            <th scope="col-sm">Days Total</th>
+                            <th scope="col-sm">Total Price</th>
+                        </tr>
+                    </thead>
                     <tbody> ${body}</tbody>
-                </>   
+                </>
                 `
 
             if(parentForm !== null)
             {
+                // parentForm.innerHTML = ''
                 parentForm.innerHTML = tableHtml
+            }
+            if(roomSelect !== null)
+            {
+                // parentForm.innerHTML = ''
+                roomSelect.innerHTML = options
             }
 
         }
@@ -637,6 +777,7 @@ class ServioPopup
         this.getRoomsByFilter();
     }
 
+    //Изменеие взрослых и детей
     changeTextFields()
     {
         //ОБНОВЛЕНИЕ ПОЛЕЙ ОБЪЕКТА
@@ -644,10 +785,84 @@ class ServioPopup
         this.getRoomsByFilter()
     }
 
-    //удаляет все, кроме цифр
+    //удаляет все, кроме цифрв полях взрослых и детей
     clearAllExeptnums(obj)
     {
         obj.value = Number(obj.value.replace(/[^\d]/g,''))
+    }
+
+    changeRoomCategory()
+    {
+        //ОБНОВЛЕНИЕ ПОЛЕЙ ОБЪЕКТА
+        this.takeFormData();
+
+        let reserveButton = document.getElementById('add_servio_reserve')
+
+
+        if(reserveButton !== null)
+        {
+
+            let reserveButton = document.getElementById('add_servio_reserve')
+
+
+            if(
+                this.filters.roomCategory != false
+                &&
+                this.filters.dateFrom != false
+                &&
+                this.filters.dateFrom != false
+                &&
+                this.filters.dateTo != false
+                &&
+                this.filters.adults !== ''
+                &&
+                this.filters.childs !==  ''
+            )
+            {
+                console.log('IIIII',reserveButton);
+
+                reserveButton.style.display = 'inline-flex';
+            }
+            else
+            {
+                reserveButton.style.display = 'none';
+            }
+        }
+
+
+        console.log('SELECT',this.filters.roomCategory,this.filters.roomCategory);
+    }
+
+    //создание резерва
+    addReservation()
+    {
+        //страхуемся
+        if(
+            this.filters.roomCategory != false
+            &&
+            this.filters.dateFrom != false
+            &&
+            this.filters.dateFrom != false
+            &&
+            this.filters.dateTo != false
+            &&
+            this.filters.adults !== ''
+            &&
+            this.filters.childs !==  ''
+        )
+        {
+            console.log('ADD Reserve',this.list.roomCategory);
+            this.makeAjaxRequest(this.url.ajax,
+                {
+                    'ACTION' : 'ADD_RESERVE',
+                    'FIELDS' : this.filters,
+                },
+                function (response) {
+                    console.log('Reserve REspomse',response)
+                })
+
+        }
+
     }
 
 }

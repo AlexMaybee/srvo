@@ -2,3 +2,7 @@
 .mar-rl-1{
     margin: 0 10px;
 }
+
+#add_servio_reserve{
+    display: none;
+}

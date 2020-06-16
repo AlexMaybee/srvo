@@ -13,6 +13,20 @@ if(isset($_POST['ACTION']))
 {
     switch($_POST['ACTION'])
     {
+        //данные сделки будем получать при резерве
+//        case('GET_DEAL_DATA'):
+//            $result = (new Hotel)->getDealDataById($_POST['DEAL_ID']);
+//            break;
+        //Проверяем Id резерва в спец. поле
+        case('GET_DEAL_RESERVE_ID'):
+            $result = (new Hotel)->getDealReserveId($_POST['DEAL_ID']);
+            break;
+
+        case('GET_DATA_FOR_FORM'):
+            $result = (new Hotel)->getInfoForServioReserveForm($_POST['FIELDS']);
+            break;
+
+
         case('GET_COMPANY_INFO'):
             $result = (new Hotel)->getCompanyInfo();
             break;
