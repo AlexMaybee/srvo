@@ -486,141 +486,209 @@ class Hotel
     //создание резерва
     public function addReserve($fields)
     {
+
+//        return $fields;
+
         $result = [
             'result' => false,
             'error' => false,
         ];
 
         $dealData = $this->getDealDataById($fields['DEAL_ID']);
+
+//        return $dealData;
+
+
         if($dealData)
         {
-            $company = 'STATIC TEST COMPANY';
-            $clientName = '';
-            $clientLastName = '';
-            $address = 'STATIC TEST ADDRESS';
-            $comment = 'STATIC COMMENT';
-            $phone = '';
-            $email = '';
-            $contactName = '';
 
-            if($dealData['COMPANY_DATA'])
+            if(!$dealData['COMPANY_DATA']  &&  !$dealData['CONTACT_DATA'])
             {
+                $result['error'] = 'В сделке не выбран контакт/компания';
+            }
+            else
+            {
+
+                $company = 'STATIC TEST COMPANY';
+                $clientName = '';
+                $clientLastName = '';
+                $address = 'STATIC TEST ADDRESS';
+                $comment = 'STATIC COMMENT';
+                $phone = '';
+                $email = '';
+                $contactName = '';
+
+                if($dealData['COMPANY_DATA'])
+                {
 //                $clientName = $dealData['COMPANY_DATA']['TITLE'];
 //                $clientLastName = $dealData['COMPANY_DATA']['TITLE'];
 //                $address  = $dealData['COMPANY_DATA']['ADDRESS'];
 //                $comment = $dealData['COMPANY_DATA']['TITLE'];
 //                $company = $dealData['COMPANY_DATA']['TITLE'];
-            }
-            if($dealData['CONTACT_DATA']){
-                $clientName = $dealData['CONTACT_DATA']['NAME'];
-                $clientLastName = $dealData['CONTACT_DATA']['LAST_NAME'];
+                }
+                if($dealData['CONTACT_DATA']){
+                    $clientName = $dealData['CONTACT_DATA']['NAME'];
+                    $clientLastName = $dealData['CONTACT_DATA']['LAST_NAME'];
 //                $address = $dealData['CONTACT_DATA']['ADDRESS'];
-                $contactName = $dealData['CONTACT_DATA']['FULL_NAME'];
-            }
-            if($dealData['PHONES_AND_EMAILS'])
-            {
-                if(isset($dealData['PHONES_AND_EMAILS']['PHONE']) && $dealData['PHONES_AND_EMAILS']['PHONE'])
+                    $contactName = $dealData['CONTACT_DATA']['FULL_NAME'];
+                }
+                if($dealData['PHONES_AND_EMAILS'])
                 {
-                    foreach ($dealData['PHONES_AND_EMAILS']['PHONE'] as $ph)
+                    if(isset($dealData['PHONES_AND_EMAILS']['PHONE']) && $dealData['PHONES_AND_EMAILS']['PHONE'])
                     {
-                        $phone .= $ph['VALUE'].' ';
+                        foreach ($dealData['PHONES_AND_EMAILS']['PHONE'] as $ph)
+                        {
+                            $phone .= $ph['VALUE'].' ';
+                        }
+                    }
+                    if(isset($dealData['PHONES_AND_EMAILS']['EMAIL']) && $dealData['PHONES_AND_EMAILS']['EMAIL'])
+                    {
+                        foreach ($dealData['PHONES_AND_EMAILS']['EMAIL'] as $em)
+                        {
+                            $email .= $em['VALUE'].' ';
+                        }
                     }
                 }
-                if(isset($dealData['PHONES_AND_EMAILS']['EMAIL']) && $dealData['PHONES_AND_EMAILS']['EMAIL'])
-                {
-                    foreach ($dealData['PHONES_AND_EMAILS']['EMAIL'] as $em)
-                    {
-                        $email .= $em['VALUE'].' ';
-                    }
-                }
-            }
 
 //            return $dealData;
 
 
-            $data = [
-//                'HotelID' => intval($fields['ROOM_CATEGORY']['HotelId']),
-//                'DateArrival' => $fields['FILTERS']['dateFrom'],
-//                'DateDeparture' => $fields['FILTERS']['dateTo'],
-//                'TimeArrival' => '', //пока константы
-//                'TimeDeparture' => '',  //пока константы
-//                'Adults' => $fields['FILTERS']['adults'],
-//                'Childs' => $fields['FILTERS']['childs'],
-//                'ChildAges' => [], //$fields['FILTERS'][''] //это будет в popup
-//                'IsExtraBedUsed' => false,
-//                'GuestLastName' => $clientName,
-//                'GuestFirstName' => $clientLastName,
-//                'RoomTypeID' => intval($fields['FILTERS']['roomCategory']),
-//                'CompanyID' => $fields['FILTERS']['companyId'], //113
-//                'Company' => $company,  //НАФИГА???!!!
-//                'ContractConditionID' => 1, //это брать где-то...
-//                'PaidType' => 100,  //это будет в popup
-//                'Iso3Country' => 'RUS',
-//                'Country' => 'Ukraine',
-//                'Address' => trim($address),
-//                'Phone' => trim($phone),
-//                'Fax' => '',
-//                'eMail' => $email,
-//                'NeedTransport' => 0, //это будет в popup
-//                'Comment' => $comment,
-//                'ClientInfo' => $_SERVER['REMOTE_ADDR'],
-//                'IsTouristTax' => 0, //это будет в popup
-//                'PriceListID' => $fields['ROOM_CATEGORY']['priceId'],
-//                'ContactName' => $contactName,
+                $data = [
+
+                    'Address' => trim($address),
+//                  'Address' => 'Addr Test 1234',
+
+                    'Adults' => $fields['FILTERS']['adults'],
+//                    'Adults' => $fields['FILTERS']['adults'],
+
+                    'ChildAges' => [], //$fields['FILTERS'][''] //это будет в popup
+//                    'ChildAges' => [],
+
+                    'Childs' => $fields['FILTERS']['childs'],
+//                    'Childs' => $fields['FILTERS']['childs'],
+
+                    'ClientInfo' => $_SERVER['REMOTE_ADDR'],
+//                    'ClientInfo' => 'CLIENT test Info',
+
+                    'Comment' => $comment,
+//                    'Comment' => 'TEST COMMENT LALLAA',
+
+                    'Company' => $company,  //НАФИГА???!!!
+//                    'Company'  => 'Company Name',
+
+                    'CompanyID' => $fields['FILTERS']['companyId'], //113
+//                    'CompanyID' => $fields['FILTERS']['companyId'], //113
+
+                    'ContactName' => $contactName,
+//                    'ContactName' => 'CONTACT NAME TEST',
+
+                    'ContractConditionID' => 1, //это брать где-то...
+//                    'ContractConditionID' => 1,
+
+                    'Country' => 'Ukraine',
+//                    'Country' => 'Ukraine',
+
+                    'DateArrival' => $fields['FILTERS']['dateFrom'],
+
+                    'DateDeparture' => $fields['FILTERS']['dateTo'],
+
+                    'Fax' => '',
+
+                    'GuestLastName' => $clientName,
+//                    'GuestLastName' => 'LOL',
+
+//                    'GuestFirstName' => $clientLastName,
+                    'GuestFirstName' => "TEST FIRST NAME LLLL",
+//                    'GuestFirstName' => 'LolOvich',
+
+                    'HotelID' => intval($fields['ROOM_CATEGORY']['HotelId']),
+//                  'HotelID' => 1,
+
+                    'IsExtraBedUsed' => false,
+
+                    'IsTouristTax' => 0, //это будет в popup
+
+                    'Iso3Country' => 'UKR',
+
+                    'NeedTransport' => 0, //это будет в popup
+
+                    'PaidType' => intval($fields['FILTERS']['paidType']),  //это будет в popup
+//                    'PaidType' => 100,
+
+                    'Phone' => trim($phone),
+//                    'Phone' => '0671112233',
+
+                    'PriceListID' => intval($fields['ROOM_CATEGORY']['priceId']),
+//                    'PriceListID' => 39,
+
+                    'RoomTypeID' => intval($fields['FILTERS']['roomCategory']),
+//                    'RoomTypeID' => $fields['FILTERS']['roomCategory'],
+
+                    'TimeArrival' => '', //пока константы
+                    'TimeDeparture' => '',  //пока константы
+
+                    'eMail' => $email,
+//                    'eMail' => 'email.test@test.ua',
 
 
-                'HotelID' => 1,
-                'DateArrival' => $fields['FILTERS']['dateFrom'],
-                'DateDeparture' => $fields['FILTERS']['dateTo'],
-                'TimeArrival' =>  '', //пока константы
-                'TimeDeparture' =>  '',  //пока константы
-                'Adults' => $fields['FILTERS']['adults'],
-                'Childs' => $fields['FILTERS']['childs'],
-                'ChildAges' => [],
-                'IsExtraBedUsed' => false,
-                'GuestLastName' => 'LOL',
-                'GuestFirstName' => 'LolOvich',
-                'RoomTypeID' => $fields['FILTERS']['roomCategory'],
-                'CompanyID' => $fields['FILTERS']['companyId'], //113
-                'Company'  => 'Company Name',
-                'ContractConditionID' => 1,
-                'PaidType' => 100,
-                'Iso3Country' => 'UKR',
-                'Country' => 'Ukraine',
-                'Address' => 'Addr Test 1234',
-                'Phone' => '0671112233',
-                'Fax' => '',
-                'eMail' => 'email.test@test.ua',
-                'NeedTransport' => 0,
-                'Comment' => 'TEST COMMENT LALLAA',
-                'ClientInfo' => 'CLIENT test Info',
-                'IsTouristTax' => 0,
-                'PriceListID' => 39,
-                'ContactName' => 'CONTACT NAME TEST',
-            ];
+
+
+//                    'HotelID' => 1,
+//                    'DateArrival' => $fields['FILTERS']['dateFrom'],
+//                    'DateDeparture' => $fields['FILTERS']['dateTo'],
+//                    'TimeArrival' =>  '', //пока константы
+//                    'TimeDeparture' =>  '',  //пока константы
+//                    'Adults' => $fields['FILTERS']['adults'],
+//                    'Childs' => $fields['FILTERS']['childs'],
+//                    'ChildAges' => [],
+//                    'IsExtraBedUsed' => false,
+//                    'GuestLastName' => 'LOL',
+//                    'GuestFirstName' => 'LolOvich',
+//                    'RoomTypeID' => $fields['FILTERS']['roomCategory'],
+//                    'CompanyID' => $fields['FILTERS']['companyId'], //113
+//                    'Company'  => 'Company Name',
+//                    'ContractConditionID' => 1,
+//                    'PaidType' => 100,
+//                    'Iso3Country' => 'UKR',
+//                    'Country' => 'Ukraine',
+//                    'Address' => 'Addr Test 1234',
+//                    'Phone' => '0671112233',
+//                    'Fax' => '',
+//                    'eMail' => 'email.test@test.ua',
+//                    'NeedTransport' => 0,
+//                    'Comment' => 'TEST COMMENT LALLAA',
+//                    'ClientInfo' => 'CLIENT test Info',
+//                    'IsTouristTax' => 0,
+//                    'PriceListID' => 39,
+//                    'ContactName' => 'CONTACT NAME TEST',
+                ];
 
 
 //            return $data;
-            $reserveRes = $this->postRequest('AddRoomReservation', $data);
+                $reserveRes = $this->postRequest('AddRoomReservation', $data);
+
+                return $reserveRes;
 
 //            $result['test'] = $reserveRes;
 //            $result['data_fields'] = $data;
 //            $result['popup_fields'] = $fields;
 
-            if($reserveRes['Result'] !== 0)
-            {
-                $result['error'] = $reserveRes['Error'];
-            }
-            else
-            {
-                //запись Id резерва в поле сделки
-                //закрытие формы и открытие окна с данными резерва
-                //очистка формы и отображение резерва с кнопками продолжения или отмены
+                if($reserveRes['Result'] !== 0)
+                {
+                    $result['error'] = $reserveRes['Error'];
+                }
+                else
+                {
+                    //запись Id резерва в поле сделки
+                    //закрытие формы и открытие окна с данными резерва
+                    //очистка формы и отображение резерва с кнопками продолжения или отмены
 
-                $result['result'] = $reserveRes['Account'];
-                $dealFields['UF_CRM_1592225883215'] = $reserveRes['Account'];
-                $dealUdRes = $this->updateDeal($fields['DEAL_ID'],$dealFields);
-                if($dealUdRes['errors']) $result['error'] = implode("\n ",$dealUdRes['errors']);
+                    $result['result'] = $reserveRes['Account'];
+                    $dealFields['UF_CRM_1592225883215'] = $reserveRes['Account'];
+                    $dealUdRes = $this->updateDeal($fields['DEAL_ID'],$dealFields);
+                    if($dealUdRes['errors']) $result['error'] = implode("\n ",$dealUdRes['errors']);
+                }
+
             }
 
 

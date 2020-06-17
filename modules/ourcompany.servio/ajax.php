@@ -39,9 +39,9 @@ if(isset($_POST['ACTION']))
         case('GET_RESERVE_BY_ID'):
             $result = (new Hotel)->getReserveData($_POST['RESERVE_ID']);
             break;
-        case('GET_CATEGORY_PRICE'):
-            $result = (new Hotel)->getPriceByCategory($_POST['FIELDS']);
-            break;
+//        case('GET_CATEGORY_PRICE'):
+//            $result = (new Hotel)->getPriceByCategory($_POST['FIELDS']);
+//            break;
 
         default:
             $result = ['result' => false, 'error' => 'WRONG ACTION!'];
