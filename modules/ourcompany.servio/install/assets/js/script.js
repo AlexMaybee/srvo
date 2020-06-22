@@ -77,8 +77,8 @@ class ServioPopup
 
                             //new popup #1
                             // self.loadServioReserveFormPopup()
-                            self.loadServioReserveFormPopupV3()
-
+                            // self.loadServioReserveFormPopupV3()
+                            self.loadReservePopupV4()
                             // console.log('DEAL ID > 0');
                         }
                         else if(self.deal.id > 0 && self.deal.reserveId > 0)
@@ -454,6 +454,7 @@ class ServioPopup
                 opacity: 1
             },
             titleBar: popupTitle,
+            autoHide: false,
             closeByEsc: true, // закрытие окна по esc
             darkMode: false, // окно будет светлым или темным
             autoHide: true, // закрытие при клике вне окна
@@ -810,8 +811,16 @@ class ServioPopup
             Object.entries(formObj.elements).forEach(([index,elem]) => {
                 if(elem.name !== '')
                 {
+
                     fields[elem.name] = elem.value
+
+                    if(elem.type === 'checkbox')
+                    {
+                        fields[elem.name] = ( elem.checked === true ) ? 1  : 0
+                    }
                 }
+
+
             });
         }
         else
@@ -1506,6 +1515,338 @@ class ServioPopup
     //
     // }
 
+
+    loadReservePopupV4()
+    {
+        let self = this,
+            servioBtn = document.getElementById('servio'),
+            dateStart = new Date(),
+            dateFinish = new Date(),
+            dateFrom = '',
+            dateTo = '',
+            popupObj = {},
+            html = ``,
+            company = {
+                id : 0,
+                name : ''
+            }
+
+
+
+        //задаем даты и ограничения
+        dateFinish.setDate(dateFinish.getDate()  + 1);
+        dateFrom = this.createDate(dateStart)
+        dateTo = this.createDate(dateFinish)
+        //задаем даты и ограничения
+
+        html =
+            `<form id="servio_popup" onsubmit="return false" autocomplete="off">
+                <div class="form-row">
+                    <div class="col-sm-6 form-group">
+                        <label for="dateFrom" class="col-form-label-sm">Date From</label>
+                        <input type="date" name="dateFrom" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus" id="dateFrom" title="Select date from" autocomplete="off"
+                            value="${dateFrom}"
+                            min="${dateFrom}"
+                            >
+                    </div>
+                    <div class="col-sm-6 form-group">
+                        <label for="dateTo" class="col-form-label-sm">Date To</label>
+                        <input type="date" name="dateTo" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus" id="dateTo" title="Select date from" autocomplete="off"
+                             value="${dateTo}"
+                             min="${dateTo}"
+                            >
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-sm">
+                        <label for="adults">Adults</label>
+                        <input id="adults" name="adults" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus"
+                            value="1"
+                        >
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group col-sm">
+                        <label for="childs">Childs</label>
+                        <input id="childs" name="childs" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus"
+                             value="0"
+                        >
+                    </div>
+                </div>
+                
+                 <div class="form-row hidden-input">
+                    <div class="form-group col-sm">
+                        <label for="childAges">Child Ages</label>
+                        <input id="childAges" name="childAges" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                <div class="form-group col-sm">
+                   <label for="hootelId">Hotel</label>
+                   <select id="hootelId" name="hootelId" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus" disabled>
+                       <option value="">Select...</option>
+                       <option value="1" selected>Hotel 1</option>
+                   </select>
+                </div>
+                </div>
+                                
+                <div class="form-row">
+                <div class="form-group col-sm">
+                   <label for="paidType">Paid Type</label>
+                   <select id="paidType" name="paidType" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">
+                       <option value="">Select...</option>
+                       <option value="100">Cash</option>
+                       <option value="200">Credit Card</option>
+                       <option value="300">Private Payment</option>
+                   </select>
+                </div>
+                </div>
+                
+                
+               <div class="form-row">
+                   <div class="form-group col-sm">
+                        <label for="lpAuthCode">Loyality Programm Code</label>
+                        <input id="lpAuthCode" name="lpAuthCode" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">
+                   </div>
+               </div>
+                
+               <div class="form-group form-check">
+                    <input type="checkbox" class="form-check-input" id="extraBed" name="extraBed" value="">
+                    <label class="form-check-label" for="extraBed">Need Extra Bed</label>
+               </div>
+                
+               <div class="form-group form-check">
+                    <input type="checkbox" class="form-check-input" id="transport" name="transport" value="">
+                    <label class="form-check-label" for="transport">Need Transport</label>
+               </div>
+                
+               <div class="form-group form-check">
+                    <input type="checkbox" class="form-check-input" id="touristTax" name="touristTax" value="">
+                    <label class="form-check-label" for="touristTax">Tourist Tax</label>
+               </div>
+                
+                <!--<div class="form-row">-->
+                   <!--<div class="form-group col-sm">-->
+                       <!--<label for="roomCategory">Room Category</label>-->
+                       <!--<select id="roomCategory" name="roomCategory" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">-->
+                           <!--<option value="">Select...</option>-->
+                       <!--</select>-->
+                   <!--</div>-->
+                <!--</div>-->
+                
+                
+               <input type="hidden" name="companyId" id="companyId" value="">
+               <input type="hidden" name="companyName" id="companyName" value="">
+                
+               <div class="ui-btn-container ui-btn-container-center text-right">
+                  <button type="button" id="servio_search" class="mt-2 ui-btn ui-btn-primary-dark ui-btn-right ui-btn-icon-search">
+                      Search
+                  </button>
+               </div>
+                
+                  
+               <div id="servio_price_info" class="text-center">
+                   
+               </div>
+                  
+               <button type="button" id="add_servio_reserve" class="mt-2 ui-btn ui-btn-danger-dark ui-btn-icon-cloud">
+                  Reserve!
+               </button>
+            </form>`
+
+        if(servioBtn !== null) {
+            //формируем popup с формой
+            popupObj = self.makePopupV2('servio-hotel-reservation', html, 'Hotel Reservation', {})
+
+
+            this.makeAjaxRequest(this.url.ajax,{'ACTION' : 'GET_COMPANY_INFO'},
+                function (response) {
+                    console.log('COMPANY RESULT', response);
+
+                    if (response.error != false) {
+                        self.addErrorsBeforeForm(response.error, 'error')
+                    }
+                    else {
+                        company.id = response.result.CompanyID
+                        company.name = response.result.CompanyName
+
+
+                        let companyIdField = document.getElementById('companyId'),
+                            companyNameField = document.getElementById('companyName')
+                        if(companyIdField !== null)
+                        {
+                            companyIdField.value = response.result.CompanyID;
+                        }
+                        if(companyNameField !== null)
+                        {
+                            companyNameField.value = response.result.CompanyName;
+                        }
+                    }
+
+
+                    //здесь реакция на изменение полей
+
+                    //  1,2  Изменение поля dateFrom и dateTo
+                    let dateFromInput = document.getElementById('dateFrom'),
+                        dateToInput = document.getElementById('dateTo')
+
+                    if(dateFromInput !== null && dateToInput !== null)
+                    {
+                        dateFromInput.onchange = () => {
+
+                            let startDate = new Date(dateFromInput.value),
+                                finishDate = new Date(dateToInput.value)
+
+                            if(startDate >= finishDate)
+                            {
+                                finishDate.setDate(startDate.getDate() + 1)
+                                dateToInput.value = self.createDate(finishDate)
+                            }
+
+                            //обновление цен  +  селекта комнат
+                            // self.getRoomsByFilterNew()
+                            // self.showReserveButton();
+                        }
+
+                        dateToInput.onchange = () => {
+                            let startDate = new Date(dateFromInput.value),
+                                finishDate = new Date(dateToInput.value)
+                            if(startDate >= finishDate)
+                            {
+                                startDate.setDate(finishDate.getDate() - 1)
+                                dateFromInput.value = self.createDate(startDate)
+                            }
+
+                            //обновление цен  +  селекта комнат
+                            // self.getRoomsByFilterNew()
+                            // self.showReserveButton();
+                        }
+                    }
+
+
+                    // 3,4 Изменение значений в полях Adults и Childs
+                    let adultsAndChildFields = document.querySelectorAll('#adults, #childs'),
+                        chuldAgesField = document.getElementById('childAges')
+
+                    if(adultsAndChildFields.length > 0)
+                    {
+                        // let roomCatField = document.getElementById('roomCategory')
+                        for(let elem of adultsAndChildFields)
+                        {
+                            //запрос категорий при изменении значений полей
+                            elem.onchange = function () {
+                                // self.getRoomsByFilterNew()
+                                // self.showReserveButton();
+
+                                if(elem.name === 'childs')
+                                {
+                                    if(chuldAgesField !== null)
+                                    {
+                                        if(elem.value != 0)
+                                        {
+                                            chuldAgesField.closest('.form-row ').classList.remove('hidden-input')
+                                        }
+                                        else
+                                        {
+                                            chuldAgesField.value = ''
+                                            chuldAgesField.closest('.form-row ').classList.add('hidden-input')
+                                        }
+                                    }
+                                }
+                            }
+
+                            //удаление из полей всего кроме цифр
+                            elem.onkeyup = function () {
+                                this.value = Number(this.value.replace(/[^\d]/g,''))
+
+                                if(this.name === 'adults' && this.value == 0)
+                                {
+                                    this.value = 1
+                                }
+                            }
+                        }
+                    }
+
+                    //изменение поля возраста детей
+                    if(chuldAgesField !== null)
+                    {
+                        chuldAgesField.onkeyup = () =>
+                        {
+                            // chuldAgesField.value = Number(chuldAgesField.value.replace(/[^\s\d]+/g,''))
+                            chuldAgesField.value = chuldAgesField.value.replace(/[^\s\d]+/g,'')
+                            if(chuldAgesField.value == 0)
+                            {
+                                chuldAgesField.value = ''
+                            }
+                        }
+
+                        chuldAgesField.onchange = () =>
+                        {
+                            chuldAgesField.value = chuldAgesField.value.trimRight()
+                            // console.log('test Ages!', chuldAgesField.value);
+                        }
+                    }
+
+
+                    //нажатие на поиск
+                    let searchBtn = document.getElementById('servio_search')
+                    if(searchBtn !== null)
+                    {
+                        searchBtn.onclick = () => {
+                            // получаем данные формы и валидируем их
+                            let fields = self.getFromFieldsData(document.getElementById('servio_popup'))
+                            // console.log('fORM dATA',fields);
+
+                            //валидация
+
+                            //собираем 4 поля, которые обязательно нужны
+                            let requiredFields = {}
+                            Object.entries(fields).forEach(([key,value]) =>
+                            {
+                                if(['dateFrom','dateTo','adults','childs',].indexOf(key) != -1)
+                                {
+                                    requiredFields[key] = value
+                                }
+                            })
+
+
+                            Object.entries(requiredFields).forEach(([input,val]) => {
+                                if(val == '')
+                                {
+                                    document.getElementById(input).classList.add('my-error-field')
+                                    self.addErrorsBeforeForm(`Fill ${input} field!`,'error')
+                                }
+                                if(input === 'childs')
+                                {
+                                    if(Number(val) > 0 && Number(val) != fields.childAges.split(' ').length)
+                                    {
+                                        document.getElementById('childAges').classList.add('my-error-field')
+                                        self.addErrorsBeforeForm(`Number of childs must be equal numbers in child ages!`,'error')
+                                    }
+                                }
+                            })
+
+
+                            // !!!! ЗАКОНЧИТЬ!!!!!!!
+
+                        }
+
+                    }
+
+
+                })
+
+
+            servioBtn.onclick = () => {
+                popupObj.show()
+            }
+        }
+
+    }
+
     loadServioReserveFormPopupV3()
     {
 
@@ -1735,6 +2076,8 @@ class ServioPopup
         }
 
     }
+
+
 
     loadServioReservePopup()
     {

@@ -1,8 +1,16 @@
+/*.kkk{*/
+/*background: darkmagenta!important;*/
+/*margin-left: 10px;*/
+/*}*/
 
 .mar-rl-1{
     margin: 0 10px;
 }
 
-#add_servio_reserve{
-    display: none;
+#add_servio_reserve, .hidden-input{
+    display: none!important;
+}
+
+.my-error-field{
+    border-color: red!important;
 }

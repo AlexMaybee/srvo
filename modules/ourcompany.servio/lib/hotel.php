@@ -441,6 +441,7 @@ class Hotel
             'RoomTypeIDs' => $categoryIds, // [1,2,3,5],
             'СontractConditionID' => 0,
             'PaidType' => 100,
+//            'PaidType' => $post['paidType'],
             'IsExtraBedUsed' => false,
             'NeedTransport' => 0,
 //            'IsTouristTax' => 0,
@@ -455,33 +456,6 @@ class Hotel
         return $this->postRequest('GetPrices',$data);
     }
 
-    private function postRequest($operation,$data)
-    {
-
-        //Если ошибки с настройками или их нет, то выдаем ошибку
-        if($this->settingErrors)
-        {
-            return $result['error'] = implode("\n ",array_values($this->settingErrors));
-        }
-
-        $data_string = json_encode ($data, JSON_UNESCAPED_UNICODE);
-        $curl = curl_init($this->settings['SERVIO_URI_LINK'].$operation);
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
-
-        // Принимаем в виде массива. (false - в виде объекта)
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-                'Content-Type: application/json',
-                'Content-Length: ' . strlen($data_string),
-                'AccessToken: '.$this->settings['SERVIO_REST_KEY']
-            )
-        );
-        $result = curl_exec($curl);
-        curl_close($curl);
-
-        return json_decode($result,true);
-    }
 
     //создание резерва
     public function addReserve($fields)
@@ -594,11 +568,12 @@ class Hotel
 
                     'Fax' => '',
 
-                    'GuestLastName' => $clientName,
+//                    'GuestLastName' => $clientName,
+                    'GuestLastName' => 'TEST NAME 1',
 //                    'GuestLastName' => 'LOL',
 
 //                    'GuestFirstName' => $clientLastName,
-                    'GuestFirstName' => "TEST FIRST NAME LLLL",
+                    'GuestFirstName' => "TEST FIRST NAME 1",
 //                    'GuestFirstName' => 'LolOvich',
 
                     'HotelID' => intval($fields['ROOM_CATEGORY']['HotelId']),
@@ -663,8 +638,8 @@ class Hotel
 //                    'ContactName' => 'CONTACT NAME TEST',
                 ];
 
+//                return $data;
 
-//            return $data;
                 $reserveRes = $this->postRequest('AddRoomReservation', $data);
 
                 return $reserveRes;
@@ -748,6 +723,36 @@ class Hotel
     public function logData($data){
         $file = $_SERVER["DOCUMENT_ROOT"].'/11111.log';
         file_put_contents($file, print_r([date('d.m.Y H:i:s'),$data],true), FILE_APPEND | LOCK_EX);
+    }
+
+
+    private function postRequest($operation,$data)
+    {
+
+        //Если ошибки с настройками или их нет, то выдаем ошибку
+        if($this->settingErrors)
+        {
+            return $result['error'] = implode("\n ",array_values($this->settingErrors));
+        }
+
+        $data_string = json_encode ($data, JSON_UNESCAPED_UNICODE);
+        $curl = curl_init($this->settings['SERVIO_URI_LINK'].$operation);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+
+        // Принимаем в виде массива. (false - в виде объекта)
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+//                'Content-Type: application/json',
+                'Content-Type: application/json; charset=utf-8',
+                'Content-Length: ' . strlen($data_string),
+                'AccessToken: '.$this->settings['SERVIO_REST_KEY']
+            )
+        );
+        $result = curl_exec($curl);
+        curl_close($curl);
+
+        return json_decode($result,true);
     }
 
 }
