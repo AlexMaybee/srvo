@@ -553,6 +553,26 @@ class ServioPopup
 
 
     //добавление ошибок или success
+    addErrorsBeforeFormNew(formObj,errText,flag)
+    {
+        if(formObj !== null)
+        {
+            if(flag === 'error')
+            {
+                $(formObj).before(`<div class="ui-alert ui-alert-danger custom-error">
+                                <span class="ui-alert-message"><strong>Error!</strong> ${errText}</span>
+                            </div>`);
+            }
+            else
+            {
+                $(formObj).before(`<div class="ui-alert ui-alert-success custom-success">
+                                <span class="ui-alert-message"><strong>Error!</strong> ${errText}</span>
+                            </div>`);
+            }
+        }
+    }
+
+    //добавление ошибок или success
     addErrorsBeforeForm(errText,flag)
     {
         let form = document.getElementById('servio_popup')
@@ -571,16 +591,15 @@ class ServioPopup
                                 <span class="ui-alert-message"><strong>Error!</strong> ${errText}</span>
                             </div>`);
             }
-
         }
     }
 
     //удаление ошибок или success
-    deleteErrorsinForm(formObj)
+    deleteErrorsinForm(windowObj)
     {
-        if(formObj !== null && formObj instanceof Object === true)
+        if(windowObj !== null && windowObj instanceof Object === true)
         {
-            let elems = formObj.querySelectorAll('.custom-error, .custom-Success')
+            let elems = windowObj.querySelectorAll('.custom-error, .custom-Success')
             if(elems.length > 0)
             {
                 for(let notice of elems)
@@ -1640,6 +1659,7 @@ class ServioPopup
                 
                <input type="hidden" name="companyId" id="companyId" value="">
                <input type="hidden" name="companyName" id="companyName" value="">
+                <input type="hidden" name="companyCodeId" id="companyCodeId" value="">
                 
                <div class="ui-btn-container ui-btn-container-center text-right">
                   <button type="button" id="servio_search" class="mt-2 ui-btn ui-btn-primary-dark ui-btn-right ui-btn-icon-search">
@@ -1661,13 +1681,15 @@ class ServioPopup
             //формируем popup с формой
             popupObj = self.makePopupV2('servio-hotel-reservation', html, 'Hotel Reservation', {})
 
+            let form = document.getElementById('servio_popup')
 
             this.makeAjaxRequest(this.url.ajax,{'ACTION' : 'GET_COMPANY_INFO'},
                 function (response) {
                     console.log('COMPANY RESULT', response);
 
                     if (response.error != false) {
-                        self.addErrorsBeforeForm(response.error, 'error')
+                        // self.addErrorsBeforeForm(response.error, 'error')
+                        self.addErrorsBeforeFormNew(form,response.error, 'error')
                     }
                     else {
                         company.id = response.result.CompanyID
@@ -1675,7 +1697,9 @@ class ServioPopup
 
 
                         let companyIdField = document.getElementById('companyId'),
-                            companyNameField = document.getElementById('companyName')
+                            companyNameField = document.getElementById('companyName'),
+                            companyCodeIdField = document.getElementById('companyCodeId')
+
                         if(companyIdField !== null)
                         {
                             companyIdField.value = response.result.CompanyID;
@@ -1683,6 +1707,10 @@ class ServioPopup
                         if(companyNameField !== null)
                         {
                             companyNameField.value = response.result.CompanyName;
+                        }
+                        if(companyCodeIdField !== null)
+                        {
+                            companyCodeIdField.value = response.result.CompanyCodeID;
                         }
                     }
 
@@ -1795,42 +1823,94 @@ class ServioPopup
                     let searchBtn = document.getElementById('servio_search')
                     if(searchBtn !== null)
                     {
+                        //для очистки ошибок и сообщений
+                        const popupContent = document.getElementById('popup-window-content-servio-hotel-reservation')
+
                         searchBtn.onclick = () => {
                             // получаем данные формы и валидируем их
-                            let fields = self.getFromFieldsData(document.getElementById('servio_popup'))
-                            // console.log('fORM dATA',fields);
+                            let fields = self.getFromFieldsData(form)
+                            console.log('fORM dATA',fields);
+
+
+                            //удаление ошибок и сообщений
+                            self.deleteErrorsinForm(popupContent);
+                            //бореры нормального цвета
+                            let formFileldsElems = form.querySelectorAll('input,select,textarea')
+                            if(formFileldsElems.length > 0)
+                            {
+                                for(let inptField of formFileldsElems)
+                                {
+                                    if(inptField.classList.contains('my-error-field'))
+                                    {
+                                        inptField.classList.remove('my-error-field')
+                                    }
+                                }
+                            }
+
 
                             //валидация
 
-                            //собираем 4 поля, которые обязательно нужны
-                            let requiredFields = {}
-                            Object.entries(fields).forEach(([key,value]) =>
+                            // console.log('iii',fields.childs,fields.childAges.split(' '), Number(fields.childs) == fields.childAges.split(' ').length);
+
+                            if(
+                                fields.dateFrom == '' || fields.dateTo == '' || fields.adults == '' || fields.childs == ''
+                                ||
+                                (
+                                    Number(fields.childs) > 0 &&
+                                    (
+                                        fields.childAges.trim().length == 0 ||
+                                        Number(fields.childs) != fields.childAges.trim().split(' ').length
+                                    )
+                                )
+                            )
                             {
-                                if(['dateFrom','dateTo','adults','childs',].indexOf(key) != -1)
+                                if(fields.dateFrom == '' )
                                 {
-                                    requiredFields[key] = value
+                                    let df = form.querySelector('#dateFrom')
+                                    df.classList.add('my-error-field')
+                                    self.addErrorsBeforeFormNew(form,`Fill Date From field!`, 'error')
                                 }
-                            })
-
-
-                            Object.entries(requiredFields).forEach(([input,val]) => {
-                                if(val == '')
+                                if(fields.dateTo == '' )
                                 {
-                                    document.getElementById(input).classList.add('my-error-field')
-                                    self.addErrorsBeforeForm(`Fill ${input} field!`,'error')
+                                    let dt = form.querySelector('#dateTo')
+                                    dt.classList.add('my-error-field')
+                                    self.addErrorsBeforeFormNew(form,`Fill Date To field!`, 'error')
                                 }
-                                if(input === 'childs')
+                                if(fields.adults == '' )
                                 {
-                                    if(Number(val) > 0 && Number(val) != fields.childAges.split(' ').length)
-                                    {
-                                        document.getElementById('childAges').classList.add('my-error-field')
-                                        self.addErrorsBeforeForm(`Number of childs must be equal numbers in child ages!`,'error')
-                                    }
+                                    let adt = form.querySelector('#adults')
+                                    adt.classList.add('my-error-field')
+                                    self.addErrorsBeforeFormNew(form,`Set adults number > 0!`, 'error')
                                 }
-                            })
+                                if(fields.childs == '' )
+                                {
+                                    let chlds = form.querySelector('#childs')
+                                    chlds.classList.add('my-error-field')
+                                    self.addErrorsBeforeFormNew(form,`Set childs number or 0!`, 'error')
+                                }
+                                if((Number(fields.childs) > 0 && fields.childAges.trim().length == 0 || Number(fields.childs) != fields.childAges.trim().split(' ').length))
+                                {
+                                    let chlds = form.querySelector('#childs'),
+                                        chldsAgs = form.querySelector('#childAges')
+                                    chlds.classList.add('my-error-field')
+                                    chldsAgs.classList.add('my-error-field')
+                                    self.addErrorsBeforeFormNew(form,`Number of childs must be equal numbers in child ages!`, 'error')
+                                }
+                            }
 
+                            else
+                            {
 
-                            // !!!! ЗАКОНЧИТЬ!!!!!!!
+                                //ajax для получения цен
+
+                                self.makeAjaxRequest(self.url.ajax,{ACTION : 'GET_PRICES_BY_FILTER',FIELDS : fields},
+                                    function (response) {
+
+                                        console.log('GET PRICES LAST',response);
+
+                                    })
+
+                            }
 
                         }
 

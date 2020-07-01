@@ -39,6 +39,11 @@ if(isset($_POST['ACTION']))
         case('GET_RESERVE_BY_ID'):
             $result = (new Hotel)->getReserveData($_POST['RESERVE_ID']);
             break;
+
+            //New By Button "Search"
+        case('GET_PRICES_BY_FILTER'):
+            $result = (new Hotel)->getPricesByFilter($_POST['FIELDS']);
+            break;
 //        case('GET_CATEGORY_PRICE'):
 //            $result = (new Hotel)->getPriceByCategory($_POST['FIELDS']);
 //            break;

@@ -10,7 +10,7 @@ class Hotel
     private $eventInstance;
     private $settings;
     private $settingErrors;
-
+    private $payTypes = [100,200,300];
 
     public function __construct()
     {
@@ -405,23 +405,145 @@ class Hotel
         return $result;
     }
 
+
+
+
+
+    /*********** 22.06.2020**********/
+
+    //get Prices Last - 22/06/2020
+    public function getPricesByFilter($post)
+    {
+        $result = [
+            'errors' => [],
+            'rooms' => [],
+            'prices' => [],
+            'names' => [],
+        ];
+
+       $childAgerResArr = [];
+        if($post['childAges'])
+        {
+            foreach (explode(' ',$post['childAges']) as $age)
+            {
+                $childAgerResArr[] = intval($age);
+            }
+        }
+        $post['childAges'] = $childAgerResArr;
+
+        //названия комнат
+        $roomCatNames = $this->getRoomsCategoriesNames($post);
+        if($roomCatNames['Error'])
+        {
+            $result['errors'][] = $roomCatNames['Error'];
+        }
+
+
+        //комнаты по фильтру
+        $roomsData = $this->getCategoriesByFilter($post);
+        if($roomsData['Error'])
+        {
+            $result['errors'][] = $roomsData['Error'];
+        }
+        else
+        {
+            $roomsCatFilter = [];
+            foreach ($roomsData['RoomTypes'] as $roomCategory)
+            {
+                $roomsCatFilter[] = $roomCategory['ID'];
+            }
+
+            $result['test_cat_filter_for_price'] = $roomsCatFilter;
+
+            //цены комнат
+            $roomsPrices = $this->getPrices($post,$roomsCatFilter);
+            if($roomsPrices['Error'])
+            {
+                $result['errors'][] = $roomsPrices['Error'];
+            }
+
+            $result['test_Prices'] = $roomsPrices;
+
+        }
+
+
+
+
+        $result['test_rooms'] = $roomsData;
+        $result['test_rooms_names'] = $roomCatNames;
+
+
+
+        return $result;
+    }
+
+    //upd 22.06.2020
     private function getCategoriesByFilter($post)
     {
         $data = [
-//            'CompanyCodeID' => $post['companyId'],
-            'HotelID' => 1,
+            'CompanyCodeID' => intval($post['companyCodeId']),
+            'HotelID' => intval($post['hootelId']),
             'DateArrival' => $post['dateFrom'],
             'DateDeparture' => $post['dateTo'],
-            'ChildAges' => [],
-            'Adults' => $post['adults'],
-            'Childs' => $post['childs'],
-            'IsExtraBedUsed' => false,
+            'ChildAges' => $post['childAges'],
+            'Adults' => intval($post['adults']),
+            'Childs' => intval(post['childs']),
+            'IsExtraBedUsed' => boolval($post['extraBed']),
             'IsoLanguage'  => 'ru',
             'TimeArrival' =>  '', //пока константы
             'TimeDeparture' =>  '',  //пока константы
         ];
+
+//        return $data;
         return $res = $this->postRequest('GetRooms',$data);
     }
+
+    //new Get Categories names 22.06.2020
+    private function getRoomsCategoriesNames($post)
+    {
+        $data['HotelID'] = $post['hootelId'];
+        return $res = $this->postRequest('GetRoomTypesList',$data);
+    }
+
+    //get prices 22.06.2020
+    private function getPrices($post,$categoriesArr)
+    {
+        $data = [
+            'HotelID' => $post['hootelId'],
+            'CompanyID' => $post['companyId'],
+            'DateArrival' => $post['dateFrom'],
+            'DateDeparture' => $post['dateTo'],
+            'TimeArrival' =>  '',
+            'TimeDeparture' =>  '',
+            'Adults' => $post['adults'],
+            'Childs' => $post['childs'],
+            'ChildAges' => $post['childAges'],
+            'IsExtraBedUsed' => $post['extraBed'],
+            'IsoLanguage'  => 'ru',
+            'RoomTypeIDs' => $categoriesArr, // [1,2,3,5],
+            'СontractConditionID' => 0,
+            'PaidType' => $post['paidType'],
+            'NeedTransport' => $post['transport'],
+            'IsTouristTax' => $post['touristTax'],
+            'LPAuthCode' => '',
+        ];
+
+//        return $data;
+//        if($post['companyId'])
+//        {
+//            $data['CompanyID'] = $post['companyId'];
+//        }
+
+        return $this->postRequest('GetPrices',$data);
+    }
+
+
+
+    /*********** 22.06.2020**********/
+
+
+
+
 
     //get prices
     public function getPriceByCategories($post,$categoryIds)
