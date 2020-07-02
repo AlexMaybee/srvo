@@ -53,49 +53,62 @@ class ServioPopup
         // 0.1 Получение Id сделки (для получения отве., контакта, записи в поля)
         // this.getDealIdAndReserveId()
 
-        let matchMassive, result = false, self = this
-        if(matchMassive = window.location.href.match(/\/crm\/deal\/details\/([\d]+)/i))
+        let matchMassive, result = false, self = this,
+            servioBtn = document.getElementById('servio')
+
+
+        matchMassive = window.location.href.match(/\/crm\/deal\/details\/([\d]+)/i)
+
+        if(matchMassive && servioBtn !== null)
         {
             this.deal.id = Number(matchMassive[1])
-
+            // console.log('Search button',servioBtn,this.deal);
             if(this.deal.id > 0)
             {
-                this.makeAjaxRequest(this.url.ajax,
-                    {
-                        'ACTION' : 'GET_DEAL_RESERVE_ID',
-                        'DEAL_ID' : this.deal.id
-                    },
-                    function (response) {
-                        self.deal.reserveId = response;
-                        // console.log('DEAL RESERVE ID',self.deal);
 
-                        if(self.deal.id > 0 && self.deal.reserveId === 0)
+                servioBtn.onclick = function () {
+                    self.makeAjaxRequest(self.url.ajax,
                         {
-                            //здесь popup с формой
+                            'ACTION' : 'GET_DEAL_RESERVE_ID',
+                            'DEAL_ID' : self.deal.id
+                        },
+                        function (response) {
+                            self.deal.reserveId = response;
+                            // console.log('DEAL RESERVE ID',self.deal);
 
-                            // self.loadServioPopup();
+                            if(self.deal.id > 0 && self.deal.reserveId === 0)
+                            {
+                                //здесь popup с формой
 
-                            //new popup #1
-                            // self.loadServioReserveFormPopup()
-                            // self.loadServioReserveFormPopupV3()
-                            self.loadReservePopupV4()
-                            // console.log('DEAL ID > 0');
-                        }
-                        else if(self.deal.id > 0 && self.deal.reserveId > 0)
-                        {
-                            //здесь popup с полученным по id данными резерва
+                                self.loadReservePopupV5()
+                            }
+                            else if(self.deal.id > 0 && self.deal.reserveId > 0)
+                            {
+                                //здесь popup с полученным по id данными резерва
 
-                            console.log('NEW POPUP WITH RESERVE DATA');
+                                console.log('NEW POPUP WITH RESERVE DATA');
 
-                            self.loadServioReservePopup()
-                        }
-                        else
-                        {
-                            //иначе форма без возможности резерва
-                            // self.loadServioPopup();
-                        }
+                                self.loadServioReservePopup()
+                            }
+                            else
+                            {
+                                //иначе форма без возможности резерва
+                                // self.loadServioPopup();
+                            }
 
-                    })
+                        })
+                }
+
+                //поиск кнопки + нажатие + проверка ШВ резерва или отображение формы
+
+
+
+            }
+
+            //если ID сделки == 0, то  в попапе сделать бронь нельзя
+            else
+            {
+                self.loadReservePopupV5()
             }
         }
 
@@ -1535,6 +1548,332 @@ class ServioPopup
     // }
 
 
+    loadReservePopupV5()
+    {
+        let self = this,
+            dateStart = new Date(),
+            dateFinish = new Date(),
+            dateFrom = '',
+            dateTo = '',
+            popupObj = {},
+            html = ``,
+            company = {
+                id : 0,
+                name : ''
+            },
+            form,
+            searchBtn,
+            priceHtmlBlock = '',
+            i,
+            priceTableTh = '',
+            priceTableBody = ''
+
+        //задаем даты и ограничения
+        dateFinish.setDate(dateFinish.getDate()  + 1);
+        dateFrom = this.createDate(dateStart)
+        dateTo = this.createDate(dateFinish)
+        //задаем даты и ограничения
+
+        html =
+            `<form id="servio_popup" onsubmit="return false" autocomplete="off">
+                <div class="form-row">
+                    <div class="col-sm-6 form-group">
+                        <label for="dateFrom" class="col-form-label-sm">Date From</label>
+                        <input type="date" name="dateFrom" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus" id="dateFrom" title="Select date from" autocomplete="off"
+                            value="${dateFrom}"
+                            min="${dateFrom}"
+                            >
+                    </div>
+                    <div class="col-sm-6 form-group">
+                        <label for="dateTo" class="col-form-label-sm">Date To</label>
+                        <input type="date" name="dateTo" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus" id="dateTo" title="Select date from" autocomplete="off"
+                             value="${dateTo}"
+                             min="${dateTo}"
+                            >
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-sm">
+                        <label for="adults">Adults</label>
+                        <input id="adults" name="adults" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus"
+                            value="1"
+                        >
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group col-sm">
+                        <label for="childs">Childs</label>
+                        <input id="childs" name="childs" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus"
+                             value="0"
+                        >
+                    </div>
+                </div>
+                
+                 <div class="form-row hidden-input">
+                    <div class="form-group col-sm">
+                        <label for="childAges">Child Ages</label>
+                        <input id="childAges" name="childAges" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                <div class="form-group col-sm">
+                   <label for="hootelId">Hotel</label>
+                   <select id="hootelId" name="hootelId" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus" disabled>
+                       <option value="">Select...</option>
+                       <option value="1" selected>Hotel 1</option>
+                   </select>
+                </div>
+                </div>
+                                
+                <div class="form-row">
+                <div class="form-group col-sm">
+                   <label for="paidType">Paid Type</label>
+                   <select id="paidType" name="paidType" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">
+                       <option value="">Select...</option>
+                       <option value="100">Cash</option>
+                       <option value="200">Credit Card</option>
+                       <option value="300">Private Payment</option>
+                   </select>
+                </div>
+                </div>
+                
+                
+               <div class="form-row">
+                   <div class="form-group col-sm">
+                        <label for="lpAuthCode">Loyality Programm Code</label>
+                        <input id="lpAuthCode" name="lpAuthCode" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">
+                   </div>
+               </div>
+                
+               <div class="form-group form-check">
+                    <input type="checkbox" class="form-check-input" id="extraBed" name="extraBed" value="">
+                    <label class="form-check-label" for="extraBed">Need Extra Bed</label>
+               </div>
+                
+               <div class="form-group form-check">
+                    <input type="checkbox" class="form-check-input" id="transport" name="transport" value="">
+                    <label class="form-check-label" for="transport">Need Transport</label>
+               </div>
+                
+               <div class="form-group form-check">
+                    <input type="checkbox" class="form-check-input" id="touristTax" name="touristTax" value="">
+                    <label class="form-check-label" for="touristTax">Tourist Tax</label>
+               </div>
+                
+                <!--<div class="form-row">-->
+                   <!--<div class="form-group col-sm">-->
+                       <!--<label for="roomCategory">Room Category</label>-->
+                       <!--<select id="roomCategory" name="roomCategory" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">-->
+                           <!--<option value="">Select...</option>-->
+                       <!--</select>-->
+                   <!--</div>-->
+                <!--</div>-->
+                
+                
+               <input type="hidden" name="companyId" id="companyId" value="">
+               <input type="hidden" name="companyName" id="companyName" value="">
+                <input type="hidden" name="companyCodeId" id="companyCodeId" value="">
+                
+               <div class="ui-btn-container ui-btn-container-center text-right">
+                  <button type="button" id="servio_search" class="mt-2 ui-btn ui-btn-primary-dark ui-btn-right ui-btn-icon-search">
+                      Search
+                  </button>
+               </div>
+                
+                  
+               <div id="servio_price_info" class="text-center">
+                   
+               </div>
+                  
+               <button type="button" id="add_servio_reserve" class="mt-2 ui-btn ui-btn-danger-dark ui-btn-icon-cloud">
+                  Reserve!
+               </button>
+            </form>`
+
+        popupObj = self.makePopupV2('servio-hotel-reservation', html, 'Hotel Reservation', {})
+        form = document.getElementById('servio_popup')
+
+        //заполнение полей компании в форме
+        this.makeAjaxRequest(this.url.ajax,{'ACTION' : 'GET_COMPANY_INFO'},
+            function (response) {
+                console.log('COMPANY RESULT', response);
+
+                if (response.error != false) {
+                    // self.addErrorsBeforeForm(response.error, 'error')
+                    self.addErrorsBeforeFormNew(form, response.error, 'error')
+                }
+                else {
+                    company.id = response.result.CompanyID
+                    company.name = response.result.CompanyName
+
+
+                    let companyIdField = document.getElementById('companyId'),
+                        companyNameField = document.getElementById('companyName'),
+                        companyCodeIdField = document.getElementById('companyCodeId')
+
+                    if (companyIdField !== null) {
+                        companyIdField.value = response.result.CompanyID;
+                    }
+                    if (companyNameField !== null) {
+                        companyNameField.value = response.result.CompanyName;
+                    }
+                    if (companyCodeIdField !== null) {
+                        companyCodeIdField.value = response.result.CompanyCodeID;
+                    }
+                }
+            }
+        )
+
+
+        //нажатие на поиск
+        searchBtn = document.getElementById('servio_search')
+        if(searchBtn !== null)
+        {
+            //для очистки ошибок и сообщений
+            const popupContent = document.getElementById('popup-window-content-servio-hotel-reservation')
+
+            searchBtn.onclick = () => {
+                // получаем данные формы и валидируем их
+                let fields = self.getFromFieldsData(form)
+                console.log('fORM dATA',fields);
+
+
+                //удаление ошибок и сообщений
+                self.deleteErrorsinForm(popupContent);
+                //бореры нормального цвета
+                let formFileldsElems = form.querySelectorAll('input,select,textarea')
+                if(formFileldsElems.length > 0)
+                {
+                    for(let inptField of formFileldsElems)
+                    {
+                        if(inptField.classList.contains('my-error-field'))
+                        {
+                            inptField.classList.remove('my-error-field')
+                        }
+                    }
+                }
+
+
+                //валидация
+
+                // console.log('iii',fields.childs,fields.childAges.split(' '), Number(fields.childs) == fields.childAges.split(' ').length);
+
+                if(
+                    fields.dateFrom == '' || fields.dateTo == '' || fields.adults == '' || fields.childs == ''
+                    ||
+                    (
+                        Number(fields.childs) > 0 &&
+                        (
+                            fields.childAges.trim().length == 0 ||
+                            Number(fields.childs) != fields.childAges.trim().split(' ').length
+                        )
+                    )
+                )
+                {
+                    if(fields.dateFrom == '' )
+                    {
+                        let df = form.querySelector('#dateFrom')
+                        df.classList.add('my-error-field')
+                        self.addErrorsBeforeFormNew(form,`Fill Date From field!`, 'error')
+                    }
+                    if(fields.dateTo == '' )
+                    {
+                        let dt = form.querySelector('#dateTo')
+                        dt.classList.add('my-error-field')
+                        self.addErrorsBeforeFormNew(form,`Fill Date To field!`, 'error')
+                    }
+                    if(fields.adults == '' )
+                    {
+                        let adt = form.querySelector('#adults')
+                        adt.classList.add('my-error-field')
+                        self.addErrorsBeforeFormNew(form,`Set adults number > 0!`, 'error')
+                    }
+                    if(fields.childs == '' )
+                    {
+                        let chlds = form.querySelector('#childs')
+                        chlds.classList.add('my-error-field')
+                        self.addErrorsBeforeFormNew(form,`Set childs number or 0!`, 'error')
+                    }
+                    if((Number(fields.childs) > 0 && fields.childAges.trim().length == 0 || Number(fields.childs) != fields.childAges.trim().split(' ').length))
+                    {
+                        let chlds = form.querySelector('#childs'),
+                            chldsAgs = form.querySelector('#childAges')
+                        chlds.classList.add('my-error-field')
+                        chldsAgs.classList.add('my-error-field')
+                        self.addErrorsBeforeFormNew(form,`Number of childs must be equal numbers in child ages!`, 'error')
+                    }
+                }
+
+                else
+                {
+
+                    //ajax для получения цен
+
+                    self.makeAjaxRequest(self.url.ajax,{ACTION : 'GET_PRICES_BY_FILTER',FIELDS : fields},
+                        function (response) {
+
+                            i = 1
+                            priceHtmlBlock = document.getElementById('servio_price_info')
+
+
+
+                            console.log('GET PRICES LAST',response);
+
+                            if(Object.keys(response.table).length > 0)
+                            {
+                                priceTableBody = ''
+                                Object.entries(response.table).forEach(([key, row]) => {
+                                    priceTableBody +=
+                                        `<tr>
+                                            <td>${i}</td>
+                                            <td>${row.CategoryName}</td>
+                                            <td>${row.FreeRoom}</td>
+                                            <td>${row.Date}</td>
+                                            <td>${row.Price} ${row.Currency}</td>
+                                        </tr>`
+
+                                    i++
+
+                                    // console.log('IIII',row.ID)
+                                })
+
+                                priceTableTh =
+                                    `<table class="table table-sm table-responsive">
+                                                <thead>
+                                                   <tr>
+                                                       <th scope="col-sm">#</th>
+                                                       <th scope="col-sm">Type</th>
+                                                       <th scope="col-sm">Free Room</th>
+                                                       <th scope="col-sm">Date</th>
+                                                       <!--<th scope="col-sm">Days Total</th>-->
+                                                       <th scope="col-sm">Total Price</th>
+                                                   </tr>
+                                                </thead>
+                                                <tbody> ${priceTableBody}</tbody>
+                                            </table>`
+
+                                priceHtmlBlock.innerHTML = priceTableTh;
+                            }
+                            else
+                            {
+                                priceHtmlBlock.innerHTML = '';
+                            }
+
+                        }
+                    )
+                }
+            }
+        }
+
+
+
+        popupObj.show()
+
+    }
+
     loadReservePopupV4()
     {
         let self = this,
@@ -1691,7 +2030,8 @@ class ServioPopup
                         // self.addErrorsBeforeForm(response.error, 'error')
                         self.addErrorsBeforeFormNew(form,response.error, 'error')
                     }
-                    else {
+                    else
+                    {
                         company.id = response.result.CompanyID
                         company.name = response.result.CompanyName
 

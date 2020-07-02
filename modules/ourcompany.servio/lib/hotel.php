@@ -419,6 +419,7 @@ class Hotel
             'rooms' => [],
             'prices' => [],
             'names' => [],
+            'table' => [],
         ];
 
        $childAgerResArr = [];
@@ -450,7 +451,11 @@ class Hotel
             $roomsCatFilter = [];
             foreach ($roomsData['RoomTypes'] as $roomCategory)
             {
-                $roomsCatFilter[] = $roomCategory['ID'];
+                //НЕ БЕРЕМ категории, где комнаты должны только освободиться!!!
+//                if($roomCategory['FreeRoom'] > 0)
+//                {
+                    $roomsCatFilter[] = $roomCategory['ID'];
+//                }
             }
 
             $result['test_cat_filter_for_price'] = $roomsCatFilter;
@@ -461,10 +466,16 @@ class Hotel
             {
                 $result['errors'][] = $roomsPrices['Error'];
             }
+            else
+            {
+//                $result['test_table'] = $this->makePriceTable($roomCatNames,$roomsData,$roomsPrices);
+                $result['table'] = $this->makePriceTable($roomCatNames,$roomsData,$roomsPrices);
+            }
 
             $result['test_Prices'] = $roomsPrices;
 
         }
+
 
 
 
@@ -541,6 +552,59 @@ class Hotel
 
     /*********** 22.06.2020**********/
 
+
+
+    /**********  01.07.2020**********/
+    private function makePriceTable($roomCatNames,$roomsData,$roomsPrices)
+    {
+        $result = [];
+        $arr = [];
+
+        if($roomsPrices)
+        {
+            foreach ($roomsData['RoomTypes'] as $roomCategory)
+            {
+//            if($roomCategory['FreeRoom'] > 0)
+//            {
+                $index = array_search($roomCategory['ID'],$roomCatNames['IDs']);
+                if($index !== false)
+                {
+                    $roomCategory['CategoryName'] = $roomCatNames['ClassNames'][$index];
+                    $roomCategory['HotelId'] = $roomCatNames['HotelIDs'][$index];
+                    $roomCategory['Currency'] = $roomsPrices['ValuteShort'];
+
+                    $arr[$roomCategory['ID']] = $roomCategory;
+                }
+//            }
+            }
+
+
+            //новый массив по дням
+            foreach ($roomsPrices['PriceLists'] as $priceList)
+            {
+                foreach ($priceList['RoomTypes'] as $roomCategory)
+                {
+                    foreach ($roomCategory['Services'] as $service)
+                    {
+                        foreach ($service['PriceDates'] as $roomDate)
+                        {
+                            $arr[$roomCategory['ID']]['PriceListId'] = $priceList['PriceListID'];
+                            $arr[$roomCategory['ID']]['Date'] = $roomDate['Date'];
+                            $arr[$roomCategory['ID']]['Price'] += $roomDate['Price'];
+                            $arr[$roomCategory['ID']]['MinPayDays'] += $roomCategory['SaleRestrictions']['MinPay']['Days'];
+                            $arr[$roomCategory['ID']]['MinStayDays'] += $roomCategory['SaleRestrictions']['MinStay']['Days'];
+                        }
+                    }
+                }
+            }
+
+            $result = $arr;
+        }
+
+        return $result;
+    }
+
+    /**********  01.07.2020**********/
 
 
 
