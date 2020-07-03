@@ -12,7 +12,7 @@ class ourcompany_servio extends \cModule
     public function __construct()
     {
         $arModuleVersion = [];
-        include(__DIR__."/version.php");
+        include(__DIR__ . "/version.php");
         $this->MODULE_ID = 'ourcompany.servio';
         $this->MODULE_VERSION = $arModuleVersion["VERSION"];
         $this->MODULE_VERSION_DATE = $arModuleVersion["VERSION_DATE"];

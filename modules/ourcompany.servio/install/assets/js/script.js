@@ -456,7 +456,6 @@ class ServioPopup
 
     makePopupV2(popupTechName,htmlContent,popupTitle,myBtnevents)
     {
-
         let PopupProductProvider = BX.PopupWindowManager.create(popupTechName, BX('element'), {
             content: htmlContent,
             width: 700, // ширина окна
@@ -510,7 +509,7 @@ class ServioPopup
         }
         // }
 
-        // вызов окна
+       // вызов окна
         // PopupProductProvider.show();
         return PopupProductProvider
     }
@@ -616,10 +615,10 @@ class ServioPopup
             let elems = windowObj.querySelectorAll('.custom-error, .custom-Success')
             if(elems.length > 0)
             {
-                for(let notice of elems)
-                {
-                    notice.remove()
-                }
+               for(let notice of elems)
+               {
+                   notice.remove()
+               }
             }
         }
     }
@@ -1132,7 +1131,7 @@ class ServioPopup
 
         if(reserveButton !== null && Object.keys(formData).length > 0)
         {
-            //резерв не позволителет если id сделки === 0 (сделка не существует еще)
+        //резерв не позволителет если id сделки === 0 (сделка не существует еще)
             if(
                 this.deal.id > 0
                 &&
@@ -1168,7 +1167,13 @@ class ServioPopup
     {
         let self = this,
             formData = {},
-            popup = document.getElementById('servio_popup')
+            popup = document.getElementById('servio_popup'),
+            reserveButtons
+
+
+        reserveButtons = popup.querySelectorAll('.add-reserve')
+        // console.log('3123',reserveButtons);
+
 
         formData = this.getFromFieldsData(popup)
 
@@ -1205,38 +1210,48 @@ class ServioPopup
                             'DEAL_ID' : this.deal.id,
                         }
 
-                    },
-                    function (response) {
-                        console.log('Reserve Response',response)
+                     },
+                function (response) {
+                    console.log('Reserve Response',response)
 
 
 
-                        // if(response.error !== false)
-                        // {
-                        //     self.addErrorsBeforeForm(response.error,'error')
-                        // }
-                        // else
-                        // {
-                        //     let form = document.getElementById('servio_popup')
-                        //     if(form !== null)
-                        //     {
-                        //
-                        //         self.addErrorsBeforeForm(`Создана бронь № ${response.result}`,'success');
-                        //
-                        //         setTimeout(()=>{
-                        //             popupObj.destroy()
-                        //             self.loadServioReservePopup()
-                        //
-                        //             self.deal.reserveId = response.result
-                        //
-                        //             console.log('Reservr ID Result',self.deal);
-                        //
-                        //             let servioBtn = document.getElementById('servio')
-                        //             servioBtn.click();
-                        //         },2000)
-                        //     }
-                        // }
-                    })
+                    if(response.error !== false)
+                    {
+                        self.addErrorsBeforeForm(response.error,'error')
+                    }
+                    else
+                    {
+                        let form = document.getElementById('servio_popup')
+                        if(form !== null)
+                        {
+
+                            self.addErrorsBeforeForm(`Создана бронь № ${response.result}`,'success');
+
+                            if(reserveButtons.length > 0)
+                            {
+                                reserveButtons.forEach(btn => {
+                                    if(!btn.classList.contains('ui-btn-disabled'))
+                                    {
+                                        btn.classList.add('ui-btn-disabled')
+                                    }
+                                })
+                            }
+
+                            setTimeout(()=>{
+                                popupObj.destroy()
+                                self.loadServioReservePopup()
+
+                                self.deal.reserveId = response.result
+
+                                console.log('Reservr ID Result',self.deal);
+
+                                let servioBtn = document.getElementById('servio')
+                                servioBtn.click();
+                            },2000)
+                        }
+                    }
+                })
             }
             else
             {
@@ -1645,8 +1660,8 @@ class ServioPopup
                 <div class="form-group col-sm">
                    <label for="paidType">Paid Type</label>
                    <select id="paidType" name="paidType" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">
-                       <option value="">Select...</option>
-                       <option value="100">Cash</option>
+                       <!--<option value="">Select...</option>-->
+                       <option value="100" selected>Cash</option>
                        <option value="200">Credit Card</option>
                        <option value="300">Private Payment</option>
                    </select>
@@ -1697,11 +1712,25 @@ class ServioPopup
                   </button>
                </div>
                 
+                <div class="form-row reserve-hidden hidden-input">
+                   <div class="form-group col-sm">
+                       <label for="address">Address</label>
+                       <textarea class="form-control" id="address" name="address" rows="2"></textarea>
+                   </div>
+               </div>
+               
+                <div class="form-row reserve-hidden hidden-input">
+                   <div class="form-group col-sm">
+                       <label for="comment">Comment</label>
+                       <textarea class="form-control" id="comment" name="comment" rows="3"></textarea>
+                   </div>
+               </div>
                   
                <div id="servio_price_info" class="text-center">
                    
                </div>
                   
+                                 
                <button type="button" id="add_servio_reserve" class="mt-2 ui-btn ui-btn-danger-dark ui-btn-icon-cloud">
                   Reserve!
                </button>
@@ -1853,7 +1882,7 @@ class ServioPopup
                                             <td>${row.MinStayDays}</td>
                                             <td>${row.NearestDateToReservation}</td>
                                             <td>${row.Price.toFixed(2)} ${row.Currency}</td>
-                                            <td><button class="ui-btn ui-btn-xs ui-btn-primary-dark add-reserve" data-category-id="${row.ID}">Reserve</button></td>
+                                            <td><button class="ui-btn ui-btn-xs ui-btn-primary-dark add-reserve ${row.FreeRoom == 0 ? 'ui-btn-disabled' : ''} " data-category-id="${row.ID}">Reserve</button></td>
                                         </tr>`
 
                                     i++
@@ -1862,7 +1891,7 @@ class ServioPopup
                                 })
 
                                 priceTableTh =
-                                    `<table class="table table-sm table-responsive">
+                                    `<table class="table table-sm table-responsive text-center">
                                                 <thead>
                                                    <tr>
                                                        <th scope="col-sm">#</th>
@@ -1873,7 +1902,7 @@ class ServioPopup
                                                        <th scope="col-sm">Min Days</th>
                                                        <th scope="col-sm">Neares Date To Free</th>
                                                        <th scope="col-sm">Total Price</th>
-                                                       <th scope="col-sm">Buttons</th>
+                                                       <th scope="col-sm"></th>
                                                    </tr>
                                                 </thead>
                                                 <tbody> ${priceTableBody}</tbody>
@@ -1882,6 +1911,10 @@ class ServioPopup
 
 
                                 priceHtmlBlock.innerHTML = priceTableTh;
+
+
+                                //show/hide 2 fields
+                                self.toggleReserveFields(true)
 
                                 reserveButtons = document.querySelectorAll('.add-reserve')
                                 // console.log('Reserve Buttons',reserveButtons);
@@ -1908,6 +1941,10 @@ class ServioPopup
                                 self.categoriesObj = {}
                                 roomCategoryInput.value = ''
                                 priceHtmlBlock.innerHTML = '';
+
+                                //show/hide 2 fields
+                                self.toggleReserveFields(false)
+
                             }
 
                         }
@@ -1931,6 +1968,85 @@ class ServioPopup
         }
 
 
+        //  1,2  Изменение поля dateFrom и dateTo
+        let dateFromInput = document.getElementById('dateFrom'),
+            dateToInput = document.getElementById('dateTo')
+
+        if(dateFromInput !== null && dateToInput !== null)
+        {
+            dateFromInput.onchange = () => {
+
+                let startDate = new Date(dateFromInput.value),
+                    finishDate = new Date(dateToInput.value)
+
+                if(startDate >= finishDate)
+                {
+                    finishDate.setDate(startDate.getDate() + 1)
+                    dateToInput.value = self.createDate(finishDate)
+                }
+
+                //обновление цен  +  селекта комнат
+                // self.getRoomsByFilterNew()
+                // self.showReserveButton();
+            }
+
+            dateToInput.onchange = () => {
+                let startDate = new Date(dateFromInput.value),
+                    finishDate = new Date(dateToInput.value)
+                if(startDate >= finishDate)
+                {
+                    startDate.setDate(finishDate.getDate() - 1)
+                    dateFromInput.value = self.createDate(startDate)
+                }
+
+                //обновление цен  +  селекта комнат
+                // self.getRoomsByFilterNew()
+                // self.showReserveButton();
+            }
+        }
+
+        // 3,4 Изменение значений в полях Adults и Childs
+        let adultsAndChildFields = document.querySelectorAll('#adults, #childs'),
+            chuldAgesField = document.getElementById('childAges')
+
+        if(adultsAndChildFields.length > 0)
+        {
+            // let roomCatField = document.getElementById('roomCategory')
+            for(let elem of adultsAndChildFields)
+            {
+                //запрос категорий при изменении значений полей
+                // elem.onchange = function () {
+                //     // self.getRoomsByFilterNew()
+                //     // self.showReserveButton();
+                //
+                //     if(elem.name === 'childs')
+                //     {
+                //         if(chuldAgesField !== null)
+                //         {
+                //             if(elem.value != 0)
+                //             {
+                //                 chuldAgesField.closest('.form-row ').classList.remove('hidden-input')
+                //             }
+                //             else
+                //             {
+                //                 chuldAgesField.value = ''
+                //                 chuldAgesField.closest('.form-row ').classList.add('hidden-input')
+                //             }
+                //         }
+                //     }
+                // }
+
+                //удаление из полей всего кроме цифр
+                elem.onkeyup = function () {
+                    this.value = Number(this.value.replace(/[^\d]/g,''))
+
+                    if(this.name === 'adults' && this.value == 0)
+                    {
+                        this.value = 1
+                    }
+                }
+            }
+        }
 
         popupObj.show()
 
@@ -2733,6 +2849,31 @@ class ServioPopup
                     })
             }
         }
+
+    }
+
+
+    //отображение/скрытие 2х полей
+    toggleReserveFields(flag)
+    {
+        let form = document.getElementById('servio_popup'),
+            hiddenBlocks = document.querySelectorAll('.reserve-hidden')
+
+        if(hiddenBlocks.length > 0 )
+        {
+            hiddenBlocks.forEach(elem => {
+                // console.log(222,elem);
+                if(flag === true /*&& elem.classList.contains('hidden-input')*/)
+                {
+                    elem.classList.remove('hidden-input')
+                }
+                else
+                {
+                    elem.classList.add('hidden-input')
+                }
+            })
+        }
+        // console.log('UUUU',hiddenBlocks);
 
     }
 

@@ -1,6 +1,6 @@
 /*.kkk{*/
-/*background: darkmagenta!important;*/
-/*margin-left: 10px;*/
+    /*background: darkmagenta!important;*/
+    /*margin-left: 10px;*/
 /*}*/
 
 .mar-rl-1{
@@ -14,3 +14,7 @@
 .my-error-field{
     border-color: red!important;
 }
+
+/*.reserve-hidden{*/
+    /*display: none!important;*/
+/*}*/

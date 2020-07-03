@@ -468,8 +468,29 @@ class Hotel
             }
             else
             {
+
+                $dateFrom = date('d.m.Y',strtotime($post['dateFrom']));
+                $dateTo = date('d.m.Y',strtotime($post['dateTo']));
+                $dates = "{$dateFrom} - {$dateTo}";
+                if(
+                    date('n',strtotime($post['dateFrom'])) === date('n',strtotime($post['dateTo']))
+                    &&
+                    date('Y',strtotime($post['dateFrom'])) === date('Y',strtotime($post['dateTo']))
+                )
+                {
+                    $dates = date('d',strtotime($post['dateFrom'])).' - '.date('d.m.Y',strtotime($post['dateTo']));
+                }
+                elseif(
+                    date('n',strtotime($post['dateFrom'])) !== date('n',strtotime($post['dateTo']))
+                    &&
+                    date('Y',strtotime($post['dateFrom'])) === date('Y',strtotime($post['dateTo']))
+                )
+                {
+                    $dates = date('d.m',strtotime($post['dateFrom'])).' - '.date('d.m.Y',strtotime($post['dateTo']));
+                }
+
 //                $result['test_table'] = $this->makePriceTable($roomCatNames,$roomsData,$roomsPrices);
-                $result['table'] = $this->makePriceTable($roomCatNames,$roomsData,$roomsPrices);
+                $result['table'] = $this->makePriceTable($roomCatNames,$roomsData,$roomsPrices,$dates);
             }
 
             $result['test_Prices'] = $roomsPrices;
@@ -555,7 +576,7 @@ class Hotel
 
 
     /**********  01.07.2020**********/
-    private function makePriceTable($roomCatNames,$roomsData,$roomsPrices)
+    private function makePriceTable($roomCatNames,$roomsData,$roomsPrices,$dates)
     {
         $result = [];
         $arr = [];
@@ -584,12 +605,17 @@ class Hotel
             {
                 foreach ($priceList['RoomTypes'] as $roomCategory)
                 {
+//                    $roomCategory['NearestDateToReservation'] = date('d.m.Y',strtotime($roomCategory['NearestDateToReservation']));
+
                     foreach ($roomCategory['Services'] as $service)
                     {
                         foreach ($service['PriceDates'] as $roomDate)
                         {
+                            $arr[$roomCategory['ID']]['NearestDateToReservation'] = date('d.m.Y',strtotime($arr[$roomCategory['ID']]['NearestDateToReservation']));
+
                             $arr[$roomCategory['ID']]['PriceListId'] = $priceList['PriceListID'];
-                            $arr[$roomCategory['ID']]['Date'] = $roomDate['Date'];
+//                            $arr[$roomCategory['ID']]['Date'] = $roomDate['Date'];
+                            $arr[$roomCategory['ID']]['Date'] = $dates;
                             $arr[$roomCategory['ID']]['Price'] += $roomDate['Price'];
                             $arr[$roomCategory['ID']]['MinPayDays'] += $roomCategory['SaleRestrictions']['MinPay']['Days'];
                             $arr[$roomCategory['ID']]['MinStayDays'] += $roomCategory['SaleRestrictions']['MinStay']['Days'];
@@ -669,11 +695,17 @@ class Hotel
             else
             {
 
-                $company = 'STATIC TEST COMPANY';
+//                $company = 'STATIC TEST COMPANY';
                 $clientName = '';
                 $clientLastName = '';
-                $address = 'STATIC TEST ADDRESS';
-                $comment = 'STATIC COMMENT';
+
+
+
+                $company = ($fields['FILTERS']['companyName']) ? $fields['FILTERS']['companyName'] : 'STATIC TEST COMPANY';
+                $address = ($fields['FILTERS']['address']) ? $fields['FILTERS']['address'] : '';
+                $comment = ($fields['FILTERS']['comment']) ? $fields['FILTERS']['comment'] : '';
+
+
                 $phone = '';
                 $email = '';
                 $contactName = '';
@@ -714,93 +746,41 @@ class Hotel
 
 
                 $data = [
-
                     'Address' => trim($address),
-//                  'Address' => 'Addr Test 1234',
-
                     'Adults' => $fields['FILTERS']['adults'],
-//                    'Adults' => $fields['FILTERS']['adults'],
-
                     'ChildAges' => [], //$fields['FILTERS'][''] //это будет в popup
-//                    'ChildAges' => [],
-
                     'Childs' => $fields['FILTERS']['childs'],
-//                    'Childs' => $fields['FILTERS']['childs'],
-
                     'ClientInfo' => $_SERVER['REMOTE_ADDR'],
-//                    'ClientInfo' => 'CLIENT test Info',
-
                     'Comment' => $comment,
-//                    'Comment' => 'TEST COMMENT LALLAA',
-
                     'Company' => $company,  //НАФИГА???!!!
-//                    'Company'  => 'Company Name',
-
                     'CompanyID' => $fields['FILTERS']['companyId'], //113
-//                    'CompanyID' => $fields['FILTERS']['companyId'], //113
-
                     'ContactName' => $contactName,
-//                    'ContactName' => 'CONTACT NAME TEST',
-
                     'ContractConditionID' => 1, //это брать где-то...
-//                    'ContractConditionID' => 1,
-
                     'Country' => 'Ukraine',
-//                    'Country' => 'Ukraine',
-
                     'DateArrival' => $fields['FILTERS']['dateFrom'],
-
                     'DateDeparture' => $fields['FILTERS']['dateTo'],
-
                     'Fax' => '',
-
                     'GuestLastName' => $clientName,
-//                    'GuestLastName' => 'TEST NAME 1',
-//                    'GuestLastName' => 'LOL',
-
                     'GuestFirstName' => $clientLastName,
-//                    'GuestFirstName' => "TEST FIRST NAME 1",
-//                    'GuestFirstName' => 'LolOvich',
-
                     'HotelID' => intval($fields['ROOM_CATEGORY']['HotelId']),
-//                  'HotelID' => 1,
-
-//                    'IsExtraBedUsed' => false,
                     'IsExtraBedUsed' => (bool)$fields['FILTERS']['extraBed'],
-
-//                    'IsTouristTax' => 0, //это будет в popup
                     'IsTouristTax' => intval($fields['FILTERS']['touristTax']), //это будет в popup
-
                     'Iso3Country' => 'UKR',
-
-//                    'NeedTransport' => 0, //это будет в popup
                     'NeedTransport' => intval($fields['FILTERS']['transport']), //это будет в popup
-
                     'PaidType' => intval($fields['FILTERS']['paidType']),  //это будет в popup
-//                    'PaidType' => 100,
-
                     'Phone' => trim($phone),
-//                    'Phone' => '0671112233',
-
                     'PriceListID' => intval($fields['ROOM_CATEGORY']['PriceListId']),
-//                    'PriceListID' => 39,
-
                     'RoomTypeID' => intval($fields['FILTERS']['roomCategory']),
-//                    'RoomTypeID' => $fields['FILTERS']['roomCategory'],
-
                     'TimeArrival' => '', //пока константы
                     'TimeDeparture' => '',  //пока константы
-
                     'eMail' => $email,
-//                    'eMail' => 'email.test@test.ua',
-
                 ];
 
 //                return $data;
 
                 $reserveRes = $this->postRequest('AddRoomReservation', $data);
 
-                return $reserveRes;
+//                return $reserveRes;
 
 //            $result['test'] = $reserveRes;
 //            $result['data_fields'] = $data;
@@ -818,6 +798,13 @@ class Hotel
 
                     $result['result'] = $reserveRes['Account'];
                     $dealFields['UF_CRM_1592225883215'] = $reserveRes['Account'];
+
+                    //Сохранение коммента в сделку
+                    if($comment)
+                    {
+                        $dealFields['COMMENTS'] = $comment;
+                    }
+
                     $dealUdRes = $this->updateDeal($fields['DEAL_ID'],$dealFields);
                     if($dealUdRes['errors']) $result['error'] = implode("\n ",$dealUdRes['errors']);
                 }
@@ -969,9 +956,8 @@ class Hotel
         // Принимаем в виде массива. (false - в виде объекта)
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-//                'Content-Type: application/json',
                 'Content-Type: application/json; charset=utf-8',
-                'Content-Length: ' . strlen($data_string),
+//                'Content-Length: ' . strlen($data_string),
                 'AccessToken: '.$this->settings['SERVIO_REST_KEY']
             )
         );
