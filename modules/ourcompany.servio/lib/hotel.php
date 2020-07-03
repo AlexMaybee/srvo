@@ -754,24 +754,27 @@ class Hotel
 
                     'Fax' => '',
 
-//                    'GuestLastName' => $clientName,
-                    'GuestLastName' => 'TEST NAME 1',
+                    'GuestLastName' => $clientName,
+//                    'GuestLastName' => 'TEST NAME 1',
 //                    'GuestLastName' => 'LOL',
 
-//                    'GuestFirstName' => $clientLastName,
-                    'GuestFirstName' => "TEST FIRST NAME 1",
+                    'GuestFirstName' => $clientLastName,
+//                    'GuestFirstName' => "TEST FIRST NAME 1",
 //                    'GuestFirstName' => 'LolOvich',
 
                     'HotelID' => intval($fields['ROOM_CATEGORY']['HotelId']),
 //                  'HotelID' => 1,
 
-                    'IsExtraBedUsed' => false,
+//                    'IsExtraBedUsed' => false,
+                    'IsExtraBedUsed' => (bool)$fields['FILTERS']['extraBed'],
 
-                    'IsTouristTax' => 0, //это будет в popup
+//                    'IsTouristTax' => 0, //это будет в popup
+                    'IsTouristTax' => intval($fields['FILTERS']['touristTax']), //это будет в popup
 
                     'Iso3Country' => 'UKR',
 
-                    'NeedTransport' => 0, //это будет в popup
+//                    'NeedTransport' => 0, //это будет в popup
+                    'NeedTransport' => intval($fields['FILTERS']['transport']), //это будет в popup
 
                     'PaidType' => intval($fields['FILTERS']['paidType']),  //это будет в popup
 //                    'PaidType' => 100,
@@ -779,7 +782,7 @@ class Hotel
                     'Phone' => trim($phone),
 //                    'Phone' => '0671112233',
 
-                    'PriceListID' => intval($fields['ROOM_CATEGORY']['priceId']),
+                    'PriceListID' => intval($fields['ROOM_CATEGORY']['PriceListId']),
 //                    'PriceListID' => 39,
 
                     'RoomTypeID' => intval($fields['FILTERS']['roomCategory']),
@@ -791,37 +794,6 @@ class Hotel
                     'eMail' => $email,
 //                    'eMail' => 'email.test@test.ua',
 
-
-
-
-//                    'HotelID' => 1,
-//                    'DateArrival' => $fields['FILTERS']['dateFrom'],
-//                    'DateDeparture' => $fields['FILTERS']['dateTo'],
-//                    'TimeArrival' =>  '', //пока константы
-//                    'TimeDeparture' =>  '',  //пока константы
-//                    'Adults' => $fields['FILTERS']['adults'],
-//                    'Childs' => $fields['FILTERS']['childs'],
-//                    'ChildAges' => [],
-//                    'IsExtraBedUsed' => false,
-//                    'GuestLastName' => 'LOL',
-//                    'GuestFirstName' => 'LolOvich',
-//                    'RoomTypeID' => $fields['FILTERS']['roomCategory'],
-//                    'CompanyID' => $fields['FILTERS']['companyId'], //113
-//                    'Company'  => 'Company Name',
-//                    'ContractConditionID' => 1,
-//                    'PaidType' => 100,
-//                    'Iso3Country' => 'UKR',
-//                    'Country' => 'Ukraine',
-//                    'Address' => 'Addr Test 1234',
-//                    'Phone' => '0671112233',
-//                    'Fax' => '',
-//                    'eMail' => 'email.test@test.ua',
-//                    'NeedTransport' => 0,
-//                    'Comment' => 'TEST COMMENT LALLAA',
-//                    'ClientInfo' => 'CLIENT test Info',
-//                    'IsTouristTax' => 0,
-//                    'PriceListID' => 39,
-//                    'ContactName' => 'CONTACT NAME TEST',
                 ];
 
 //                return $data;
@@ -911,6 +883,74 @@ class Hotel
         file_put_contents($file, print_r([date('d.m.Y H:i:s'),$data],true), FILE_APPEND | LOCK_EX);
     }
 
+
+    //подтверждение брони
+    public function confirmReserve($fields)
+    {
+        $result = [
+            'result' => false,
+            'error' => false,
+        ];
+        $data = [
+            'Account' => $fields['reserveId'],
+            'IsoLanguage'  => 'ru',
+            'Format' => 1,
+        ];
+
+        $confirmResult = $this->postRequest('GetAccountConfirm',$data);
+        if($confirmResult['Result'] !== 0)
+        {
+            $result['error'] = $confirmResult['Error'];
+        }
+        else
+        {
+//           $docResult = $this->getDocument($confirmResult['DocumentID']);
+//
+//           if($docResult['Result'] !== 0)
+//           {
+//               $result['error'] = $docResult['Error'];
+//           }
+//           else
+//           {
+//               //сохраняем архив/файл в сделке
+//               $result['result'] = $docResult;
+//           }
+            $result['result'] = $confirmResult;
+        }
+
+        return $result;
+    }
+
+    //получение счета для резерва
+    public function getBillForReserve($fields)
+    {
+        $data = [
+            'Account' => $fields['reserveId'],
+            'IsoLanguage'  => 'ru',
+            'Format' => 0,
+        ];
+
+        return $this->postRequest('GetAccountBill',$data);
+    }
+
+
+    public function getDocument($fileId)
+    {
+        $data = [
+            'DocumentID' => $fileId
+        ];
+
+        $docRes = $this->postRequest('GetDocument',$data);
+
+        $file = base64_decode($docRes['DocumentCode']);
+
+//        if($docRes['Result'] === 0)
+//        {
+//            $docRes['DocumentCode'] = base64_decode($docRes['DocumentCode']);
+//        }
+
+        return $docRes;
+    }
 
     private function postRequest($operation,$data)
     {

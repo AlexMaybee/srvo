@@ -48,6 +48,22 @@ if(isset($_POST['ACTION']))
 //            $result = (new Hotel)->getPriceByCategory($_POST['FIELDS']);
 //            break;
 
+//        confirm reserve
+        case('CONFIRM_RESERVE'):
+            $result = (new Hotel)->confirmReserve($_POST['FIELDS']);
+            break;
+
+//        get bill for reserve
+        case('GET_BILL_FOR_RESERVE'):
+            $result = (new Hotel)->getBillForReserve($_POST['FIELDS']);
+            break;
+
+
+        case('TEST_GET_DOCUMENT'):
+            $result = (new Hotel)->getDocument($_POST['DOCUMENT_ID']);
+            break;
+
+
         default:
             $result = ['result' => false, 'error' => 'WRONG ACTION!'];
             break;

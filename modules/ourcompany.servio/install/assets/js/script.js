@@ -459,15 +459,15 @@ class ServioPopup
 
         let PopupProductProvider = BX.PopupWindowManager.create(popupTechName, BX('element'), {
             content: htmlContent,
-            width: 500, // ширина окна
+            width: 700, // ширина окна
             // height: 800, // высота окна
             zIndex: 100, // z-index
             closeIcon: {
                 // объект со стилями для иконки закрытия, при null - иконки не будет
-                opacity: 1
+                // opacity: 1,
+                // backgroundColor: '#fff'
             },
             titleBar: popupTitle,
-            autoHide: false,
             closeByEsc: true, // закрытие окна по esc
             darkMode: false, // окно будет светлым или темным
             autoHide: true, // закрытие при клике вне окна
@@ -476,26 +476,27 @@ class ServioPopup
             min_height: 100, // минимальная высота окна
             min_width: 100, // минимальная ширина окна
             lightShadow: true, // использовать светлую тень у окна
-            angle: true, // появится уголок
+            // angle: true, // появится уголок
             overlay: {
                 // объект со стилями фона
-                backgroundColor: 'black',
-                opacity: 500
+                // backgroundColor: 'black',
+                // opacity: 500
             },
             events: myBtnevents,
-            // events: {
-            //     onPopupClose: function(PopupWindow) {
-            //         // Событие при закрытии окна
-            //         PopupWindow.destroy()
-            //     },
-            //     onPopupShow: function() {
-            //         // Событие при показе окна
-            //         $('#add_servio_reserve').click(function () {
-            //             console.log('modal show test!');
-            //
-            //         });
-            //     },
-            // }
+            events: {
+                onPopupClose: function(PopupWindow) {
+                    // Событие при закрытии окна
+                    PopupWindow.destroy()
+                    console.log('Window might be destroyed');
+                },
+                // onPopupShow: function() {
+                //     // Событие при показе окна
+                //     $('#add_servio_reserve').click(function () {
+                //         console.log('modal show test!');
+                //
+                //     });
+                // },
+            }
         })
 
 
@@ -1208,6 +1209,8 @@ class ServioPopup
                     function (response) {
                         console.log('Reserve Response',response)
 
+
+
                         // if(response.error !== false)
                         // {
                         //     self.addErrorsBeforeForm(response.error,'error')
@@ -1217,12 +1220,20 @@ class ServioPopup
                         //     let form = document.getElementById('servio_popup')
                         //     if(form !== null)
                         //     {
+                        //
                         //         self.addErrorsBeforeForm(`Создана бронь № ${response.result}`,'success');
                         //
-                        //         // setTimeout(()=>{
-                        //         //     popupObj.destroy()
-                        //         //     self.loadServioReservePopup()
-                        //         // },5000)
+                        //         setTimeout(()=>{
+                        //             popupObj.destroy()
+                        //             self.loadServioReservePopup()
+                        //
+                        //             self.deal.reserveId = response.result
+                        //
+                        //             console.log('Reservr ID Result',self.deal);
+                        //
+                        //             let servioBtn = document.getElementById('servio')
+                        //             servioBtn.click();
+                        //         },2000)
                         //     }
                         // }
                     })
@@ -1566,7 +1577,9 @@ class ServioPopup
             priceHtmlBlock = '',
             i,
             priceTableTh = '',
-            priceTableBody = ''
+            priceTableBody = '',
+            reserveButtons,
+            roomCategoryInput
 
         //задаем даты и ограничения
         dateFinish.setDate(dateFinish.getDate()  + 1);
@@ -1675,7 +1688,8 @@ class ServioPopup
                 
                <input type="hidden" name="companyId" id="companyId" value="">
                <input type="hidden" name="companyName" id="companyName" value="">
-                <input type="hidden" name="companyCodeId" id="companyCodeId" value="">
+               <input type="hidden" name="companyCodeId" id="companyCodeId" value="">
+               <input type="hidden" name="roomCategory" id="roomCategory" value="">
                 
                <div class="ui-btn-container ui-btn-container-center text-right">
                   <button type="button" id="servio_search" class="mt-2 ui-btn ui-btn-primary-dark ui-btn-right ui-btn-icon-search">
@@ -1695,6 +1709,7 @@ class ServioPopup
 
         popupObj = self.makePopupV2('servio-hotel-reservation', html, 'Hotel Reservation', {})
         form = document.getElementById('servio_popup')
+        roomCategoryInput = document.getElementById('roomCategory')
 
         //заполнение полей компании в форме
         this.makeAjaxRequest(this.url.ajax,{'ACTION' : 'GET_COMPANY_INFO'},
@@ -1819,11 +1834,13 @@ class ServioPopup
                             priceHtmlBlock = document.getElementById('servio_price_info')
 
 
-
                             console.log('GET PRICES LAST',response);
 
                             if(Object.keys(response.table).length > 0)
                             {
+
+                                self.categoriesObj = response.table
+
                                 priceTableBody = ''
                                 Object.entries(response.table).forEach(([key, row]) => {
                                     priceTableBody +=
@@ -1832,7 +1849,11 @@ class ServioPopup
                                             <td>${row.CategoryName}</td>
                                             <td>${row.FreeRoom}</td>
                                             <td>${row.Date}</td>
-                                            <td>${row.Price} ${row.Currency}</td>
+                                            <td>${row.MinPayDays}</td>
+                                            <td>${row.MinStayDays}</td>
+                                            <td>${row.NearestDateToReservation}</td>
+                                            <td>${row.Price.toFixed(2)} ${row.Currency}</td>
+                                            <td><button class="ui-btn ui-btn-xs ui-btn-primary-dark add-reserve" data-category-id="${row.ID}">Reserve</button></td>
                                         </tr>`
 
                                     i++
@@ -1848,23 +1869,64 @@ class ServioPopup
                                                        <th scope="col-sm">Type</th>
                                                        <th scope="col-sm">Free Room</th>
                                                        <th scope="col-sm">Date</th>
-                                                       <!--<th scope="col-sm">Days Total</th>-->
+                                                       <th scope="col-sm">Min Pay Days</th>
+                                                       <th scope="col-sm">Min Days</th>
+                                                       <th scope="col-sm">Neares Date To Free</th>
                                                        <th scope="col-sm">Total Price</th>
+                                                       <th scope="col-sm">Buttons</th>
                                                    </tr>
                                                 </thead>
                                                 <tbody> ${priceTableBody}</tbody>
                                             </table>`
 
+
+
                                 priceHtmlBlock.innerHTML = priceTableTh;
+
+                                reserveButtons = document.querySelectorAll('.add-reserve')
+                                // console.log('Reserve Buttons',reserveButtons);
+
+                                if(reserveButtons.length > 0)
+                                {
+                                    reserveButtons.forEach(reserveButton => {
+                                        reserveButton.onclick = () => {
+                                            //Вставляем в поле ID выбранной категории комнат
+                                            roomCategoryInput.value = reserveButton.dataset.categoryId
+                                            self.addReservation(popupObj)
+                                            // console.log('Current Btn',reserveButton.dataset.categoryId);
+
+                                            // console.log('Cat Obj',self.categoriesObj);
+
+                                        }
+                                    })
+
+                                }
+
                             }
                             else
                             {
+                                self.categoriesObj = {}
+                                roomCategoryInput.value = ''
                                 priceHtmlBlock.innerHTML = '';
                             }
 
                         }
                     )
                 }
+
+
+
+                // reserveButtons = document.getElementById('add_servio_reserve')
+                // reserveButtons = document.querySelectorAll('.add-reserve')
+                // console.log('Reserve Buttons',reserveButtons);
+                // if(reserveButtons !== null)
+                // {
+                //     reserveButton.onclick = () => {
+                //
+                //         self.addReservation(popupObj)
+                //     }
+                // }
+
             }
         }
 
@@ -2630,6 +2692,7 @@ class ServioPopup
                                     
                                     <button class="ui-btn ui-btn-danger" id="reserveCancelBtn">Отменить</button>
                                     <button class="ui-btn ui-btn-success" id="reserveAcceptBtn">Подтвердить</button>
+                                    <button class="ui-btn ui-btn-secondary" id="getReserveBill">Счет</button>
                             `
                             popupBody.innerHTML = reserveData
 
@@ -2638,7 +2701,8 @@ class ServioPopup
 
                         //НАЖАТИЕ НА КНОПКИ
                         let cancelBtn = document.getElementById('reserveCancelBtn'),
-                            acceptBtn = document.getElementById('reserveAcceptBtn')
+                            confirmBtn = document.getElementById('reserveAcceptBtn'),
+                            billBtn = document.getElementById('getReserveBill')
 
                         if(cancelBtn !== null)
                         {
@@ -2647,10 +2711,20 @@ class ServioPopup
                             }
                         }
 
-                        if(acceptBtn !== null)
+                        if(confirmBtn !== null)
                         {
-                            acceptBtn.onclick = () => {
-                                console.log('acceptBtn');
+                            confirmBtn.onclick = () => {
+                                console.log('confirmBtn');
+                                // self.confirmReserve(self.deal)
+                                // self.testGetDocument()
+                            }
+                        }
+
+                        if(billBtn !== null)
+                        {
+                            billBtn.onclick = () => {
+                                console.log('billBtn');
+                                // self.getBillForReserve(self.deal)
                             }
                         }
 
@@ -2662,12 +2736,40 @@ class ServioPopup
 
     }
 
+    testGetDocument()
+    {
+        this.makeAjaxRequest(this.url.ajax, {'ACTION': 'TEST_GET_DOCUMENT', 'DOCUMENT_ID': 28110},
+            function (response) {
+                console.log('TEST_GET_DOCUMENT', response)
+            }
+        )
+    }
+
+    confirmReserve(dealObj)
+    {
+        // console.log('confirm reserve',dealObj)
+
+        //ajax to get bill
+        this.makeAjaxRequest(this.url.ajax, {'ACTION': 'CONFIRM_RESERVE', 'FIELDS': dealObj},
+            function (response) {
+                console.log('CONFIRM RESERVE', response)
+            }
+        )
+    }
+
+    getBillForReserve(dealObj)
+    {
+        console.log('getBill',dealObj)
+
+        //ajax to get bill
+        // this.makeAjaxRequest(this.url.ajax, {'ACTION': 'GET_BILL_FOR_RESERVE', 'FIELDS': reserveId},
+        //     function (response) {
+        //         console.log('RESERVE BILL DATA', response)
+        //     }
+        // )
+
+    }
 
 
 
 }
-
-
-
-
-
