@@ -4,8 +4,7 @@ use Bitrix\Main\Loader,
     Bitrix\Main\Localization\Loc,
     Bitrix\Main\Config\Option,
     Bitrix\Iblock\ElementTable,
-    Bitrix\Main\GroupTable,
-    \Crmgenesis\Newworktimecontrol\Bitrixfunctions;
+    Bitrix\Main\GroupTable;
 
 $moduleId = basename( __DIR__ );
 $moduleLangPrefix = strtoupper( str_replace( ".", "_", $moduleId ) );
@@ -44,8 +43,26 @@ $aTabs = [
                 ["textarea", 5, 100]
             ],
             [
-                'SERVIO_COMPANY_CODE', //создаст COption
+                'SERVIO_COMPANY_CODE',
                 Loc::getMessage('OUR_COMPANY_SERVIO_COMPANY_CODE_TITLE'),
+                '',
+                ['text', 100]
+            ],
+            [
+                'SERVIO_FIELD_COMPANY_ID',
+                Loc::getMessage('OUR_COMPANY_SERVIO_COMPANY_FIELD_TITLE'),
+                '',
+                ['text', 100]
+            ],
+            [
+                'SERVIO_FIELD_CONTACT_ID',
+                Loc::getMessage('OUR_COMPANY_SERVIO_CONTACT_FIELD_TITLE'),
+                '',
+                ['text', 100]
+            ],
+            [
+                'SERVIO_FIELD_RESERVE_ID',
+                Loc::getMessage('OUR_COMPANY_SERVIO_RESERVE_FIELD_TITLE'),
                 '',
                 ['text', 100]
             ],
@@ -83,9 +100,8 @@ $realModuleId = $moduleId;
             $table_id = $moduleId ."_". strtolower( $aTab["POSTFIX"] );
             require( __DIR__ . "/table_rights.php" );
             $moduleId = $realModuleId;
-        endif;?>
-
-    <?endforeach;
+        endif;
+        endforeach;
     ?>
     <?= bitrix_sessid_post();
     $tabControl -> Buttons( array( 'btnApply' => false, 'btnCancel' => false, 'btnSaveAndAdd' => false, "btnSave" => true ) );

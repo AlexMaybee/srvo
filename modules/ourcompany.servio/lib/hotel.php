@@ -31,12 +31,12 @@ class Hotel
         {
             \CModule::IncludeModule("crm"); //Какого хера??
             $dealRecord = \Bitrix\Crm\DealTable::getRow([
-                'select' => ['UF_CRM_1592225883215'], //  получаем строку с ID резерва
+                'select' => [$this->settings['SERVIO_FIELD_RESERVE_ID']], //  получаем строку с ID резерва
                 'filter' => ['ID' => $dealId],
             ]);
             if($dealRecord)
             {
-                $result = (intval($dealRecord['UF_CRM_1592225883215']) > 0) ? intval($dealRecord['UF_CRM_1592225883215']) : 0;
+                $result = (intval($dealRecord[$this->settings['SERVIO_FIELD_RESERVE_ID']]) > 0) ? intval($dealRecord[$this->settings['SERVIO_FIELD_RESERVE_ID']]) : 0;
             }
         }
         return $result;
@@ -51,7 +51,7 @@ class Hotel
         {
             \CModule::IncludeModule("crm"); //Какого хера??
             $dealRecord = \Bitrix\Crm\DealTable::getRow([
-                'select' => [/*'*','UF_CRM_1592225883215',*/'ID','CONTACT_ID','COMPANY_ID','ASSIGNED_BY_ID'], //  + получаем строку с ID резерва
+                'select' => [/*'*',$this->settings['SERVIO_FIELD_RESERVE_ID'],*/'ID','CONTACT_ID','COMPANY_ID','ASSIGNED_BY_ID'], //  + получаем строку с ID резерва
                 'filter' => ['ID' => $dealId],
             ]);
             $dealRecord['COMPANY_DATA'] = [];
@@ -797,7 +797,7 @@ class Hotel
                     //очистка формы и отображение резерва с кнопками продолжения или отмены
 
                     $result['result'] = $reserveRes['Account'];
-                    $dealFields['UF_CRM_1592225883215'] = $reserveRes['Account'];
+                    $dealFields[$this->settings['SERVIO_FIELD_RESERVE_ID']] = $reserveRes['Account'];
 
                     //Сохранение коммента в сделку
                     if($comment)

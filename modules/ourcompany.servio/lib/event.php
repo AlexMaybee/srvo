@@ -9,13 +9,16 @@ class Event
 {
     const MODULE_ID = 'ourcompany.servio';
 
-    const SETTINGS_OPTIONS = ['SERVIO_URI_LINK','SERVIO_REST_KEY','SERVIO_COMPANY_CODE'];
+    const SETTINGS_OPTIONS = ['SERVIO_URI_LINK','SERVIO_REST_KEY','SERVIO_COMPANY_CODE','SERVIO_FIELD_RESERVE_ID','SERVIO_FIELD_COMPANY_ID','SERVIO_FIELD_CONTACT_ID'];
 
 
     public static $settings = [
         'SERVIO_URI_LINK' => false,
         'SERVIO_REST_KEY' => false,
         'SERVIO_COMPANY_CODE' => false,
+        'SERVIO_FIELD_RESERVE_ID' => false,
+        'SERVIO_FIELD_COMPANY_ID' => false,
+        'SERVIO_FIELD_CONTACT_ID' => false,
     ];
     public static $settingErrors = [];
 

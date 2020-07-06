@@ -509,7 +509,7 @@ class ServioPopup
         }
         // }
 
-       // вызов окна
+        // вызов окна
         // PopupProductProvider.show();
         return PopupProductProvider
     }
@@ -615,10 +615,10 @@ class ServioPopup
             let elems = windowObj.querySelectorAll('.custom-error, .custom-Success')
             if(elems.length > 0)
             {
-               for(let notice of elems)
-               {
-                   notice.remove()
-               }
+                for(let notice of elems)
+                {
+                    notice.remove()
+                }
             }
         }
     }
@@ -1131,7 +1131,7 @@ class ServioPopup
 
         if(reserveButton !== null && Object.keys(formData).length > 0)
         {
-        //резерв не позволителет если id сделки === 0 (сделка не существует еще)
+            //резерв не позволителет если id сделки === 0 (сделка не существует еще)
             if(
                 this.deal.id > 0
                 &&
@@ -1210,48 +1210,48 @@ class ServioPopup
                             'DEAL_ID' : this.deal.id,
                         }
 
-                     },
-                function (response) {
-                    console.log('Reserve Response',response)
+                    },
+                    function (response) {
+                        console.log('Reserve Response',response)
 
 
 
-                    if(response.error !== false)
-                    {
-                        self.addErrorsBeforeForm(response.error,'error')
-                    }
-                    else
-                    {
-                        let form = document.getElementById('servio_popup')
-                        if(form !== null)
+                        if(response.error !== false)
                         {
-
-                            self.addErrorsBeforeForm(`Создана бронь № ${response.result}`,'success');
-
-                            if(reserveButtons.length > 0)
-                            {
-                                reserveButtons.forEach(btn => {
-                                    if(!btn.classList.contains('ui-btn-disabled'))
-                                    {
-                                        btn.classList.add('ui-btn-disabled')
-                                    }
-                                })
-                            }
-
-                            setTimeout(()=>{
-                                popupObj.destroy()
-                                self.loadServioReservePopup()
-
-                                self.deal.reserveId = response.result
-
-                                console.log('Reservr ID Result',self.deal);
-
-                                let servioBtn = document.getElementById('servio')
-                                servioBtn.click();
-                            },2000)
+                            self.addErrorsBeforeForm(response.error,'error')
                         }
-                    }
-                })
+                        else
+                        {
+                            let form = document.getElementById('servio_popup')
+                            if(form !== null)
+                            {
+
+                                self.addErrorsBeforeForm(`Создана бронь № ${response.result}`,'success');
+
+                                if(reserveButtons.length > 0)
+                                {
+                                    reserveButtons.forEach(btn => {
+                                        if(!btn.classList.contains('ui-btn-disabled'))
+                                        {
+                                            btn.classList.add('ui-btn-disabled')
+                                        }
+                                    })
+                                }
+
+                                setTimeout(()=>{
+                                    popupObj.destroy()
+                                    self.loadServioReservePopup()
+
+                                    self.deal.reserveId = response.result
+
+                                    console.log('Reservr ID Result',self.deal);
+
+                                    let servioBtn = document.getElementById('servio')
+                                    servioBtn.click();
+                                },2000)
+                            }
+                        }
+                    })
             }
             else
             {
