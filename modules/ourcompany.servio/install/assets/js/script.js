@@ -88,7 +88,8 @@ class ServioPopup
 
                                 console.log('NEW POPUP WITH RESERVE DATA');
 
-                                self.loadServioReservePopup()
+                                // self.loadServioReservePopup()
+                                self.loadServioPopupWithReserervation()
                             }
                             else
                             {
@@ -2011,31 +2012,8 @@ class ServioPopup
 
         if(adultsAndChildFields.length > 0)
         {
-            // let roomCatField = document.getElementById('roomCategory')
             for(let elem of adultsAndChildFields)
             {
-                //запрос категорий при изменении значений полей
-                // elem.onchange = function () {
-                //     // self.getRoomsByFilterNew()
-                //     // self.showReserveButton();
-                //
-                //     if(elem.name === 'childs')
-                //     {
-                //         if(chuldAgesField !== null)
-                //         {
-                //             if(elem.value != 0)
-                //             {
-                //                 chuldAgesField.closest('.form-row ').classList.remove('hidden-input')
-                //             }
-                //             else
-                //             {
-                //                 chuldAgesField.value = ''
-                //                 chuldAgesField.closest('.form-row ').classList.add('hidden-input')
-                //             }
-                //         }
-                //     }
-                // }
-
                 //удаление из полей всего кроме цифр
                 elem.onkeyup = function () {
                     this.value = Number(this.value.replace(/[^\d]/g,''))
@@ -2713,7 +2691,7 @@ class ServioPopup
 
 
                         //error append
-                        if(!response.Result === 0)
+                        if(response.Result !== 0)
                         {
                             if(popupBody !== null)
                             {
@@ -2850,6 +2828,162 @@ class ServioPopup
             }
         }
 
+    }
+
+    loadServioPopupWithReserervation()
+    {
+        let self= this,
+            servioBtn = document.getElementById('servio'),
+            popupObj = {},
+            html = `<div id="servio_reserve_view"></div>`,
+            popupBody,
+            servisesTable = '',
+            reserveDataHtml = '',
+            cancelBtn, confirmBtn, billBtn
+
+        popupObj = self.makePopupV2('servio-hotel-reservation-view',html,'Hotel Reservation View',{})
+
+        //получаем данные резерва
+        this.makeAjaxRequest(this.url.ajax, {'ACTION': 'GET_RESERVE_BY_ID', 'RESERVE_ID': this.deal.reserveId},
+            function (response) {
+                popupBody = document.getElementById('servio_reserve_view')
+
+                if(response.Result !== 0)
+                {
+                    if(popupBody !== null)
+                    {
+                        reserveDataHtml =
+                            `<div class="ui-alert ui-alert-danger custom-error">
+                                <span class="ui-alert-message"><strong>Error! </strong>${response.Error}</span>
+                            </div>`
+                    }
+                }
+                else
+                {
+                    for(let service of response.Services){
+                        for(let price of service.PriceDate){
+                            servisesTable +=
+                                `<tr>
+                                    <td>${service.ServiceName}</td>
+                                    <td>${price.Date}</td>
+                                    <td>${price.Price}</td>
+                                    <td class="ui-alert ${(price.IsPaid === true) ? 'ui-alert-success' : 'ui-alert-danger'}">${price.IsPaid}</td>
+                                </tr>`
+
+                            reserveDataHtml =
+                                `
+                                    <div class="row ">
+                                        <div class="col-sm-6 ui-alert ui-alert-default">Serviceprovider Name</div>
+                                        <div class="col-sm-6 ui-alert ui-alert-success">
+                                            <span class="ui-alert-message"><strong>${response.ServiceProviderName}</strong></span>
+                                            </div>
+                                    </div>
+                                    <div class="row ">
+                                        <div class="col-sm-6 ui-alert ui-alert-default">Reserve Status</div>
+                                        <div class="col-sm-6 ui-alert ui-alert-danger">
+                                            <span class="ui-alert-message"><strong>${response.StatusName}</strong></span>
+                                            </div>
+                                    </div>
+                                    <div class="row ">
+                                        <div class="col-sm-6 ui-alert ui-alert-default">Account Name</div>
+                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.AccountName}</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6 ui-alert ui-alert-default">Email</div>
+                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.Email}</div>
+                                    </div>
+                                      <div class="row">
+                                        <div class="col-sm-6 ui-alert ui-alert-default">Date From</div>
+                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.DateArrival}</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6 ui-alert ui-alert-default">Date To</div>
+                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.DateDeparture}</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6 ui-alert ui-alert-default">Adults</div>
+                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.Adults}</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6 ui-alert ui-alert-default">Childs</div>
+                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.Childs}</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6 ui-alert ui-alert-default">Room Type</div>
+                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.RoomType}</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6 ui-alert ui-alert-default">Paid Type</div>
+                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.PaidType}</div>
+                                    </div>
+                                    
+                                   <div class="row">
+                                        <table class="table table-sm table-responsive">
+                                            <thead>
+                                                <th>Servise</th>
+                                                <th>Dates</th>
+                                                <th>Prices, ${response.ValuteShort}</th>
+                                                <th>Is Paid</th>
+                                            </thead>
+                                            <tbody>
+                                                ${servisesTable}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    <button class="ui-btn ui-btn-danger" id="reserveCancelBtn">Отменить</button>
+                                    <button class="ui-btn ui-btn-success" id="reserveAcceptBtn">Подтвердить</button>
+                                    <button class="ui-btn ui-btn-secondary" id="getReserveBill">Счет</button>
+                            `
+                        }
+                    }
+                }
+
+                popupBody.innerHTML = reserveDataHtml
+
+
+                //НАЖАТИЕ НА КНОПКИ
+                cancelBtn = document.getElementById('reserveCancelBtn')
+                confirmBtn = document.getElementById('reserveAcceptBtn')
+                billBtn = document.getElementById('getReserveBill')
+
+                // console.log(cancelBtn,confirmBtn);
+
+                if(cancelBtn !== null)
+                {
+                    cancelBtn.onclick = () => {
+                        console.log('cancelBtn');
+                    }
+                }
+
+                if(confirmBtn !== null)
+                {
+                    confirmBtn.onclick = () => {
+                        console.log('confirmBtn');
+                        // self.confirmReserve(self.deal)
+                        // self.testGetDocument()
+                    }
+                }
+
+                if(billBtn !== null)
+                {
+                    billBtn.onclick = () => {
+                        console.log('billBtn');
+                        // self.getBillForReserve(self.deal)
+                    }
+                }
+
+            }
+        )
+
+
+
+
+
+
+
+        //show popup
+        popupObj.show()
     }
 
 
