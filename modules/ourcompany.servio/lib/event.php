@@ -11,6 +11,98 @@ class Event
 
     const SETTINGS_OPTIONS = ['SERVIO_URI_LINK','SERVIO_REST_KEY','SERVIO_COMPANY_CODE','SERVIO_FIELD_RESERVE_ID','SERVIO_FIELD_COMPANY_ID','SERVIO_FIELD_CONTACT_ID'];
 
+    private $techFields = [
+        'SERVIO_FIELD_RESERVE_ID' =>
+            [
+                'ENTITY_ID' => 'CRM_DEAL',
+                'FIELD_NAME' => 'UF_CRM_HMS_RESERVE_ID',
+                'USER_TYPE_ID' => 'double',
+                'XML_ID' => '',
+                'SORT' => 100,
+                'MULTIPLE' => 'N',  //множ
+                'MANDATORY' => 'N', //обязательное
+                'SHOW_FILTER' => 'I',   //показывать в фильтре
+                'SHOW_IN_LIST' => '1', //показывать в списке
+                'EDIT_IN_LIST' => '',  //редактировать в списке
+                'IS_SEARCHABLE' => 'Y', //участвует в поиске
+                'EDIT_FORM_LABEL' => [  //подпись в карточке
+                    'ru' => 'ID резерва в Servio',
+                    'en' => 'Reserve ID in Servio',
+                ],
+                'LIST_COLUMN_LABEL' => [ //название в списке
+                    'ru' => 'ID резерва в Servio',
+                    'en' => 'Reserve ID in Servio',
+                ],
+                'LIST_FILTER_LABEL' => [ //название в списке фильтра
+                    'ru' => 'ID резерва в Servio',
+                    'en' => 'Reserve ID in Servio',
+                ],
+                'ERROR_MESSAGE' => [ //название в списке фильтра
+                    'ru' => 'Ошибка в поле "ID резерва в Servio"',
+                    'en' => 'Error in field "Reserve ID in Servio"',
+                ],
+            ],
+        'SERVIO_FIELD_CONTACT_ID' =>
+            [
+                'ENTITY_ID' => 'CRM_CONTACT',
+                'FIELD_NAME' => 'UF_CRM_HMS_CONTACT_ID',
+                'USER_TYPE_ID' => 'double',
+                'XML_ID' => '',
+                'SORT' => 100,
+                'MULTIPLE' => 'N',  //множ
+                'MANDATORY' => 'N', //обязательное
+                'SHOW_FILTER' => 'I',   //показывать в фильтре
+                'SHOW_IN_LIST' => '1', //показывать в списке
+                'EDIT_IN_LIST' => '',  //редактировать в списке
+                'IS_SEARCHABLE' => 'Y', //участвует в поиске
+                'EDIT_FORM_LABEL' => [  //подпись в карточке
+                    'ru' => 'ID контакта в Servio',
+                    'en' => 'Contact ID in Servio',
+                ],
+                'LIST_COLUMN_LABEL' => [ //название в списке
+                    'ru' => 'ID контакта в Servio',
+                    'en' => 'Contact ID in Servio',
+                ],
+                'LIST_FILTER_LABEL' => [ //название в списке фильтра
+                    'ru' => 'ID контакта в Servio',
+                    'en' => 'Contact ID in Servio',
+                ],
+                'ERROR_MESSAGE' => [ //название в списке фильтра
+                    'ru' => 'Ошибка в поле "ID контакта в Servio"',
+                    'en' => 'Error in field "Contact ID in Servio"',
+                ],
+            ],
+        'SERVIO_FIELD_COMPANY_ID' =>
+            [
+                'ENTITY_ID' => 'CRM_COMPANY',
+                'FIELD_NAME' => 'UF_CRM_HMS_COMPANY_ID',
+                'USER_TYPE_ID' => 'double',
+                'XML_ID' => '',
+                'SORT' => 100,
+                'MULTIPLE' => 'N',  //множ
+                'MANDATORY' => 'N', //обязательное
+                'SHOW_FILTER' => 'I',   //показывать в фильтре
+                'SHOW_IN_LIST' => '1', //показывать в списке
+                'EDIT_IN_LIST' => '',  //редактировать в списке
+                'IS_SEARCHABLE' => 'Y', //участвует в поиске
+                'EDIT_FORM_LABEL' => [  //подпись в карточке
+                    'ru' => 'ID компании в Servio',
+                    'en' => 'Company ID in Servio',
+                ],
+                'LIST_COLUMN_LABEL' => [ //название в списке
+                    'ru' => 'ID компании в Servio',
+                    'en' => 'Company ID in Servio',
+                ],
+                'LIST_FILTER_LABEL' => [ //название в списке фильтра
+                    'ru' => 'ID компании в Servio',
+                    'en' => 'Company ID in Servio',
+                ],
+                'ERROR_MESSAGE' => [ //название в списке фильтра
+                    'ru' => 'Ошибка в поле "ID компании в Servio"',
+                    'en' => 'Error in field "Company ID in Servio"',
+                ],
+            ],
+    ];
 
     public static $settings = [
         'SERVIO_URI_LINK' => false,
@@ -84,7 +176,7 @@ class Event
 
             if(!self::$settingErrors)
             {
-                $html = ' <button class="ui-btn ui-btn-success ui-btn-icon-task ui-btn-round mar-rl-1" id="servio">Servio!</button>';
+                $html = '<button class="ui-btn ui-btn-success ui-btn-icon-task ui-btn-round mar-rl-1" id="servio">Servio!</button>';
                 $APPLICATION->AddViewContent('inside_pagetitle', $html,50000);
             }
             else
@@ -104,6 +196,45 @@ class Event
         return [self::$settings,self::$settingErrors];
     }
 
+    public function createFiedsAndOptions()
+    {
+        foreach($this->techFields as $cOpt => $field)
+        {
+            $obj = new \CUserTypeEntity;
+            $createRes = $obj->add($field);
+            if ($createRes) {
+                $this->setCoptionValue($cOpt, $field['FIELD_NAME']);
+            }
+        }
+    }
+
+    public function deleteFieds()
+    {
+        $fieldNames = [];
+        foreach ($this->techFields as $cOpt => $val)
+        {
+            $fieldNames[] = $val['FIELD_NAME'];
+//            delCoption($cOpt);
+
+            if($fieldNames)
+            {
+                $obj = new \CUserTypeEntity;
+
+                $fieldsObj = \Bitrix\Main\UserFieldTable::getList([
+                    'filter' => ['FIELD_NAME' => $fieldNames],
+                    'select' => ['ID']
+                ]);
+                while($ob = $fieldsObj->fetch())
+                {
+                    $obj->delete($ob['ID']);
+                }
+            }
+        }
+    }
+
+    private function setCoptionValue($name,$value){
+        return \Bitrix\Main\Config\Option::set(self::MODULE_ID,$name,$value);
+    }
 
     public function logData($data){
         $file = $_SERVER["DOCUMENT_ROOT"].'/test.log';
