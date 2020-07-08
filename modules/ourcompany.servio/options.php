@@ -55,8 +55,20 @@ $aTabs = [
                 ['text', 100]
             ],
             [
+                'SERVIO_FIELD_COMPANY_ADDRESS',
+                Loc::getMessage('OUR_COMPANY_SERVIO_COMPANY_ADDRESS_FIELD_TITLE'),
+                '',
+                ['text', 100]
+            ],
+            [
                 'SERVIO_FIELD_CONTACT_ID',
                 Loc::getMessage('OUR_COMPANY_SERVIO_CONTACT_FIELD_TITLE'),
+                '',
+                ['text', 100]
+            ],
+            [
+                'SERVIO_FIELD_CONTACT_ADDRESS',
+                Loc::getMessage('OUR_COMPANY_SERVIO_CONTACT_ADDRESS_FIELD_TITLE'),
                 '',
                 ['text', 100]
             ],

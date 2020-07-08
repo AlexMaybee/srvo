@@ -580,7 +580,7 @@ class ServioPopup
             else
             {
                 $(formObj).before(`<div class="ui-alert ui-alert-success custom-success">
-                                <span class="ui-alert-message"><strong>Error!</strong> ${errText}</span>
+                                <span class="ui-alert-message"><strong>Success!</strong> ${errText}</span>
                             </div>`);
             }
         }
@@ -844,7 +844,6 @@ class ServioPopup
             Object.entries(formObj.elements).forEach(([index,elem]) => {
                 if(elem.name !== '')
                 {
-
                     fields[elem.name] = elem.value
 
                     if(elem.type === 'checkbox')
@@ -852,8 +851,6 @@ class ServioPopup
                         fields[elem.name] = ( elem.checked === true ) ? 1  : 0
                     }
                 }
-
-
             });
         }
         else
@@ -863,257 +860,6 @@ class ServioPopup
 
         return fields
     }
-
-    // ShowPicesAndSelect(priceRowsArr)
-    // {
-    //     let i = 1, tableHtml = '', body = '', row,key,value,
-    //         // parentForm = document.getElementById('test_table')
-    //         parentForm = document.getElementById('servio_price_info'),
-    //         roomSelect = document.getElementById('roomCategory'),
-    //         options = '<option value="">Select...</option>'
-    //
-    //
-    //     // console.log('res',priceRowsArr);
-    //
-    //
-    //     // console.log('row',Object.keys(priceRowsArr).length);
-    //
-    //     if(Object.keys(priceRowsArr).length > 0)
-    //     {
-    //         // for(row in priceRowsArr)
-    //         Object.entries(priceRowsArr).forEach(([key, row]) => {
-    //             // console.log('row',key,row);
-    //
-    //             options += `<option value="${row.roomTypeId}">${row.roomTypeName} (${row.FreeRoom} rooms)</option>`
-    //
-    //             body +=
-    //                 `
-    //                 <tr>
-    //                     <td>${i}</td>
-    //                     <td>${row['roomTypeName']}</td>
-    //                     <td>${row['dates']}</td>
-    //                     <td>${row.totalDays}</td>
-    //                     <td>${row.totalPrice}, ${row.currency}</td>
-    //                 </tr>
-    //                 `
-    //             i++
-    //         })
-    //
-    //         tableHtml =
-    //             `
-    //             <table class="table table-sm table-responsive">
-    //                 <thead>
-    //                     <tr>
-    //                         <th scope="col-sm">#</th>
-    //                         <th scope="col-sm">Type</th>
-    //                         <th scope="col-sm">Dates</th>
-    //                         <th scope="col-sm">Days Total</th>
-    //                         <th scope="col-sm">Total Price</th>
-    //                     </tr>
-    //                 </thead>
-    //                 <tbody> ${body}</tbody>
-    //             </>
-    //             `
-    //
-    //         if(parentForm !== null)
-    //         {
-    //             // parentForm.innerHTML = ''
-    //             parentForm.innerHTML = tableHtml
-    //         }
-    //         if(roomSelect !== null)
-    //         {
-    //             // parentForm.innerHTML = ''
-    //             roomSelect.innerHTML = options
-    //         }
-    //
-    //     }
-    // }
-
-    //добавление цен в массив
-    // showPriceLists()
-    // {
-    //
-    //     let i = 1, priceList, roomCategory, servise, price, tableHtml = '', tableBodyHtml = '', tableServises = ''
-    //
-    //     //прайсы + валюта
-    //     if(Object.keys(this.list.categoryPriceData).length > 0)
-    //     {
-    //
-    //         //прайсы
-    //         for(priceList of this.list.categoryPriceData.PriceLists)
-    //         {
-    //             // console.log(1,priceList)
-    //
-    //             // tableBodyHtml += `
-    //             //         <tr>
-    //             //             <td> ${i}</td>
-    //             //             <td rowspan="${priceList.RoomTypes.length}">${priceList.PriceListID}</td>
-    //             //             <td>${(!priceList.IsNonReturnRate) ? 'Yes' : 'No'}</td>
-    //             //             <td>${(priceList.IsSpecRate) ? 'Yes' : 'No'}</td>
-    //             //         `
-    //
-    //             //категории комнат
-    //             for(roomCategory of priceList.RoomTypes)
-    //             {
-    //                 // console.log(2,roomCategory)
-    //
-    //                 //сервисы
-    //
-    //                 tableServises += `<div class="row">`
-    //                 for(servise of roomCategory.Services)
-    //                 {
-    //                     // console.log(3,servise);
-    //
-    //                     tableServises +=
-    //                         `
-    //                         <table width="100%">
-    //                             <thead>
-    //                                 <th>Date</th>
-    //                                 <th>Servise</th>
-    //
-    //                                 <th>Price</th>
-    //                                 <th>Total</th>
-    //                             </thead>
-    //                         </table>
-    //                         `
-    //                 }
-    //                 tableServises += `</div>`
-    //
-    //                 tableBodyHtml += `
-    //
-    //                     <tr>
-    //                         <td> ${i}</td>
-    //                         <td>${priceList.PriceListID}</td>
-    //                         <td>${(!priceList.IsNonReturnRate) ? 'Yes' : 'No'}</td>
-    //                         <td>${(priceList.IsSpecRate) ? 'Yes' : 'No'}</td>
-    //
-    //
-    //
-    //                         <td>${roomCategory.ID}</td>
-    //                         <td>${roomCategory.SaleRestrictions.MinPay.Days}</td>
-    //                         <td>${(roomCategory.SaleRestrictions.MinStay.Days > 0) ? roomCategory.SaleRestrictions.MinStay.Days : ''}</td>
-    //                         <td>
-    //                             <div class="row">
-    //                                 <div class="col-6">SSSS</div>
-    //                                 <div class="col-6">DDDDD</div>
-    //                             </div>
-    //
-    //                         </td>
-    //
-    //
-    //
-    //                     </tr>
-    //                     `
-    //
-    //                 i++
-    //             }
-    //
-    //             // tableBodyHtml += `<tr>`
-    //
-    //
-    //
-    //         }
-    //
-    //
-    //         tableHtml =
-    //             `
-    //                 <table class="table table-sm table-responsive">
-    //                     <thead>
-    //                         <tr>
-    //                             <th scope="col-sm">#</th>
-    //                             <th scope="col-sm">Price List Id</th>
-    //                             <th scope="col-sm">Returnable</th>
-    //                             <th scope="col-sm">Special Rate</th>
-    //                             <th scope="col-sm">Room Type</th>
-    //                             <th scope="col-sm">Min Pay Days</th>
-    //                             <th scope="col-sm">Min Stay Days</th>
-    //                             <th scope="col-sm">Servises</th>
-    //                         </tr>
-    //                     </thead>
-    //                     <tbody>
-    //             ` + tableBodyHtml  +
-    //             `       </tbody>
-    //                 <table>
-    //             `
-    //
-    //         let parentForm = document.getElementById('test_table');
-    //
-    //         if(parentForm !== null)
-    //         {
-    //             parentForm.innerHTML = tableHtml
-    //         }
-    //     }
-    //     console.log('Prices Lists',this.list.categoryPriceData);
-    //     // console.log('Prices Lists',tableHtml);
-    // }
-
-
-
-
-    //!!!Изменение какого-либо фильтра
-
-    //изменение даты "С"
-    // changeDateStart()
-    // {
-    //     let startDateField = document.getElementById('dateFrom'),
-    //         finishDateField = document.getElementById('dateTo'),
-    //         finishDate
-    //
-    //     if(startDateField !== null && finishDateField !== null)
-    //     {
-    //         if(startDateField.value !== '')
-    //         {
-    //             if(startDateField.value == finishDateField.value)
-    //             {
-    //                 finishDate = new Date(startDateField.value)
-    //                 finishDate.setDate(finishDate.getDate()  + 1)
-    //                 finishDateField.value = this.createDate(finishDate);
-    //             }
-    //         }
-    //
-    //         //ОБНОВЛЕНИЕ ПОЛЕЙ ОБЪЕКТА
-    //         this.takeFormData();
-    //
-    //         this.getRoomsByFilter()
-    //     }
-    // }
-
-    // changeFinishDate()
-    // {
-    //     let self = this,
-    //         startDateField = document.getElementById('dateFrom'),
-    //         finishDateField = document.getElementById('dateTo'),
-    //         startDate
-    //
-    //     if(startDateField !== null && finishDateField !== null)
-    //     {
-    //         if(finishDateField.value !== '' && finishDateField.value === startDateField.value)
-    //         {
-    //             startDate = new Date(finishDateField.value);
-    //             startDate.setDate(startDate.getDate() - 1);
-    //             startDateField.value = this.createDate(startDate);
-    //         }
-    //     }
-    //
-    //     //ОБНОВЛЕНИЕ ПОЛЕЙ ОБЪЕКТА
-    //     this.takeFormData();
-    //
-    //     this.getRoomsByFilter();
-    // }
-
-    //Изменеие взрослых и детей
-    // changeTextFields()
-    // {
-    //     //ОБНОВЛЕНИЕ ПОЛЕЙ ОБЪЕКТА
-    //     this.takeFormData();
-    //     this.getRoomsByFilter()
-    // }
-
-    //удаляет все, кроме цифрв полях взрослых и детей
-    // clearAllExeptnums(obj)
-    // {
-    //     obj.value = Number(obj.value.replace(/[^\d]/g,''))
-    // }
 
     showReserveButton()
     {
@@ -1160,7 +906,6 @@ class ServioPopup
         {
             reserveButton.style.display = 'none';
         }
-
     }
 
     //создание резерва
@@ -1210,12 +955,10 @@ class ServioPopup
                             'ROOM_CATEGORY' : this.categoriesObj[formData.roomCategory],
                             'DEAL_ID' : this.deal.id,
                         }
-
                     },
                     function (response) {
-                        console.log('Reserve Response',response)
 
-
+                        // console.log('Reserve Response',response)
 
                         if(response.error !== false)
                         {
@@ -1226,26 +969,29 @@ class ServioPopup
                             let form = document.getElementById('servio_popup')
                             if(form !== null)
                             {
-
                                 self.addErrorsBeforeForm(`Создана бронь № ${response.result}`,'success');
 
                                 if(reserveButtons.length > 0)
                                 {
                                     reserveButtons.forEach(btn => {
-                                        if(!btn.classList.contains('ui-btn-disabled'))
-                                        {
-                                            btn.classList.add('ui-btn-disabled')
-                                        }
+                                        // if(!btn.classList.contains('ui-btn-disabled'))
+                                        // {
+                                        //     btn.classList.add('ui-btn-disabled')
+                                        // }
+
+                                        self.disableElement(btn)
                                     })
                                 }
 
                                 setTimeout(()=>{
                                     popupObj.destroy()
-                                    self.loadServioReservePopup()
 
                                     self.deal.reserveId = response.result
 
                                     console.log('Reservr ID Result',self.deal);
+
+                                    // self.loadServioReservePopup()
+                                    self.loadServioPopupWithReserervation()
 
                                     let servioBtn = document.getElementById('servio')
                                     servioBtn.click();
@@ -1259,8 +1005,6 @@ class ServioPopup
                 //some custom error
             }
 
-
-
         }
         else
         {
@@ -1268,311 +1012,6 @@ class ServioPopup
         }
 
     }
-
-    // loadServioReserveFormPopup()
-    // {
-    //     let self = this,
-    //         html = `<form id="servio_popup" onsubmit="return false" autocomplete="off"></form>`,
-    //         servioBtn = document.getElementById('servio'),
-    //         dateFrom = '',
-    //         dateTo = '',
-    //         dateStart = new Date(),
-    //         dateFinish = new Date(),
-    //         adults = 1,
-    //         childs = 0,
-    //         companyObj = {}, //для хранения данных о компании
-    //         companyName = '', //навзание нашей компании
-    //         // categoriesObj = {}, //для хранения данных категорий для дополнения селектовпри выборе
-    //         roomOptions = '',
-    //         startData = {}, // для передачи стартовых дат и людей,
-    //         popupObj = {}, //объект для попапа
-    //         popupBtnevents = {}, //объект с кнопками попапа
-    //         formHtml = ``
-    //
-    //
-    //     //задаем даты и ограничения
-    //     dateFinish.setDate(dateFinish.getDate()  + 1);
-    //     dateFrom = this.createDate(dateStart)
-    //     dateTo = this.createDate(dateFinish)
-    //     //задаем даты и ограничения
-    //
-    //
-    //
-    //
-    //     //создаем базовый массив для получения категорий при загрузке
-    //     startData = {
-    //         dateFrom : dateFrom,
-    //         dateTo : dateTo,
-    //         adults : adults,
-    //         childs : childs,
-    //         //companyId : 0 //это нужно было бы передавать, но я в php присваиваю
-    //     }
-    //
-    //
-    //     console.log('NEW FORM OPEN',startData);
-    //
-    //     if(servioBtn !== null)
-    //     {
-    //         servioBtn.onclick = () => {
-    //
-    //             //получаем данные резерва
-    //             this.makeAjaxRequest(this.url.ajax, {'ACTION': 'GET_DATA_FOR_FORM', 'FIELDS': startData},
-    //                 function (response) {
-    //                     console.log('TEST NEW POPUP', response)
-    //
-    //                     popupObj = self.makePopupV2('servio-hotel-reservation',html,'Hotel Reservation',popupBtnevents)
-    //                     let popupBody = document.getElementById('servio_popup')
-    //
-    //                     if(response.errors.length > 0)
-    //                     {
-    //                         console.log('Load Form Data Error',response.errors)
-    //                         for(let err of response.errors)
-    //                         {
-    //                             formHtml +=
-    //                                 `
-    //                                  <div class="ui-alert ui-alert-danger custom-error">
-    //                                     <span class="ui-alert-message"><strong>Error! </strong>${err}</span>
-    //                                 </div>
-    //                                 `
-    //                         }
-    //
-    //                         popupBody.innerHTML = formHtml
-    //                     }
-    //                     else
-    //                     {
-    //
-    //                         let tableBody = ``,
-    //                             priceTable = ``,
-    //                             i = 1,
-    //                             companyId = 0
-    //
-    //                         if(response.categories.rooms !== 'undefined')
-    //                         {
-    //                             //сохраняем массив категорий с ценами
-    //                             self.categoriesObj = response.categories.rooms
-    //
-    //
-    //                             roomOptions = '<option>Select...</option>'
-    //                             Object.entries(self.categoriesObj).forEach(([key, row]) => {
-    //                                 roomOptions += `<option value="${row.roomTypeId}">${row.roomTypeName} (${row.FreeRoom}  ${(row.FreeRoom > 1)  ? 'rooms' : 'room' } )</option>`
-    //                                 // console.log('1  Cat',row);
-    //
-    //                                 tableBody +=
-    //                                     `<tr>
-    //                                        <td>${i}</td>
-    //                                        <td>${row['roomTypeName']}</td>
-    //                                        <td>${row['dates']}</td>
-    //                                        <td>${row.totalDays}</td>
-    //                                        <td>${row.totalPrice}, ${row.currency}</td>
-    //                                    </tr>`
-    //                                 i++
-    //                             })
-    //
-    //                             priceTable =
-    //                                 `<table class="table table-sm table-responsive">
-    //                                     <thead>
-    //                                        <tr>
-    //                                            <th scope="col-sm">#</th>
-    //                                            <th scope="col-sm">Type</th>
-    //                                            <th scope="col-sm">Dates</th>
-    //                                            <th scope="col-sm">Days Total</th>
-    //                                            <th scope="col-sm">Total Price</th>
-    //                                        </tr>
-    //                                     </thead>
-    //                                     <tbody> ${tableBody}</tbody>
-    //                                 </table>`
-    //
-    //                         }
-    //                         else
-    //                         {
-    //                             self.categoriesObj = {}
-    //                         }
-    //
-    //                         if(Object.keys(response.company).length > 0)
-    //                         {
-    //                             companyObj = response.company
-    //                             companyId = response.company.CompanyID
-    //                             companyName = response.company.CompanyName
-    //                         }
-    //                         else
-    //                         {
-    //                             companyObj = {}
-    //                         }
-    //
-    //                         popupBody.innerHTML =
-    //                             `<div class="form-row">
-    //                                 <div class="col-sm-6 form-group">
-    //                                     <label for="dateFrom" class="col-form-label-sm">Date From</label>
-    //                                     <input type="date" name="dateFrom" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus" id="dateFrom" title="Select date from" autocomplete="off"
-    //                                         value="${dateFrom}"
-    //                                         min="${dateFrom}"
-    //                                         >
-    //                                 </div>
-    //                                 <div class="col-sm-6 form-group">
-    //                                     <label for="dateTo" class="col-form-label-sm">Date To</label>
-    //                                     <input type="date" name="dateTo" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus" id="dateTo" title="Select date from" autocomplete="off"
-    //                                          value="${dateTo}"
-    //                                          min="${dateTo}"
-    //                                         >
-    //                                 </div>
-    //                             </div>
-    //
-    //                             <div class="form-row">
-    //                                 <div class="form-group col-sm">
-    //                                     <label for="adults">Adults</label>
-    //                                     <input id="adults" name="adults" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus"
-    //                                            value="${adults}"
-    //                                            >
-    //                                 </div>
-    //                             </div>
-    //
-    //                             <div class="form-row">
-    //                                 <div class="form-group col-sm">
-    //                                     <label for="childs">Childs</label>
-    //                                     <input id="childs" name="childs" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus"
-    //                                             value="${childs}"
-    //                                            >
-    //                                 </div>
-    //                             </div>
-    //
-    //                             <div class="form-row">
-    //                                <div class="form-group col-sm">
-    //                                    <label for="roomCategory">Room Category</label>
-    //                                    <select id="roomCategory" name="roomCategory" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">
-    //                                    ${roomOptions}
-    //                                    </select>
-    //                                </div>
-    //                             </div>
-    //
-    //                              <div class="form-row">
-    //                                <div class="form-group col-sm">
-    //                                    <label for="paidType">Paid Type</label>
-    //                                    <select id="paidType" name="paidType" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">
-    //                                        <option value="">Select...</option>
-    //                                        <option value="100">Cash</option>
-    //                                        <option value="200">Credit Card</option>
-    //                                        <option value="300">Private Payment</option>
-    //                                    </select>
-    //                                </div>
-    //                             </div>
-    //
-    //                             <input type="hidden" name="companyId" value="${companyId}">
-    //                             <input type="hidden" name="companyName" value="${companyName}">
-    //
-    //                             <div id="servio_price_info" class="text-center">
-    //                                ${priceTable}
-    //                             </div>
-    //
-    //                              <button type="button" id="add_servio_reserve" class="mt-2 ui-btn ui-btn-danger-dark ui-btn-icon-task ui-btn-round">
-    //                                 Reserve!
-    //                              </button>`
-    //
-    //
-    //
-    //
-    //                         //Здесь реакция на изменения полей и обновление цен + категорий
-    //
-    //                         //  1,2  Изменение поля dateFrom и dateTo
-    //                         let dateFromInput = document.getElementById('dateFrom'),
-    //                             dateToInput = document.getElementById('dateTo')
-    //
-    //                         if(dateFromInput !== null && dateToInput !== null)
-    //                         {
-    //                             dateFromInput.onchange = () => {
-    //
-    //                                 let startDate = new Date(dateFromInput.value),
-    //                                     finishDate = new Date(dateToInput.value)
-    //
-    //                                 if(startDate >= finishDate)
-    //                                 {
-    //                                     finishDate.setDate(startDate.getDate() + 1)
-    //                                     dateToInput.value = self.createDate(finishDate)
-    //                                 }
-    //
-    //                                 //обновление цен  +  селекта комнат
-    //                                 self.getRoomsByFilterNew()
-    //                                 // self.showReserveButton();
-    //                             }
-    //
-    //                             dateToInput.onchange = () => {
-    //                                 let startDate = new Date(dateFromInput.value),
-    //                                     finishDate = new Date(dateToInput.value)
-    //                                 if(startDate >= finishDate)
-    //                                 {
-    //                                     startDate.setDate(finishDate.getDate() - 1)
-    //                                     dateFromInput.value = self.createDate(startDate)
-    //                                 }
-    //
-    //                                 //обновление цен  +  селекта комнат
-    //                                 self.getRoomsByFilterNew()
-    //                                 // self.showReserveButton();
-    //                             }
-    //                         }
-    //
-    //
-    //
-    //
-    //                         //4. Изменение Селекта
-    //                         let roomsCategorySelect = document.getElementById('roomCategory')
-    //                         if(roomsCategorySelect !== null)
-    //                         {
-    //                             roomsCategorySelect.onchange =  function () {
-    //                                 self.showReserveButton();
-    //                             }
-    //                         }
-    //
-    //
-    //                         // 6,7 Изменение значений в полях Adults и Childs
-    //                         let adultsAndChildFields = document.querySelectorAll('#adults, #childs')
-    //                         if(adultsAndChildFields.length > 0)
-    //                         {
-    //                             // let roomCatField = document.getElementById('roomCategory')
-    //                             for(let elem of adultsAndChildFields)
-    //                             {
-    //                                 //запрос категорий при изменении значений полей
-    //                                 elem.onchange = function () {
-    //                                     self.getRoomsByFilterNew()
-    //                                     // self.showReserveButton();
-    //                                 }
-    //
-    //                                 //удаление из полей всего кроме цифр
-    //                                 elem.onkeyup = function () {
-    //                                     this.value = Number(this.value.replace(/[^\d]/g,''))
-    //                                 }
-    //                             }
-    //                         }
-    //
-    //
-    //                         // 8. Изменение селекта  типа оплат
-    //                         let paidTypeField = document.getElementById('paidType')
-    //                         if(paidTypeField !== null)
-    //                         {
-    //                             paidTypeField.onchange = () => {
-    //                                 self.showReserveButton();
-    //                             }
-    //                         }
-    //
-    //
-    //                         // 9. Резервирование
-    //                         let reserveButton = document.getElementById('add_servio_reserve')
-    //                         if(reserveButton !== null)
-    //                         {
-    //                             reserveButton.onclick = () => {
-    //                                 self.addReservation()
-    //                             }
-    //                         }
-    //
-    //                     }
-    //
-    //
-    //
-    //                     popupObj.show();
-    //                 })
-    //         }
-    //     }
-    //
-    //
-    // }
 
 
     loadReservePopupV5()
@@ -1731,7 +1170,6 @@ class ServioPopup
                    
                </div>
                   
-                                 
                <button type="button" id="add_servio_reserve" class="mt-2 ui-btn ui-btn-danger-dark ui-btn-icon-cloud">
                   Reserve!
                </button>
@@ -1910,7 +1348,6 @@ class ServioPopup
                                             </table>`
 
 
-
                                 priceHtmlBlock.innerHTML = priceTableTh;
 
 
@@ -1952,19 +1389,6 @@ class ServioPopup
                     )
                 }
 
-
-
-                // reserveButtons = document.getElementById('add_servio_reserve')
-                // reserveButtons = document.querySelectorAll('.add-reserve')
-                // console.log('Reserve Buttons',reserveButtons);
-                // if(reserveButtons !== null)
-                // {
-                //     reserveButton.onclick = () => {
-                //
-                //         self.addReservation(popupObj)
-                //     }
-                // }
-
             }
         }
 
@@ -1980,10 +1404,30 @@ class ServioPopup
                 let startDate = new Date(dateFromInput.value),
                     finishDate = new Date(dateToInput.value)
 
+                console.log('DDDD',startDate,finishDate,startDate > finishDate);
+
                 if(startDate >= finishDate)
                 {
-                    finishDate.setDate(startDate.getDate() + 1)
+                    if(startDate.getMonth() === finishDate.getMonth())
+                    {
+                        finishDate.setDate(startDate.getDate() + 1)
+
+                    }
+                    else
+                    {
+                        console.log('IIIII',startDate.getMonth(),finishDate.getMonth(),startDate.getMonth() - finishDate.getMonth());
+
+                        let Ddd = new Date();
+
+                        Ddd.setDate(startDate.getMonth() + (startDate.getMonth() - finishDate.getMonth()))
+                        console.log('HI!',startDate.getMonth() + (startDate.getMonth() - finishDate.getMonth()));
+
+                        finishDate.setMonth(startDate.getMonth())
+                        // finishDate.setDate(startDate.getDate() + 1)
+                        // dateToInput.value = self.createDate(finishDate)
+                    }
                     dateToInput.value = self.createDate(finishDate)
+                    console.log('BBBB',self.createDate(finishDate));
                 }
 
                 //обновление цен  +  селекта комнат
@@ -2025,809 +1469,7 @@ class ServioPopup
                 }
             }
         }
-
         popupObj.show()
-
-    }
-
-    loadReservePopupV4()
-    {
-        let self = this,
-            servioBtn = document.getElementById('servio'),
-            dateStart = new Date(),
-            dateFinish = new Date(),
-            dateFrom = '',
-            dateTo = '',
-            popupObj = {},
-            html = ``,
-            company = {
-                id : 0,
-                name : ''
-            }
-
-
-
-        //задаем даты и ограничения
-        dateFinish.setDate(dateFinish.getDate()  + 1);
-        dateFrom = this.createDate(dateStart)
-        dateTo = this.createDate(dateFinish)
-        //задаем даты и ограничения
-
-        html =
-            `<form id="servio_popup" onsubmit="return false" autocomplete="off">
-                <div class="form-row">
-                    <div class="col-sm-6 form-group">
-                        <label for="dateFrom" class="col-form-label-sm">Date From</label>
-                        <input type="date" name="dateFrom" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus" id="dateFrom" title="Select date from" autocomplete="off"
-                            value="${dateFrom}"
-                            min="${dateFrom}"
-                            >
-                    </div>
-                    <div class="col-sm-6 form-group">
-                        <label for="dateTo" class="col-form-label-sm">Date To</label>
-                        <input type="date" name="dateTo" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus" id="dateTo" title="Select date from" autocomplete="off"
-                             value="${dateTo}"
-                             min="${dateTo}"
-                            >
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group col-sm">
-                        <label for="adults">Adults</label>
-                        <input id="adults" name="adults" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus"
-                            value="1"
-                        >
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group col-sm">
-                        <label for="childs">Childs</label>
-                        <input id="childs" name="childs" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus"
-                             value="0"
-                        >
-                    </div>
-                </div>
-                
-                 <div class="form-row hidden-input">
-                    <div class="form-group col-sm">
-                        <label for="childAges">Child Ages</label>
-                        <input id="childAges" name="childAges" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                <div class="form-group col-sm">
-                   <label for="hootelId">Hotel</label>
-                   <select id="hootelId" name="hootelId" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus" disabled>
-                       <option value="">Select...</option>
-                       <option value="1" selected>Hotel 1</option>
-                   </select>
-                </div>
-                </div>
-                                
-                <div class="form-row">
-                <div class="form-group col-sm">
-                   <label for="paidType">Paid Type</label>
-                   <select id="paidType" name="paidType" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">
-                       <option value="">Select...</option>
-                       <option value="100">Cash</option>
-                       <option value="200">Credit Card</option>
-                       <option value="300">Private Payment</option>
-                   </select>
-                </div>
-                </div>
-                
-                
-               <div class="form-row">
-                   <div class="form-group col-sm">
-                        <label for="lpAuthCode">Loyality Programm Code</label>
-                        <input id="lpAuthCode" name="lpAuthCode" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">
-                   </div>
-               </div>
-                
-               <div class="form-group form-check">
-                    <input type="checkbox" class="form-check-input" id="extraBed" name="extraBed" value="">
-                    <label class="form-check-label" for="extraBed">Need Extra Bed</label>
-               </div>
-                
-               <div class="form-group form-check">
-                    <input type="checkbox" class="form-check-input" id="transport" name="transport" value="">
-                    <label class="form-check-label" for="transport">Need Transport</label>
-               </div>
-                
-               <div class="form-group form-check">
-                    <input type="checkbox" class="form-check-input" id="touristTax" name="touristTax" value="">
-                    <label class="form-check-label" for="touristTax">Tourist Tax</label>
-               </div>
-                
-                <!--<div class="form-row">-->
-                   <!--<div class="form-group col-sm">-->
-                       <!--<label for="roomCategory">Room Category</label>-->
-                       <!--<select id="roomCategory" name="roomCategory" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">-->
-                           <!--<option value="">Select...</option>-->
-                       <!--</select>-->
-                   <!--</div>-->
-                <!--</div>-->
-                
-                
-               <input type="hidden" name="companyId" id="companyId" value="">
-               <input type="hidden" name="companyName" id="companyName" value="">
-                <input type="hidden" name="companyCodeId" id="companyCodeId" value="">
-                
-               <div class="ui-btn-container ui-btn-container-center text-right">
-                  <button type="button" id="servio_search" class="mt-2 ui-btn ui-btn-primary-dark ui-btn-right ui-btn-icon-search">
-                      Search
-                  </button>
-               </div>
-                
-                  
-               <div id="servio_price_info" class="text-center">
-                   
-               </div>
-                  
-               <button type="button" id="add_servio_reserve" class="mt-2 ui-btn ui-btn-danger-dark ui-btn-icon-cloud">
-                  Reserve!
-               </button>
-            </form>`
-
-        if(servioBtn !== null) {
-            //формируем popup с формой
-            popupObj = self.makePopupV2('servio-hotel-reservation', html, 'Hotel Reservation', {})
-
-            let form = document.getElementById('servio_popup')
-
-            this.makeAjaxRequest(this.url.ajax,{'ACTION' : 'GET_COMPANY_INFO'},
-                function (response) {
-                    console.log('COMPANY RESULT', response);
-
-                    if (response.error != false) {
-                        // self.addErrorsBeforeForm(response.error, 'error')
-                        self.addErrorsBeforeFormNew(form,response.error, 'error')
-                    }
-                    else
-                    {
-                        company.id = response.result.CompanyID
-                        company.name = response.result.CompanyName
-
-
-                        let companyIdField = document.getElementById('companyId'),
-                            companyNameField = document.getElementById('companyName'),
-                            companyCodeIdField = document.getElementById('companyCodeId')
-
-                        if(companyIdField !== null)
-                        {
-                            companyIdField.value = response.result.CompanyID;
-                        }
-                        if(companyNameField !== null)
-                        {
-                            companyNameField.value = response.result.CompanyName;
-                        }
-                        if(companyCodeIdField !== null)
-                        {
-                            companyCodeIdField.value = response.result.CompanyCodeID;
-                        }
-                    }
-
-
-                    //здесь реакция на изменение полей
-
-                    //  1,2  Изменение поля dateFrom и dateTo
-                    let dateFromInput = document.getElementById('dateFrom'),
-                        dateToInput = document.getElementById('dateTo')
-
-                    if(dateFromInput !== null && dateToInput !== null)
-                    {
-                        dateFromInput.onchange = () => {
-
-                            let startDate = new Date(dateFromInput.value),
-                                finishDate = new Date(dateToInput.value)
-
-                            if(startDate >= finishDate)
-                            {
-                                finishDate.setDate(startDate.getDate() + 1)
-                                dateToInput.value = self.createDate(finishDate)
-                            }
-
-                            //обновление цен  +  селекта комнат
-                            // self.getRoomsByFilterNew()
-                            // self.showReserveButton();
-                        }
-
-                        dateToInput.onchange = () => {
-                            let startDate = new Date(dateFromInput.value),
-                                finishDate = new Date(dateToInput.value)
-                            if(startDate >= finishDate)
-                            {
-                                startDate.setDate(finishDate.getDate() - 1)
-                                dateFromInput.value = self.createDate(startDate)
-                            }
-
-                            //обновление цен  +  селекта комнат
-                            // self.getRoomsByFilterNew()
-                            // self.showReserveButton();
-                        }
-                    }
-
-
-                    // 3,4 Изменение значений в полях Adults и Childs
-                    let adultsAndChildFields = document.querySelectorAll('#adults, #childs'),
-                        chuldAgesField = document.getElementById('childAges')
-
-                    if(adultsAndChildFields.length > 0)
-                    {
-                        // let roomCatField = document.getElementById('roomCategory')
-                        for(let elem of adultsAndChildFields)
-                        {
-                            //запрос категорий при изменении значений полей
-                            elem.onchange = function () {
-                                // self.getRoomsByFilterNew()
-                                // self.showReserveButton();
-
-                                if(elem.name === 'childs')
-                                {
-                                    if(chuldAgesField !== null)
-                                    {
-                                        if(elem.value != 0)
-                                        {
-                                            chuldAgesField.closest('.form-row ').classList.remove('hidden-input')
-                                        }
-                                        else
-                                        {
-                                            chuldAgesField.value = ''
-                                            chuldAgesField.closest('.form-row ').classList.add('hidden-input')
-                                        }
-                                    }
-                                }
-                            }
-
-                            //удаление из полей всего кроме цифр
-                            elem.onkeyup = function () {
-                                this.value = Number(this.value.replace(/[^\d]/g,''))
-
-                                if(this.name === 'adults' && this.value == 0)
-                                {
-                                    this.value = 1
-                                }
-                            }
-                        }
-                    }
-
-                    //изменение поля возраста детей
-                    if(chuldAgesField !== null)
-                    {
-                        chuldAgesField.onkeyup = () =>
-                        {
-                            // chuldAgesField.value = Number(chuldAgesField.value.replace(/[^\s\d]+/g,''))
-                            chuldAgesField.value = chuldAgesField.value.replace(/[^\s\d]+/g,'')
-                            if(chuldAgesField.value == 0)
-                            {
-                                chuldAgesField.value = ''
-                            }
-                        }
-
-                        chuldAgesField.onchange = () =>
-                        {
-                            chuldAgesField.value = chuldAgesField.value.trimRight()
-                            // console.log('test Ages!', chuldAgesField.value);
-                        }
-                    }
-
-
-                    //нажатие на поиск
-                    let searchBtn = document.getElementById('servio_search')
-                    if(searchBtn !== null)
-                    {
-                        //для очистки ошибок и сообщений
-                        const popupContent = document.getElementById('popup-window-content-servio-hotel-reservation')
-
-                        searchBtn.onclick = () => {
-                            // получаем данные формы и валидируем их
-                            let fields = self.getFromFieldsData(form)
-                            console.log('fORM dATA',fields);
-
-
-                            //удаление ошибок и сообщений
-                            self.deleteErrorsinForm(popupContent);
-                            //бореры нормального цвета
-                            let formFileldsElems = form.querySelectorAll('input,select,textarea')
-                            if(formFileldsElems.length > 0)
-                            {
-                                for(let inptField of formFileldsElems)
-                                {
-                                    if(inptField.classList.contains('my-error-field'))
-                                    {
-                                        inptField.classList.remove('my-error-field')
-                                    }
-                                }
-                            }
-
-
-                            //валидация
-
-                            // console.log('iii',fields.childs,fields.childAges.split(' '), Number(fields.childs) == fields.childAges.split(' ').length);
-
-                            if(
-                                fields.dateFrom == '' || fields.dateTo == '' || fields.adults == '' || fields.childs == ''
-                                ||
-                                (
-                                    Number(fields.childs) > 0 &&
-                                    (
-                                        fields.childAges.trim().length == 0 ||
-                                        Number(fields.childs) != fields.childAges.trim().split(' ').length
-                                    )
-                                )
-                            )
-                            {
-                                if(fields.dateFrom == '' )
-                                {
-                                    let df = form.querySelector('#dateFrom')
-                                    df.classList.add('my-error-field')
-                                    self.addErrorsBeforeFormNew(form,`Fill Date From field!`, 'error')
-                                }
-                                if(fields.dateTo == '' )
-                                {
-                                    let dt = form.querySelector('#dateTo')
-                                    dt.classList.add('my-error-field')
-                                    self.addErrorsBeforeFormNew(form,`Fill Date To field!`, 'error')
-                                }
-                                if(fields.adults == '' )
-                                {
-                                    let adt = form.querySelector('#adults')
-                                    adt.classList.add('my-error-field')
-                                    self.addErrorsBeforeFormNew(form,`Set adults number > 0!`, 'error')
-                                }
-                                if(fields.childs == '' )
-                                {
-                                    let chlds = form.querySelector('#childs')
-                                    chlds.classList.add('my-error-field')
-                                    self.addErrorsBeforeFormNew(form,`Set childs number or 0!`, 'error')
-                                }
-                                if((Number(fields.childs) > 0 && fields.childAges.trim().length == 0 || Number(fields.childs) != fields.childAges.trim().split(' ').length))
-                                {
-                                    let chlds = form.querySelector('#childs'),
-                                        chldsAgs = form.querySelector('#childAges')
-                                    chlds.classList.add('my-error-field')
-                                    chldsAgs.classList.add('my-error-field')
-                                    self.addErrorsBeforeFormNew(form,`Number of childs must be equal numbers in child ages!`, 'error')
-                                }
-                            }
-
-                            else
-                            {
-
-                                //ajax для получения цен
-
-                                self.makeAjaxRequest(self.url.ajax,{ACTION : 'GET_PRICES_BY_FILTER',FIELDS : fields},
-                                    function (response) {
-
-                                        console.log('GET PRICES LAST',response);
-
-                                    })
-
-                            }
-
-                        }
-
-                    }
-
-
-                })
-
-
-            servioBtn.onclick = () => {
-                popupObj.show()
-            }
-        }
-
-    }
-
-    loadServioReserveFormPopupV3()
-    {
-
-        let self = this,
-            servioBtn = document.getElementById('servio'),
-            popupBtnevents = {},
-            dateStart = new Date(),
-            dateFinish = new Date(),
-            dateFrom = '',
-            dateTo = '',
-            popupObj = {},
-            html = ``,
-            company = {
-                id : 0,
-                name : ''
-            }
-
-        //задаем даты и ограничения
-        dateFinish.setDate(dateFinish.getDate()  + 1);
-        dateFrom = this.createDate(dateStart)
-        dateTo = this.createDate(dateFinish)
-        //задаем даты и ограничения
-
-
-        html=
-            `<form id="servio_popup" onsubmit="return false" autocomplete="off">
-                <div class="form-row">
-                    <div class="col-sm-6 form-group">
-                        <label for="dateFrom" class="col-form-label-sm">Date From</label>
-                        <input type="date" name="dateFrom" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus" id="dateFrom" title="Select date from" autocomplete="off"
-                            value="${dateFrom}"
-                            min="${dateFrom}"
-                            >
-                    </div>
-                    <div class="col-sm-6 form-group">
-                        <label for="dateTo" class="col-form-label-sm">Date To</label>
-                        <input type="date" name="dateTo" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus" id="dateTo" title="Select date from" autocomplete="off"
-                             value="${dateTo}"
-                             min="${dateTo}"
-                            >
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group col-sm">
-                        <label for="adults">Adults</label>
-                        <input id="adults" name="adults" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus"
-                               value="0"
-                               >
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group col-sm">
-                        <label for="childs">Childs</label>
-                        <input id="childs" name="childs" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus"
-                                value="0"
-                               >
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                   <div class="form-group col-sm">
-                       <label for="roomCategory">Room Category</label>
-                       <select id="roomCategory" name="roomCategory" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">
-                           <option value="">Select...</option>
-                       </select>
-                   </div>
-                </div>
-                
-                 <div class="form-row">
-                   <div class="form-group col-sm">
-                       <label for="paidType">Paid Type</label>
-                       <select id="paidType" name="paidType" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">
-                           <option value="">Select...</option>
-                           <option value="100">Cash</option>
-                           <option value="200">Credit Card</option>
-                           <option value="300">Private Payment</option>
-                       </select>
-                   </div>
-                </div>
-                
-                <input type="hidden" name="companyId" id="companyId" value="">
-                <input type="hidden" name="companyName" id="companyName" value="">
-                  
-                <div id="servio_price_info" class="text-center">
-                   
-                </div>
-                  
-                 <button type="button" id="add_servio_reserve" class="mt-2 ui-btn ui-btn-danger-dark ui-btn-icon-task ui-btn-round">
-                    Reserve!
-                 </button>
-            </form>`
-
-
-        if(servioBtn !== null)
-        {
-            //формируем popup с формой
-            popupObj = self.makePopupV2('servio-hotel-reservation',html,'Hotel Reservation',popupBtnevents)
-
-            this.makeAjaxRequest(this.url.ajax,{'ACTION' : 'GET_COMPANY_INFO'},
-                function (response) {
-                    console.log('COMPANY RESULT',response);
-
-                    if(response.error != false)
-                    {
-                        self.addErrorsBeforeForm(response.error,'error')
-                    }
-                    else
-                    {
-                        company.id = response.result.CompanyID
-                        company.name = response.result.CompanyName
-
-
-                        let companyIdField = document.getElementById('companyId'),
-                            companyNameField = document.getElementById('companyName')
-                        if(companyIdField !== null)
-                        {
-                            companyIdField.value = response.result.CompanyID;
-                        }
-                        if(companyNameField !== null)
-                        {
-                            companyNameField.value = response.result.CompanyName;
-                        }
-                    }
-
-
-                })
-
-
-            servioBtn.onclick = () => {
-
-                //здесь реакция на изменение полей
-
-                //  1,2  Изменение поля dateFrom и dateTo
-                let dateFromInput = document.getElementById('dateFrom'),
-                    dateToInput = document.getElementById('dateTo')
-
-                if(dateFromInput !== null && dateToInput !== null)
-                {
-                    dateFromInput.onchange = () => {
-
-                        let startDate = new Date(dateFromInput.value),
-                            finishDate = new Date(dateToInput.value)
-
-                        if(startDate >= finishDate)
-                        {
-                            finishDate.setDate(startDate.getDate() + 1)
-                            dateToInput.value = self.createDate(finishDate)
-                        }
-
-                        //обновление цен  +  селекта комнат
-                        self.getRoomsByFilterNew()
-                        // self.showReserveButton();
-                    }
-
-                    dateToInput.onchange = () => {
-                        let startDate = new Date(dateFromInput.value),
-                            finishDate = new Date(dateToInput.value)
-                        if(startDate >= finishDate)
-                        {
-                            startDate.setDate(finishDate.getDate() - 1)
-                            dateFromInput.value = self.createDate(startDate)
-                        }
-
-                        //обновление цен  +  селекта комнат
-                        self.getRoomsByFilterNew()
-                        // self.showReserveButton();
-                    }
-                }
-
-
-
-
-                //4. Изменение Селекта
-                let roomsCategorySelect = document.getElementById('roomCategory')
-                if(roomsCategorySelect !== null)
-                {
-                    roomsCategorySelect.onchange =  function () {
-                        self.showReserveButton();
-                    }
-                }
-
-
-                // 6,7 Изменение значений в полях Adults и Childs
-                let adultsAndChildFields = document.querySelectorAll('#adults, #childs')
-                if(adultsAndChildFields.length > 0)
-                {
-                    // let roomCatField = document.getElementById('roomCategory')
-                    for(let elem of adultsAndChildFields)
-                    {
-                        //запрос категорий при изменении значений полей
-                        elem.onchange = function () {
-                            self.getRoomsByFilterNew()
-                            // self.showReserveButton();
-                        }
-
-                        //удаление из полей всего кроме цифр
-                        elem.onkeyup = function () {
-                            this.value = Number(this.value.replace(/[^\d]/g,''))
-                        }
-                    }
-                }
-
-
-                // 8. Изменение селекта  типа оплат
-                let paidTypeField = document.getElementById('paidType')
-                if(paidTypeField !== null)
-                {
-                    paidTypeField.onchange = () => {
-                        self.showReserveButton();
-                    }
-                }
-
-
-                // 9. Резервирование
-                let reserveButton = document.getElementById('add_servio_reserve')
-                if(reserveButton !== null)
-                {
-                    reserveButton.onclick = () => {
-                        self.addReservation(popupObj)
-                    }
-                }
-
-                popupObj.show()
-            }
-        }
-
-    }
-
-
-
-    loadServioReservePopup()
-    {
-        // console.log(this.deal);
-
-        let self= this,
-            html = `<div id="servio_reserve_view"></div>`,
-            servioBtn = document.getElementById('servio'),
-            popupObj = {},
-            popupBtnevents =
-                {
-                    onPopupClose: function(PopupWindow) {
-                        // Событие при закрытии окна
-                        PopupWindow.destroy()
-                    },
-
-                    // События при показе окна
-                    onPopupShow: function() {
-
-                    },
-                }
-
-        if(servioBtn !== null)
-        {
-            servioBtn.onclick = () =>
-            {
-
-                //получаем данные резерва
-                this.makeAjaxRequest(this.url.ajax, {'ACTION': 'GET_RESERVE_BY_ID', 'RESERVE_ID': this.deal.reserveId},
-                    function (response) {
-                        console.log('RESERVE DATA', response)
-
-                        popupObj = self.makePopupV2('servio-hotel-reservation-view',html,'Hotel Reservation View',popupBtnevents)
-                        let popupBody = document.getElementById('servio_reserve_view')
-
-
-                        //error append
-                        if(response.Result !== 0)
-                        {
-                            if(popupBody !== null)
-                            {
-                                popupBody.innerHTML =
-                                    `
-                                        <div class="ui-alert ui-alert-danger custom-error">
-                                            <span class="ui-alert-message"><strong>Error! </strong>${response.Error}</span>
-                                        </div>
-                                    `
-                            }
-                        }
-                        else
-                        {
-                            let servisesTable = ''
-
-                            // response.Services.forEach(([key, service]) => {
-                            for(let service of response.Services){
-                                // console.log('1',service);
-                                for(let price of service.PriceDate){
-                                    servisesTable +=
-                                        `
-                                            <tr>
-                                                <td>${service.ServiceName}</td>
-                                                <td>${price.Date}</td>
-                                                <td>${price.Price}</td>
-                                                <td class="ui-alert ${(price.IsPaid === true) ? 'ui-alert-success' : 'ui-alert-danger'}">${price.IsPaid}</td>
-                                            </tr>
-                                        `
-                                }
-                            }
-
-                            let reserveData =
-                                `
-                                    <div class="row ">
-                                        <div class="col-sm-6 ui-alert ui-alert-default">Serviceprovider Name</div>
-                                        <div class="col-sm-6 ui-alert ui-alert-success">
-                                            <span class="ui-alert-message"><strong>${response.ServiceProviderName}</strong></span>
-                                            </div>
-                                    </div>
-                                    <div class="row ">
-                                        <div class="col-sm-6 ui-alert ui-alert-default">Reserve Status</div>
-                                        <div class="col-sm-6 ui-alert ui-alert-danger">
-                                            <span class="ui-alert-message"><strong>${response.StatusName}</strong></span>
-                                            </div>
-                                    </div>
-                                    <div class="row ">
-                                        <div class="col-sm-6 ui-alert ui-alert-default">Account Name</div>
-                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.AccountName}</div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-6 ui-alert ui-alert-default">Email</div>
-                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.Email}</div>
-                                    </div>
-                                      <div class="row">
-                                        <div class="col-sm-6 ui-alert ui-alert-default">Date From</div>
-                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.DateArrival}</div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-6 ui-alert ui-alert-default">Date To</div>
-                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.DateDeparture}</div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-6 ui-alert ui-alert-default">Adults</div>
-                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.Adults}</div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-6 ui-alert ui-alert-default">Childs</div>
-                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.Childs}</div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-6 ui-alert ui-alert-default">Room Type</div>
-                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.RoomType}</div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-6 ui-alert ui-alert-default">Paid Type</div>
-                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.PaidType}</div>
-                                    </div>
-                                    
-                                   <div class="row">
-                                        <table class="table table-sm table-responsive">
-                                            <thead>
-                                                <th>Servise</th>
-                                                <th>Dates</th>
-                                                <th>Prices, ${response.ValuteShort}</th>
-                                                <th>Is Paid</th>
-                                            </thead>
-                                            <tbody>
-                                                ${servisesTable}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    
-                                    <button class="ui-btn ui-btn-danger" id="reserveCancelBtn">Отменить</button>
-                                    <button class="ui-btn ui-btn-success" id="reserveAcceptBtn">Подтвердить</button>
-                                    <button class="ui-btn ui-btn-secondary" id="getReserveBill">Счет</button>
-                            `
-                            popupBody.innerHTML = reserveData
-
-                        }
-
-
-                        //НАЖАТИЕ НА КНОПКИ
-                        let cancelBtn = document.getElementById('reserveCancelBtn'),
-                            confirmBtn = document.getElementById('reserveAcceptBtn'),
-                            billBtn = document.getElementById('getReserveBill')
-
-                        if(cancelBtn !== null)
-                        {
-                            cancelBtn.onclick = () => {
-                                console.log('cancelBtn');
-                            }
-                        }
-
-                        if(confirmBtn !== null)
-                        {
-                            confirmBtn.onclick = () => {
-                                console.log('confirmBtn');
-                                // self.confirmReserve(self.deal)
-                                // self.testGetDocument()
-                            }
-                        }
-
-                        if(billBtn !== null)
-                        {
-                            billBtn.onclick = () => {
-                                console.log('billBtn');
-                                // self.getBillForReserve(self.deal)
-                            }
-                        }
-
-                        //show popup
-                        popupObj.show()
-                    })
-            }
-        }
-
     }
 
     loadServioPopupWithReserervation()
@@ -2838,14 +1480,18 @@ class ServioPopup
             html = `<div id="servio_reserve_view"></div>`,
             popupBody,
             servisesTable = '',
+            servisesTableInner = '',
             reserveDataHtml = '',
             cancelBtn, confirmBtn, billBtn
+
 
         popupObj = self.makePopupV2('servio-hotel-reservation-view',html,'Hotel Reservation View',{})
 
         //получаем данные резерва
         this.makeAjaxRequest(this.url.ajax, {'ACTION': 'GET_RESERVE_BY_ID', 'RESERVE_ID': this.deal.reserveId},
             function (response) {
+
+                console.log('Load Reserve',response);
                 popupBody = document.getElementById('servio_reserve_view')
 
                 if(response.Result !== 0)
@@ -2860,31 +1506,52 @@ class ServioPopup
                 }
                 else
                 {
-                    for(let service of response.Services){
-                        for(let price of service.PriceDate){
-                            servisesTable +=
-                                `<tr>
-                                    <td>${service.ServiceName}</td>
-                                    <td>${price.Date}</td>
-                                    <td>${price.Price}</td>
-                                    <td class="ui-alert ${(price.IsPaid === true) ? 'ui-alert-success' : 'ui-alert-danger'}">${price.IsPaid}</td>
-                                </tr>`
+                    if(response.Services.length > 0)
+                    {
+                        for(let service of response.Services){
+                            for(let price of service.PriceDate){
+                                servisesTableInner +=
+                                    `<tr>
+                                        <td>${service.ServiceName}</td>
+                                        <td>${price.Date}</td>
+                                        <td>${price.Price}</td>
+                                        <td class="ui-alert ${(price.IsPaid === true) ? 'ui-alert-success' : 'ui-alert-danger'}">${price.IsPaid}</td>
+                                    </tr>`
+                            }
+                        }
 
-                            reserveDataHtml =
-                                `
-                                    <div class="row ">
+                        servisesTable =
+                            `<div class="row">
+                                <table class="table table-sm table-responsive">
+                                    <thead>
+                                        <th>Servise</th>
+                                        <th>Dates</th>
+                                        <th>Prices, ${response.ValuteShort}</th>
+                                        <th>Is Paid</th>
+                                    </thead>
+                                    <tbody>
+                                        ${servisesTableInner}
+                                    </tbody>
+                                </table>
+                            </div>`
+                    }
+
+
+                    reserveDataHtml =
+                        `
+                                    <div class="row">
                                         <div class="col-sm-6 ui-alert ui-alert-default">Serviceprovider Name</div>
                                         <div class="col-sm-6 ui-alert ui-alert-success">
                                             <span class="ui-alert-message"><strong>${response.ServiceProviderName}</strong></span>
                                             </div>
                                     </div>
-                                    <div class="row ">
+                                    <div class="row">
                                         <div class="col-sm-6 ui-alert ui-alert-default">Reserve Status</div>
                                         <div class="col-sm-6 ui-alert ui-alert-danger">
                                             <span class="ui-alert-message"><strong>${response.StatusName}</strong></span>
                                             </div>
                                     </div>
-                                    <div class="row ">
+                                    <div class="row">
                                         <div class="col-sm-6 ui-alert ui-alert-default">Account Name</div>
                                         <div class="col-sm-6 ui-alert ui-alert-primary">${response.AccountName}</div>
                                     </div>
@@ -2914,29 +1581,15 @@ class ServioPopup
                                     </div>
                                     <div class="row">
                                         <div class="col-sm-6 ui-alert ui-alert-default">Paid Type</div>
-                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.PaidType}</div>
+                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.PaidTypeText}</div>
                                     </div>
                                     
-                                   <div class="row">
-                                        <table class="table table-sm table-responsive">
-                                            <thead>
-                                                <th>Servise</th>
-                                                <th>Dates</th>
-                                                <th>Prices, ${response.ValuteShort}</th>
-                                                <th>Is Paid</th>
-                                            </thead>
-                                            <tbody>
-                                                ${servisesTable}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                    ${servisesTable}
                                     
                                     <button class="ui-btn ui-btn-danger" id="reserveCancelBtn">Отменить</button>
                                     <button class="ui-btn ui-btn-success" id="reserveAcceptBtn">Подтвердить</button>
                                     <button class="ui-btn ui-btn-secondary" id="getReserveBill">Счет</button>
                             `
-                        }
-                    }
                 }
 
                 popupBody.innerHTML = reserveDataHtml
@@ -2951,25 +1604,28 @@ class ServioPopup
 
                 if(cancelBtn !== null)
                 {
-                    cancelBtn.onclick = () => {
+                    cancelBtn.onclick = () =>
+                    {
                         console.log('cancelBtn');
                     }
                 }
 
                 if(confirmBtn !== null)
                 {
-                    confirmBtn.onclick = () => {
-                        console.log('confirmBtn');
-                        // self.confirmReserve(self.deal)
-                        // self.testGetDocument()
+                    confirmBtn.onclick = () =>
+                    {
+                        // console.log('confirmBtn');
+                        self.confirmReserve(self.deal,confirmBtn)
+                        // self.testGetDocument(28199)
                     }
                 }
 
                 if(billBtn !== null)
                 {
-                    billBtn.onclick = () => {
+                    billBtn.onclick = () =>
+                    {
                         console.log('billBtn');
-                        // self.getBillForReserve(self.deal)
+                        self.getBillForReserve(self.deal)
                     }
                 }
 
@@ -2978,14 +1634,17 @@ class ServioPopup
 
 
 
-
-
-
-
         //show popup
         popupObj.show()
     }
 
+    disableElement(elemObj)
+    {
+        if(!elemObj.classList.contains('ui-btn-disabled'))
+        {
+            elemObj.classList.add('ui-btn-disabled')
+        }
+    }
 
     //отображение/скрытие 2х полей
     toggleReserveFields(flag)
@@ -3011,23 +1670,40 @@ class ServioPopup
 
     }
 
-    testGetDocument()
-    {
-        this.makeAjaxRequest(this.url.ajax, {'ACTION': 'TEST_GET_DOCUMENT', 'DOCUMENT_ID': 28110},
-            function (response) {
-                console.log('TEST_GET_DOCUMENT', response)
-            }
-        )
-    }
+    // testGetDocument(docId)
+    // {
+    //     this.makeAjaxRequest(this.url.ajax, {'ACTION': 'TEST_GET_DOCUMENT', 'DOCUMENT_ID': docId},
+    //         function (response) {
+    //             console.log('TEST_GET_DOCUMENT', response)
+    //         }
+    //     )
+    // }
 
-    confirmReserve(dealObj)
+    confirmReserve(dealObj,btnObj)
     {
         // console.log('confirm reserve',dealObj)
+
+        let self = this,
+            viewPopup = document.getElementById('servio_reserve_view'),
+            firstRow = viewPopup.querySelector('.row')
+
+        self.deleteErrorsinForm(viewPopup)
+        // self.addErrorsBeforeFormNew(firstRow,'HEllo, Man!','success')
 
         //ajax to get bill
         this.makeAjaxRequest(this.url.ajax, {'ACTION': 'CONFIRM_RESERVE', 'FIELDS': dealObj},
             function (response) {
                 console.log('CONFIRM RESERVE', response)
+
+                if(response.error)
+                {
+                    self.addErrorsBeforeFormNew(firstRow,response.error,'error')
+                }
+                else
+                {
+                    self.addErrorsBeforeFormNew(firstRow,'Файл потверждения сохранен в сделке! Обновите страницу!','success')
+                    self.disableElement(btnObj)
+                }
             }
         )
     }
@@ -3036,12 +1712,12 @@ class ServioPopup
     {
         console.log('getBill',dealObj)
 
-        //ajax to get bill
-        // this.makeAjaxRequest(this.url.ajax, {'ACTION': 'GET_BILL_FOR_RESERVE', 'FIELDS': reserveId},
-        //     function (response) {
-        //         console.log('RESERVE BILL DATA', response)
-        //     }
-        // )
+        // ajax to get bill
+        this.makeAjaxRequest(this.url.ajax, {'ACTION': 'GET_BILL_FOR_RESERVE', 'FIELDS': dealObj},
+            function (response) {
+                console.log('RESERVE BILL DATA', response)
+            }
+        )
 
     }
 

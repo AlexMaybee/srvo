@@ -9,7 +9,7 @@ class Event
 {
     const MODULE_ID = 'ourcompany.servio';
 
-    const SETTINGS_OPTIONS = ['SERVIO_URI_LINK','SERVIO_REST_KEY','SERVIO_COMPANY_CODE','SERVIO_FIELD_RESERVE_ID','SERVIO_FIELD_COMPANY_ID','SERVIO_FIELD_CONTACT_ID'];
+    const SETTINGS_OPTIONS = ['SERVIO_URI_LINK','SERVIO_REST_KEY','SERVIO_COMPANY_CODE','SERVIO_FIELD_RESERVE_ID','SERVIO_FIELD_COMPANY_ID','SERVIO_FIELD_CONTACT_ID','SERVIO_FIELD_CONTACT_ADDRESS','SERVIO_FIELD_COMPANY_ADDRESS'];
 
     private $techFields = [
         'SERVIO_FIELD_RESERVE_ID' =>
@@ -72,6 +72,46 @@ class Event
                     'en' => 'Error in field "Contact ID in Servio"',
                 ],
             ],
+        'SERVIO_FIELD_CONTACT_ADDRESS' =>
+            [
+                'ENTITY_ID' => 'CRM_CONTACT',
+                'FIELD_NAME' => 'UF_CRM_HMS_CONTACT_ADDRESS',
+                'USER_TYPE_ID' => 'string',
+                'XML_ID' => '',
+                'SORT' => 100,
+                'MULTIPLE' => 'N',  //множ
+                'MANDATORY' => 'N', //обязательное
+                'SHOW_FILTER' => 'I',   //показывать в фильтре
+                'SHOW_IN_LIST' => '1', //показывать в списке
+                'EDIT_IN_LIST' => '',  //редактировать в списке
+                'IS_SEARCHABLE' => 'Y', //участвует в поиске
+                'EDIT_FORM_LABEL' => [  //подпись в карточке
+                    'ru' => 'Адресс контакта в Servio',
+                    'en' => 'Contact Address in Servio',
+                ],
+                'LIST_COLUMN_LABEL' => [ //название в списке
+                    'ru' => 'Адресс контакта в Servio',
+                    'en' => 'Contact Address in Servio',
+                ],
+                'LIST_FILTER_LABEL' => [ //название в списке фильтра
+                    'ru' => 'Адресс контакта в Servio',
+                    'en' => 'Contact Address in Servio',
+                ],
+                'ERROR_MESSAGE' => [ //название в списке фильтра
+                    'ru' => 'Ошибка в поле "Адресс контакта в Servio"',
+                    'en' => 'Error in field "Contact Address in Servio"',
+                ],
+                'SETTINGS' => [
+                    'ROWS' => '3',
+                    /* Минимальная длина строки (0 - не проверять) */
+//                    'MIN_LENGTH'    => '0',
+                    /* Максимальная длина строки (0 - не проверять) */
+//                    'MAX_LENGTH'    => '0',
+                    /* Регулярное выражение для проверки */
+//                    'REGEXP'        => '',
+                ],
+            ],
+
         'SERVIO_FIELD_COMPANY_ID' =>
             [
                 'ENTITY_ID' => 'CRM_COMPANY',
@@ -100,6 +140,45 @@ class Event
                 'ERROR_MESSAGE' => [ //название в списке фильтра
                     'ru' => 'Ошибка в поле "ID компании в Servio"',
                     'en' => 'Error in field "Company ID in Servio"',
+                ],
+            ],
+        'SERVIO_FIELD_COMPANY_ADDRESS' =>
+            [
+                'ENTITY_ID' => 'CRM_COMPANY',
+                'FIELD_NAME' => 'UF_CRM_HMS_COMPANY_ADDRESS',
+                'USER_TYPE_ID' => 'string',
+                'XML_ID' => '',
+                'SORT' => 100,
+                'MULTIPLE' => 'N',  //множ
+                'MANDATORY' => 'N', //обязательное
+                'SHOW_FILTER' => 'I',   //показывать в фильтре
+                'SHOW_IN_LIST' => '1', //показывать в списке
+                'EDIT_IN_LIST' => '',  //редактировать в списке
+                'IS_SEARCHABLE' => 'Y', //участвует в поиске
+                'EDIT_FORM_LABEL' => [  //подпись в карточке
+                    'ru' => 'Адресс компании в Servio',
+                    'en' => 'Company Address in Servio',
+                ],
+                'LIST_COLUMN_LABEL' => [ //название в списке
+                    'ru' => 'Адресс компании в Servio',
+                    'en' => 'Company Address in Servio',
+                ],
+                'LIST_FILTER_LABEL' => [ //название в списке фильтра
+                    'ru' => 'Адресс компании в Servio',
+                    'en' => 'Company Address in Servio',
+                ],
+                'ERROR_MESSAGE' => [ //название в списке фильтра
+                    'ru' => 'Ошибка в поле "Адресс компании в Servio"',
+                    'en' => 'Error in field "Company Address in Servio"',
+                ],
+                'SETTINGS' => [
+                    'ROWS' => '3',
+                    /* Минимальная длина строки (0 - не проверять) */
+//                    'MIN_LENGTH'    => '0',
+                    /* Максимальная длина строки (0 - не проверять) */
+//                    'MAX_LENGTH'    => '0',
+                    /* Регулярное выражение для проверки */
+//                    'REGEXP'        => '',
                 ],
             ],
     ];
@@ -149,6 +228,7 @@ class Event
 
         //css & js for popup
         \Bitrix\Main\Page\Asset::getInstance()->addCss("https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css",true);
+        \Bitrix\Main\Page\Asset::getInstance()->addJs("http://code.jquery.com/jquery-3.5.1.min.js",true);
         \Bitrix\Main\Page\Asset::getInstance()->addJs("https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js",true);
         \Bitrix\Main\Page\Asset::getInstance()->addJs("https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js",true);
 
@@ -170,8 +250,8 @@ class Event
             \CJSCore::init($dir);
 
             //Штатная библиотека
-            if(!\CJSCore::Init(["jquery2"]))
-                \CJSCore::Init(["jquery2"]);
+//            if(!\CJSCore::Init(["jquery2"]))
+//                \CJSCore::Init(["jquery2"]);
 
 
             if(!self::$settingErrors)

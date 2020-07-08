@@ -8,3 +8,5 @@ $MESS['OUR_COMPANY_SERVIO_COMPANY_CODE_TITLE'] = 'Код компании в Ser
 $MESS['OUR_COMPANY_SERVIO_COMPANY_FIELD_TITLE'] = 'ID поля компании в Б24 для привязки с компанией Servio';
 $MESS['OUR_COMPANY_SERVIO_CONTACT_FIELD_TITLE'] = 'ID поля контакта в Б24 для привязки с контактом Servio';
 $MESS['OUR_COMPANY_SERVIO_RESERVE_FIELD_TITLE'] = 'ID поля резерва в Б24 для привязки с резервом Servio';
+$MESS['OUR_COMPANY_SERVIO_COMPANY_ADDRESS_FIELD_TITLE'] = 'ID поля адреса компании в Б24';
+$MESS['OUR_COMPANY_SERVIO_CONTACT_ADDRESS_FIELD_TITLE'] = 'ID поля адреса контакта в Б24';

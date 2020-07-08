@@ -10,7 +10,7 @@ class Hotel
     private $eventInstance;
     private $settings;
     private $settingErrors;
-    private $payTypes = [100,200,300];
+    private $payTypes = [100 => 'Наличные',200 => 'Кредитная Карта',300 => 'Безналичная Оплата'];
 
     public function __construct()
     {
@@ -47,7 +47,7 @@ class Hotel
     public function getDealDataById($dealId)
     {
         $dealId = intval($dealId);
-        if($dealId >  0)
+        if($dealId > 0)
         {
             \CModule::IncludeModule("crm"); //Какого хера??
             $dealRecord = \Bitrix\Crm\DealTable::getRow([
@@ -63,7 +63,7 @@ class Hotel
                 if($dealRecord['COMPANY_ID'] > 0)
                 {
                     $companyData = \Bitrix\Crm\CompanyTable::getRow([
-                        'select' => ['*','PHONE'/*,'ID','TITLE','COMPANY_ID','ASSIGNED_BY_ID'*/], //  + получаем строку с ID резерва
+                        'select' => ['*',$this->settings['SERVIO_FIELD_COMPANY_ADDRESS'],/*,'ID','TITLE','COMPANY_ID','ASSIGNED_BY_ID'*/], //  + получаем строку с ID резерва
                         'filter' => ['ID' => $dealRecord['COMPANY_ID']]
                     ]);
                     if($companyData)
@@ -71,7 +71,7 @@ class Hotel
                         if($dealRecord['CONTACT_ID'] <= 0 && $companyData['CONTACT_ID'] > 0)
                         {
                             $contactData = \Bitrix\Crm\CompanyTable::getRow([
-                                'select' => ['*'/*,'ID','TITLE','COMPANY_ID','ASSIGNED_BY_ID'*/], //  + получаем строку с ID резерва
+                                'select' => ['*',$this->settings['SERVIO_FIELD_CONTACT_ADDRESS'],/*,'ID','TITLE','COMPANY_ID','ASSIGNED_BY_ID'*/], //  + получаем строку с ID резерва
                                 'filter' => ['ID' => $companyData['CONTACT_ID']]
                             ]);
                             if($contactData)
@@ -119,7 +119,7 @@ class Hotel
                 if($dealRecord['CONTACT_ID'] > 0)
                 {
                     $contactData = \Bitrix\Crm\ContactTable::getRow([
-                        'select' => ['*'/*,'ID','TITLE','COMPANY_ID','ASSIGNED_BY_ID'*/], //  + получаем строку с ID резерва
+                        'select' => ['*',$this->settings['SERVIO_FIELD_CONTACT_ADDRESS'],/*,'ID','TITLE','COMPANY_ID','ASSIGNED_BY_ID'*/], //  + получаем строку с ID резерва
                         'filter' => ['ID' => $dealRecord['CONTACT_ID']]
                     ]);
                     if($contactData)
@@ -712,11 +712,11 @@ class Hotel
 
                 if($dealData['COMPANY_DATA'])
                 {
-//                $clientName = $dealData['COMPANY_DATA']['TITLE'];
-//                $clientLastName = $dealData['COMPANY_DATA']['TITLE'];
-//                $address  = $dealData['COMPANY_DATA']['ADDRESS'];
-//                $comment = $dealData['COMPANY_DATA']['TITLE'];
-//                $company = $dealData['COMPANY_DATA']['TITLE'];
+                    $clientName = $dealData['COMPANY_DATA']['TITLE'];
+                    $clientLastName = $dealData['COMPANY_DATA']['TITLE'];
+//                  $address  = $dealData['COMPANY_DATA']['ADDRESS'];
+//                   $comment = $dealData['COMPANY_DATA']['TITLE'];
+//                   $company = $dealData['COMPANY_DATA']['TITLE'];
                 }
                 if($dealData['CONTACT_DATA']){
                     $clientName = $dealData['CONTACT_DATA']['NAME'];
@@ -807,11 +807,46 @@ class Hotel
 
                     $dealUdRes = $this->updateDeal($fields['DEAL_ID'],$dealFields);
                     if($dealUdRes['errors']) $result['error'] = implode("\n ",$dealUdRes['errors']);
+
+                    //обновление адреса в  компании или контакте
+                    if($address)
+                    {
+                        if($dealData['COMPANY_DATA'])
+                        {
+                            $companyAddr = $dealData['COMPANY_DATA'][$this->settings['SERVIO_FIELD_COMPANY_ADDRESS']];
+                            if($companyAddr)
+                            {
+                                $companyAddr = $companyAddr.'\n'.$address;
+                            }
+                            else
+                            {
+                                $companyAddr = $address;
+                            }
+                            $addressUpdate = \Bitrix\Crm\CompanyTable::update($dealData['COMPANY_DATA']['ID'],
+                                [$this->settings['SERVIO_FIELD_COMPANY_ADDRESS'] => trim($companyAddr)]);
+                        }
+                        else
+                        {
+                            $contactAddr = $dealData['CONTACT_DATA'][$this->settings['SERVIO_FIELD_CONTACT_ADDRESS']];
+                            if($contactAddr)
+                            {
+                                $contactAddr = $contactAddr.'\n'.$address;
+                            }
+                            else
+                            {
+                                $contactAddr = $address;
+                            }
+                            $addressUpdate = \Bitrix\Crm\ContactTable::update($dealData['CONTACT_DATA']['ID'],
+                                [$this->settings['SERVIO_FIELD_CONTACT_ADDRESS'] => trim($contactAddr)]);
+
+                        }
+                    }
+
                 }
 
             }
 
-
+//            $this->logData(['Address Upd',$addressUpdate]);
         }
         else
         {
@@ -862,18 +897,32 @@ class Hotel
     public function getReserveData($id)
     {
         $data['Account'] = $id;
-        return $this->postRequest('GetReservationInfo',$data);
+        $reserveData = $this->postRequest('GetReservationInfo',$data);
+        if($reserveData['Result'] === 0)
+        {
+            $reserveData['PaidTypeText'] = $this->payTypes[$reserveData['PaidType']];
+        }
+        return $reserveData;
     }
 
-    public function logData($data){
-        $file = $_SERVER["DOCUMENT_ROOT"].'/11111.log';
+    public function logData($filename,$data){
+        $file = $_SERVER["DOCUMENT_ROOT"].'/'.$filename;
         file_put_contents($file, print_r([date('d.m.Y H:i:s'),$data],true), FILE_APPEND | LOCK_EX);
     }
 
+    public function logData_Make($filename,$content)
+    {
+        $file = $_SERVER["DOCUMENT_ROOT"].'/'.$filename;
+        file_put_contents($file, print_r($content,true));
+    }
 
     //подтверждение брони
     public function confirmReserve($fields)
     {
+
+//        return $fields;
+
+
         $result = [
             'result' => false,
             'error' => false,
@@ -881,7 +930,7 @@ class Hotel
         $data = [
             'Account' => $fields['reserveId'],
             'IsoLanguage'  => 'ru',
-            'Format' => 1,
+            'Format' => 0,
         ];
 
         $confirmResult = $this->postRequest('GetAccountConfirm',$data);
@@ -902,7 +951,40 @@ class Hotel
 //               //сохраняем архив/файл в сделке
 //               $result['result'] = $docResult;
 //           }
-            $result['result'] = $confirmResult;
+
+            sleep(3);
+
+            $fileResult = $this->getDocument($confirmResult['DocumentID'],'servio_confirm_archive');
+
+
+//            return $fileResult;
+
+
+
+
+            if(!$fileResult['result'])
+            {
+                $result['error'] = $fileResult['error'];
+            }
+            else
+            {
+                //получили файл в массиве по типу $_FILES
+                $fileArr = $fileResult['result'];
+
+                $updDealRes = $this->updateDeal($fields['id'],['UF_CRM_1594206477' => $fileArr]);
+                if(!$updDealRes)
+                {
+                    $result['error']  = 'Ошибка при обновлении сделки!';
+                }
+                else
+                {
+                    $result['result'] = $updDealRes;
+                }
+//                unlink($_SERVER['DOCUMENT_ROOT'].'/'.$fileArr['tmp_name']);
+            }
+
+
+//            $result['result'] = $confirmResult;
         }
 
         return $result;
@@ -917,26 +999,61 @@ class Hotel
             'Format' => 0,
         ];
 
+//        return $data;
         return $this->postRequest('GetAccountBill',$data);
     }
 
 
-    public function getDocument($fileId)
+    //возврат массива файла по типу $_FILES[]
+    public function getDocument($fileId,$myFileName)
     {
+        $result = [
+            'result' => [],
+            'error' => false,
+        ];
+
         $data = [
             'DocumentID' => $fileId
         ];
 
         $docRes = $this->postRequest('GetDocument',$data);
 
-        $file = base64_decode($docRes['DocumentCode']);
+//        $file = base64_decode($docRes['DocumentCode']);
 
-//        if($docRes['Result'] === 0)
-//        {
-//            $docRes['DocumentCode'] = base64_decode($docRes['DocumentCode']);
-//        }
+        $docRes['D_ID'] = $fileId;
+//        return $docRes;
 
-        return $docRes;
+        if($docRes['Result'] !== 0)
+        {
+            $result['error'] = $docRes['Error'];
+        }
+        else
+        {
+            if(!$docRes['IsReady'])
+            {
+                $result['error'] = 'Файл еще не готов! Попробуйте позже';
+            }
+            else
+            {
+                $fileName = $_SERVER['DOCUMENT_ROOT'].'/servio_archive_'.strtotime('now').'.zip';
+//            $fileName = 'FFFFF_'.strtotime('now').'.zip';
+
+
+                $fileCreate = file_put_contents($fileName,base64_decode($docRes['DocumentCode']));
+
+//            return $fileName;
+                if($fileCreate)
+                {
+                    $result['result'] = \CFile::MakeFileArray($fileName);
+
+                }
+                else
+                {
+                    $result['error'] = 'Ошибка при создании временного файла архива';
+                }
+            }
+        }
+        return $result;
     }
 
     private function postRequest($operation,$data)

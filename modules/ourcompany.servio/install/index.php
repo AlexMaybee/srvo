@@ -96,5 +96,5 @@ class ourcompany_servio extends \cModule
         $file = $_SERVER["DOCUMENT_ROOT"].'/test.log';
         file_put_contents($file, print_r([date('d.m.Y H:i:s'),$data],true), FILE_APPEND | LOCK_EX);
     }
-    
+
 }
