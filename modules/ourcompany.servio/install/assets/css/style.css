@@ -1,8 +1,3 @@
-/*.kkk{*/
-/*background: darkmagenta!important;*/
-/*margin-left: 10px;*/
-/*}*/
-
 .mar-rl-1{
     margin: 0 10px;
 }
@@ -14,6 +9,17 @@
 .my-error-field{
     border-color: red!important;
 }
+
+.servio-custom-disable{
+    pointer-events: none;
+    opacity: .5;
+}
+
+.servio-tmp-disable{
+    pointer-events: none;
+    opacity: .9;
+}
+
 
 /*.reserve-hidden{*/
 /*display: none!important;*/
