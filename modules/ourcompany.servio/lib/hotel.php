@@ -12,8 +12,16 @@ class Hotel
     private $settingErrors;
     private $payTypes = [100 => 'Наличные',200 => 'Кредитная Карта',300 => 'Безналичная Оплата'];
 
+    //Loc::getMessage("OUR_COMPANY_SETTINGS_{$option}_ERROR")
+
     public function __construct()
     {
+        $this->payTypes = [
+        100 => Loc::getMessage("OUR_COMPANY_HOTEL_PAY_TYPE_CASH"),
+        200 => Loc::getMessage("OUR_COMPANY_HOTEL_PAY_TYPE_CREDIT_CARD"),
+        300 => Loc::getMessage("OUR_COMPANY_HOTEL_PAY_TYPE_CASHLESS")
+    ];
+
         $this->eventInstance = new \Ourcompany\Servio\Event;
         $this->eventInstance->getSettings();
 
@@ -23,20 +31,21 @@ class Hotel
 //        echo json_encode(['HELLO, OOOOO!',$this->settings,$this->settingErrors]);
     }
 
-    public function getDealReserveId($dealId)
+    public function getDealServioFields($dealId)
     {
-        $result = 0;
+        $result = [];
         $dealId = intval($dealId);
         if($dealId > 0)
         {
             \CModule::IncludeModule("crm"); //Какого хера??
             $dealRecord = \Bitrix\Crm\DealTable::getRow([
-                'select' => [$this->settings['SERVIO_FIELD_RESERVE_ID']], //  получаем строку с ID резерва
+                'select' => [$this->settings['SERVIO_FIELD_RESERVE_ID'],$this->settings['SERVIO_FIELD_RESERVE_CONFIRM_FILE_ID'],$this->settings['SERVIO_FIELD_RESERVE_CONFIRM_FILE']], //  получаем строку с ID резерва
                 'filter' => ['ID' => $dealId],
             ]);
             if($dealRecord)
             {
-                $result = (intval($dealRecord[$this->settings['SERVIO_FIELD_RESERVE_ID']]) > 0) ? intval($dealRecord[$this->settings['SERVIO_FIELD_RESERVE_ID']]) : 0;
+                $result = $dealRecord;
+//                $result = (intval($dealRecord[$this->settings['SERVIO_FIELD_RESERVE_ID']]) > 0) ? intval($dealRecord[$this->settings['SERVIO_FIELD_RESERVE_ID']]) : 0;
             }
         }
         return $result;
@@ -919,14 +928,11 @@ class Hotel
     //подтверждение брони
     public function confirmReserve($fields)
     {
-
-//        return $fields;
-
-
         $result = [
             'result' => false,
             'error' => false,
         ];
+
         $data = [
             'Account' => $fields['reserveId'],
             'IsoLanguage'  => 'ru',
@@ -940,21 +946,17 @@ class Hotel
         }
         else
         {
-//           $docResult = $this->getDocument($confirmResult['DocumentID']);
-//
-//           if($docResult['Result'] !== 0)
-//           {
-//               $result['error'] = $docResult['Error'];
-//           }
-//           else
-//           {
-//               //сохраняем архив/файл в сделке
-//               $result['result'] = $docResult;
-//           }
 
-            sleep(3);
+            $updDealRes = $this->updateDeal($fields['id'],[$this->settings['SERVIO_FIELD_RESERVE_CONFIRM_FILE_ID'] => $confirmResult['DocumentID']]);
+            if(!$updDealRes)
+            {
+                $result['error']  = Loc::getMessage('OUR_COMPANY_HOTEL_CONFIRM_FILE_ID_DEAL_ERROR');
+            }
+            else
+            {
+                sleep(3);
 
-            $fileResult = $this->getDocument($confirmResult['DocumentID'],'servio_confirm_archive');
+                $fileResult = $this->getDocument($confirmResult['DocumentID'],'servio_confirm_archive');
 
 
 //            return $fileResult;
@@ -962,25 +964,27 @@ class Hotel
 
 
 
-            if(!$fileResult['result'])
-            {
-                $result['error'] = $fileResult['error'];
-            }
-            else
-            {
-                //получили файл в массиве по типу $_FILES
-                $fileArr = $fileResult['result'];
-
-                $updDealRes = $this->updateDeal($fields['id'],['UF_CRM_1594206477' => $fileArr]);
-                if(!$updDealRes)
+                if(!$fileResult['result'])
                 {
-                    $result['error']  = 'Ошибка при обновлении сделки!';
+                    $result['error'] = $fileResult['error'];
                 }
                 else
                 {
-                    $result['result'] = $updDealRes;
+                    //получили файл в массиве по типу $_FILES
+                    $fileArr = $fileResult['result'];
+
+                    $updDealRes = $this->updateDeal($fields['id'],[$this->settings['SERVIO_FIELD_RESERVE_CONFIRM_FILE'] => $fileArr]);
+                    if(!$updDealRes)
+                    {
+//                    $result['error']  = 'Ошибка при обновлении сделки!';
+                        $result['error']  = Loc::getMessage('OUR_COMPANY_HOTEL_CONFIRM_FILE_DEAL_ERROR');
+                    }
+                    else
+                    {
+                        $result['result'] = $updDealRes;
+                    }
+                unlink($_SERVER['DOCUMENT_ROOT'].'/'.$fileArr['tmp_name']);
                 }
-//                unlink($_SERVER['DOCUMENT_ROOT'].'/'.$fileArr['tmp_name']);
             }
 
 
@@ -993,14 +997,30 @@ class Hotel
     //получение счета для резерва
     public function getBillForReserve($fields)
     {
+        $result = [
+            'result' => [],
+            'error' => false,
+        ];
+
         $data = [
             'Account' => $fields['reserveId'],
             'IsoLanguage'  => 'ru',
             'Format' => 0,
         ];
 
-//        return $data;
-        return $this->postRequest('GetAccountBill',$data);
+        $billDataResult = $this->postRequest('GetAccountBill',$data);
+
+        if($billDataResult['Result'] !== 0)
+        {
+            $result['error'] = $billDataResult['Error'];
+        }
+        else
+        {
+            //записываем ID документа счета в сделку и получаем документ
+            $result['result'] = $billDataResult;
+        }
+
+        return $result;
     }
 
 

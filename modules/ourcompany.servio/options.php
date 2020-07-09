@@ -78,7 +78,18 @@ $aTabs = [
                 '',
                 ['text', 100]
             ],
-
+            [
+                'SERVIO_FIELD_RESERVE_CONFIRM_FILE_ID',
+                Loc::getMessage('OUR_COMPANY_SERVIO_RESERVE_CONFIRM_FILE_ID_FIELD_TITLE'),
+                '',
+                ['text', 100]
+            ],
+            [
+                'SERVIO_FIELD_RESERVE_CONFIRM_FILE',
+                Loc::getMessage('OUR_COMPANY_SERVIO_RESERVE_CONFIRM_FILE_FIELD_TITLE'),
+                '',
+                ['text', 100]
+            ],
         ]
     ],
 ];

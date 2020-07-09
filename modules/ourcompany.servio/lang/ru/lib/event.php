@@ -7,3 +7,5 @@ $MESS['OUR_COMPANY_SETTINGS_SERVIO_FIELD_COMPANY_ID_ERROR'] = 'В настрой
 $MESS['OUR_COMPANY_SETTINGS_SERVIO_FIELD_CONTACT_ID_ERROR'] = 'В настройках модуля не указано ID поля контакта для сохранения ID контакта из Servio!';
 $MESS['OUR_COMPANY_SETTINGS_SERVIO_FIELD_COMPANY_ADDRESS_ERROR'] = 'В настройках модуля не указано ID поля адреса компании!';
 $MESS['OUR_COMPANY_SETTINGS_SERVIO_FIELD_CONTACT_ADDRESS_ERROR'] = 'В настройках модуля не указано ID поля адреса контакта!';
+$MESS['OUR_COMPANY_SETTINGS_SERVIO_FIELD_RESERVE_CONFIRM_FILE_ID_ERROR'] = 'В настройках модуля не указано ID поля кода файла подтверждения брони!';
+$MESS['OUR_COMPANY_SETTINGS_SERVIO_FIELD_RESERVE_CONFIRM_FILE_ERROR'] = 'В настройках модуля не указано ID поля файла подтверждения брони!';

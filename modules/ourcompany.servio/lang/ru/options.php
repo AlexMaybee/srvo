@@ -10,3 +10,5 @@ $MESS['OUR_COMPANY_SERVIO_CONTACT_FIELD_TITLE'] = 'ID поля контакта 
 $MESS['OUR_COMPANY_SERVIO_RESERVE_FIELD_TITLE'] = 'ID поля резерва в Б24 для привязки с резервом Servio';
 $MESS['OUR_COMPANY_SERVIO_COMPANY_ADDRESS_FIELD_TITLE'] = 'ID поля адреса компании в Б24';
 $MESS['OUR_COMPANY_SERVIO_CONTACT_ADDRESS_FIELD_TITLE'] = 'ID поля адреса контакта в Б24';
+$MESS['OUR_COMPANY_SERVIO_RESERVE_CONFIRM_FILE_FIELD_TITLE'] = 'ID поля файла подтверждения брони в Б24';
+$MESS['OUR_COMPANY_SERVIO_RESERVE_CONFIRM_FILE_ID_FIELD_TITLE'] = 'ID поля кода файла подтверждения брони в Б24';

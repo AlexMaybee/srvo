@@ -42,6 +42,8 @@ class ServioPopup
         this.deal = {
             id : 0,
             reserveId: 0,
+            reserveConfirmFileId: '',
+            reserveConfirmFile: ''
         }
         this.categoriesObj = {} //для хранения данных категорий для дополнения селектовпри выборе
 
@@ -69,12 +71,13 @@ class ServioPopup
                 servioBtn.onclick = function () {
                     self.makeAjaxRequest(self.url.ajax,
                         {
-                            'ACTION' : 'GET_DEAL_RESERVE_ID',
+                            'ACTION' : 'GET_DEAL_SERVIO_FIELDS',
                             'DEAL_ID' : self.deal.id
                         },
                         function (response) {
-                            self.deal.reserveId = response;
-                            // console.log('DEAL RESERVE ID',self.deal);
+                            self.deal.reserveId = response.UF_CRM_HMS_RESERVE_ID || 0;
+                            self.deal.reserveConfirmFileId = response.UF_CRM_HMS_RESERVE_CONFIRM_FILE_ID;
+                            self.deal.reserveConfirmFile = response.UF_CRM_HMS_RESERVE_CONFIRM_FILE;
 
                             if(self.deal.id > 0 && self.deal.reserveId === 0)
                             {
@@ -96,6 +99,7 @@ class ServioPopup
                                 //иначе форма без возможности резерва
                                 // self.loadServioPopup();
 
+                                self.loadReservePopupV5()
                                 console.log('ШТА?');
                             }
 
@@ -109,7 +113,7 @@ class ServioPopup
             //если ID сделки == 0, то  в попапе сделать бронь нельзя
             else
             {
-                console.log('iiooo',this.deal);
+                // console.log('iiooo',this.deal);
                 self.loadReservePopupV5()
             }
         }
@@ -142,7 +146,7 @@ class ServioPopup
     }
 
 
-    makePopupV2(popupTechName,htmlContent,popupTitle,myBtnevents)
+    makePopupV2(popupTechName,htmlContent,popupTitle)
     {
         let PopupProductProvider = BX.PopupWindowManager.create(popupTechName, BX('element'), {
             content: htmlContent,
@@ -605,7 +609,7 @@ class ServioPopup
         reserveButtons = popup.querySelectorAll('.add-reserve')
         // console.log('3123',reserveButtons);
 
-        console.log('reserve test',buttonObj);
+        // console.log('reserve test',buttonObj);
 
 
         // this.disableElement(buttonObj)
@@ -697,6 +701,7 @@ class ServioPopup
             else
             {
                 //some custom error
+                console.log('NO more RESERVATION function, Error!');
             }
 
         }
@@ -869,7 +874,7 @@ class ServioPopup
                </button>
             </form>`
 
-        popupObj = self.makePopupV2('servio-hotel-reservation', html, 'Hotel Reservation', {})
+        popupObj = self.makePopupV2('servio-hotel-reservation', html, 'Hotel Reservation')
         form = document.getElementById('servio_popup')
         roomCategoryInput = document.getElementById('roomCategory')
 
@@ -1017,7 +1022,7 @@ class ServioPopup
                                             <td>${row.Price.toFixed(2)} ${row.Currency}</td>
                                             ${
                                             self.deal.id > 0
-                                                ? '<td><button class="ui-btn ui-btn-xs ui-btn-primary-dark add-reserve' + ((row.FreeRoom == 0) ? 'servio-custom-disable' : '')  +  '" data-category-id="' + row.ID + '">Reserve</button></td>'
+                                                ? '<td><button class="ui-btn ui-btn-xs ui-btn-primary-dark add-reserve ' + ((row.FreeRoom == 0) ? 'servio-custom-disable' : '')  +  '" data-category-id="' + row.ID + '">Reserve</button></td>'
                                                 : '<td></td>'
                                             }
                                         </tr>`
@@ -1192,7 +1197,7 @@ class ServioPopup
             cancelBtn, confirmBtn, billBtn
 
 
-        popupObj = self.makePopupV2('servio-hotel-reservation-view',html,'Hotel Reservation View',{})
+        popupObj = self.makePopupV2('servio-hotel-reservation-view',html,'Hotel Reservation View',)
 
         //получаем данные резерва
         this.makeAjaxRequest(this.url.ajax, {'ACTION': 'GET_RESERVE_BY_ID', 'RESERVE_ID': this.deal.reserveId},
@@ -1245,8 +1250,7 @@ class ServioPopup
 
 
                     reserveDataHtml =
-                        `
-                                    <div class="row">
+                        `<div class="row">
                                         <div class="col-sm-6 ui-alert ui-alert-default">Serviceprovider Name</div>
                                         <div class="col-sm-6 ui-alert ui-alert-primary">
                                             <span class="ui-alert-message"><strong>${response.ServiceProviderName}</strong></span>
@@ -1293,12 +1297,31 @@ class ServioPopup
                                     
                                     ${servisesTable}
                                     
-                                    <button class="ui-btn ui-btn-danger" id="reserveCancelBtn">Отменить</button>
-                                    <button class="ui-btn ui-btn-success" id="reserveAcceptBtn">Подтвердить</button>
-                                    <button class="ui-btn ui-btn-secondary" id="getReserveBill">Счет</button>
-                            `
+                                    
+                                    ${
+                            (
+                                Number(self.deal.reserveId) > 0
+                            )
+                                ? '<button class="ui-btn ui-btn-danger" id="reserveCancelBtn">Отменить</button>'
+                                : ''
+
+                            }
+                                    
+                                    ${
+                            (
+                                Number(self.deal.reserveId) > 0 &&
+                                (self.deal.reserveConfirmFileId > 0) != true &&
+                                self.deal.reserveId != null
+                            )
+                                ? '<button class="ui-btn ui-btn-success" id="reserveAcceptBtn">Подтвердить</button>'
+                                : ''
+                            }
+                                    
+                                    <button class="ui-btn ui-btn-secondary" id="getReserveBill">Счет</button>`
                 }
 
+
+                console.log('OOOOOO',self.deal);
                 popupBody.innerHTML = reserveDataHtml
 
 
@@ -1322,7 +1345,7 @@ class ServioPopup
                     confirmBtn.onclick = () =>
                     {
                         // console.log('confirmBtn');
-                        self.confirmReserve(self.deal,confirmBtn)
+                        self.confirmReserve(confirmBtn)
                         // self.testGetDocument(28199)
                     }
                 }
@@ -1332,7 +1355,7 @@ class ServioPopup
                     billBtn.onclick = () =>
                     {
                         console.log('billBtn');
-                        self.getBillForReserve(self.deal)
+                        self.getBillForReserve(billBtn)
                     }
                 }
 
@@ -1402,17 +1425,17 @@ class ServioPopup
     //     )
     // }
 
-    confirmReserve(dealObj,btnObj)
+    confirmReserve(btnObj)
     {
         let self = this,
             viewPopup = document.getElementById('servio_reserve_view'),
             firstRow = viewPopup.querySelector('.row')
 
-        self.deleteErrorsinForm(viewPopup)
+        this.deleteErrorsinForm(viewPopup)
 
         this.toggleClockLoaderToBtn(btnObj)
 
-        this.makeAjaxRequest(this.url.ajax, {'ACTION': 'CONFIRM_RESERVE', 'FIELDS': dealObj},
+        this.makeAjaxRequest(this.url.ajax, {'ACTION': 'CONFIRM_RESERVE', 'FIELDS': self.deal},
             function (response) {
                 console.log('CONFIRM RESERVE', response)
 
@@ -1431,14 +1454,31 @@ class ServioPopup
         )
     }
 
-    getBillForReserve(dealObj)
+    getBillForReserve(btnObj)
     {
-        console.log('getBill',dealObj)
+        let self = this,
+            viewPopup = document.getElementById('servio_reserve_view'),
+            firstRow = viewPopup.querySelector('.row')
+
+        this.deleteErrorsinForm(viewPopup)
+
+        this.toggleClockLoaderToBtn(btnObj)
 
         // ajax to get bill
-        this.makeAjaxRequest(this.url.ajax, {'ACTION': 'GET_BILL_FOR_RESERVE', 'FIELDS': dealObj},
+        this.makeAjaxRequest(this.url.ajax, {'ACTION': 'GET_BILL_FOR_RESERVE', 'FIELDS': self.deal},
             function (response) {
                 console.log('RESERVE BILL DATA', response)
+
+                if(response.error)
+                {
+                    self.addErrorsBeforeFormNew(firstRow,response.error,'error')
+                }
+                else
+                {
+                    self.addErrorsBeforeFormNew(firstRow,'Файл о счетом ПОКА ЕЩЕ НЕ сохранен в сделке! Обновите страницу!','success')
+                }
+
+                self.toggleClockLoaderToBtn(btnObj)
             }
         )
 

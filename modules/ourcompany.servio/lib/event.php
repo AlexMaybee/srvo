@@ -9,7 +9,19 @@ class Event
 {
     const MODULE_ID = 'ourcompany.servio';
 
-    const SETTINGS_OPTIONS = ['SERVIO_URI_LINK','SERVIO_REST_KEY','SERVIO_COMPANY_CODE','SERVIO_FIELD_RESERVE_ID','SERVIO_FIELD_COMPANY_ID','SERVIO_FIELD_CONTACT_ID','SERVIO_FIELD_CONTACT_ADDRESS','SERVIO_FIELD_COMPANY_ADDRESS'];
+    const SETTINGS_OPTIONS = [
+        'SERVIO_URI_LINK',
+        'SERVIO_REST_KEY',
+        'SERVIO_COMPANY_CODE',
+        'SERVIO_FIELD_RESERVE_ID',
+        'SERVIO_FIELD_COMPANY_ID',
+        'SERVIO_FIELD_COMPANY_ADDRESS',
+        'SERVIO_FIELD_CONTACT_ID',
+        'SERVIO_FIELD_CONTACT_ADDRESS',
+        'SERVIO_FIELD_COMPANY_ADDRESS',
+        'SERVIO_FIELD_RESERVE_CONFIRM_FILE_ID',
+        'SERVIO_FIELD_RESERVE_CONFIRM_FILE',
+        ];
 
     private $techFields = [
         'SERVIO_FIELD_RESERVE_ID' =>
@@ -179,6 +191,68 @@ class Event
 //                    'MAX_LENGTH'    => '0',
                     /* Регулярное выражение для проверки */
 //                    'REGEXP'        => '',
+                ],
+            ],
+
+        'SERVIO_FIELD_RESERVE_CONFIRM_FILE_ID' =>
+            [
+                'ENTITY_ID' => 'CRM_DEAL',
+                'FIELD_NAME' => 'UF_CRM_HMS_RESERVE_CONFIRM_FILE_ID',
+                'USER_TYPE_ID' => 'double',
+                'XML_ID' => '',
+                'SORT' => 100,
+                'MULTIPLE' => 'N',  //множ
+                'MANDATORY' => 'N', //обязательное
+                'SHOW_FILTER' => 'I',   //показывать в фильтре
+                'SHOW_IN_LIST' => '1', //показывать в списке
+                'EDIT_IN_LIST' => '',  //редактировать в списке
+                'IS_SEARCHABLE' => 'Y', //участвует в поиске
+                'EDIT_FORM_LABEL' => [  //подпись в карточке
+                    'ru' => 'ID файла подтверждения резерва в Servio',
+                    'en' => 'Reserve Confirm File ID in Servio',
+                ],
+                'LIST_COLUMN_LABEL' => [ //название в списке
+                    'ru' => 'ID файла подтверждения резерва в Servio',
+                    'en' => 'Reserve Confirm File ID in Servio',
+                ],
+                'LIST_FILTER_LABEL' => [ //название в списке фильтра
+                    'ru' => 'ID файла подтверждения резерва в Servio',
+                    'en' => 'Reserve Confirm File ID in Servio',
+                ],
+                'ERROR_MESSAGE' => [ //название в списке фильтра
+                    'ru' => 'ID файла подтверждения резерва в Servio',
+                    'en' => 'Reserve Confirm File ID in Servio',
+                ],
+            ],
+
+        'SERVIO_FIELD_RESERVE_CONFIRM_FILE' =>
+            [
+                'ENTITY_ID' => 'CRM_DEAL',
+                'FIELD_NAME' => 'UF_CRM_HMS_RESERVE_CONFIRM_FILE',
+                'USER_TYPE_ID' => 'file',
+                'XML_ID' => '',
+                'SORT' => 100,
+                'MULTIPLE' => 'N',  //множ
+                'MANDATORY' => 'N', //обязательное
+                'SHOW_FILTER' => 'I',   //показывать в фильтре
+                'SHOW_IN_LIST' => '1', //показывать в списке
+                'EDIT_IN_LIST' => '',  //редактировать в списке
+                'IS_SEARCHABLE' => 'Y', //участвует в поиске
+                'EDIT_FORM_LABEL' => [  //подпись в карточке
+                    'ru' => 'Файл подтверждения резерва в Servio',
+                    'en' => 'Reserve Confirm File in Servio',
+                ],
+                'LIST_COLUMN_LABEL' => [ //название в списке
+                    'ru' => 'Файл подтверждения резерва в Servio',
+                    'en' => 'Reserve Confirm File in Servio',
+                ],
+                'LIST_FILTER_LABEL' => [ //название в списке фильтра
+                    'ru' => 'Файл подтверждения резерва в Servio',
+                    'en' => 'Reserve Confirm File in Servio',
+                ],
+                'ERROR_MESSAGE' => [ //название в списке фильтра
+                    'ru' => 'Файл подтверждения резерва в Servio',
+                    'en' => 'Reserve Confirm File in Servio',
                 ],
             ],
     ];
