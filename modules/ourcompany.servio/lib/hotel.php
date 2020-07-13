@@ -10,17 +10,19 @@ class Hotel
     private $eventInstance;
     private $settings;
     private $settingErrors;
-    private $payTypes = [100 => 'Наличные',200 => 'Кредитная Карта',300 => 'Безналичная Оплата'];
-
-    //Loc::getMessage("OUR_COMPANY_SETTINGS_{$option}_ERROR")
+//    private $payTypes = [100 => 'Наличные',200 => 'Кредитная Карта',300 => 'Безналичная Оплата'];
+    private $payTypes = [];
+    private $defaultValues = [
+        'LOSE_STAGE_ID_NAME_PART' => 'LOSE',
+    ];
 
     public function __construct()
     {
         $this->payTypes = [
-        100 => Loc::getMessage("OUR_COMPANY_HOTEL_PAY_TYPE_CASH"),
-        200 => Loc::getMessage("OUR_COMPANY_HOTEL_PAY_TYPE_CREDIT_CARD"),
-        300 => Loc::getMessage("OUR_COMPANY_HOTEL_PAY_TYPE_CASHLESS")
-    ];
+            100 => Loc::getMessage("OUR_COMPANY_HOTEL_PAY_TYPE_CASH"),
+            200 => Loc::getMessage("OUR_COMPANY_HOTEL_PAY_TYPE_CREDIT_CARD"),
+            300 => Loc::getMessage("OUR_COMPANY_HOTEL_PAY_TYPE_CASHLESS")
+        ];
 
         $this->eventInstance = new \Ourcompany\Servio\Event;
         $this->eventInstance->getSettings();
@@ -28,7 +30,7 @@ class Hotel
         $this->settings = \Ourcompany\Servio\Event::$settings;
         $this->settingErrors = \Ourcompany\Servio\Event::$settingErrors;
 
-//        echo json_encode(['HELLO, OOOOO!',$this->settings,$this->settingErrors]);
+//        $this->logData('test_log123.log',[$this->settings,$this->settingErrors]);
     }
 
     public function getDealServioFields($dealId)
@@ -60,7 +62,7 @@ class Hotel
         {
             \CModule::IncludeModule("crm"); //Какого хера??
             $dealRecord = \Bitrix\Crm\DealTable::getRow([
-                'select' => [/*'*',$this->settings['SERVIO_FIELD_RESERVE_ID'],*/'ID','CONTACT_ID','COMPANY_ID','ASSIGNED_BY_ID'], //  + получаем строку с ID резерва
+                'select' => [/*'*',$this->settings['SERVIO_FIELD_RESERVE_ID'],*/'ID','CONTACT_ID','COMPANY_ID','ASSIGNED_BY_ID','COMMENTS'], //  + получаем строку с ID резерва
                 'filter' => ['ID' => $dealId],
             ]);
             $dealRecord['COMPANY_DATA'] = [];
@@ -89,37 +91,12 @@ class Hotel
 
                                 //почты и телефоны для контакта
                                 $dealRecord['PHONES_AND_EMAILS'] = self::getPhonesAndEmails('CONTACT',$companyData['CONTACT_ID'],['EMAIL','PHONE']);
-
-//                                $phonesAndEmailsFilter = array(
-//                                    'ENTITY_ID'  => 'CONTACT',
-//                                    'ELEMENT_ID' => $companyData['CONTACT_ID'],
-//                                    'TYPE_ID'    => ['EMAIL','PHONE'],//сюда NAME?
-//                                    'VALUE_TYPE' => [],
-//                                );
-//                                $phonesAndEmails = \CCrmFieldMulti::GetListEx(array(),$phonesAndEmailsFilter,false,array('nTopCount'=>1),array('VALUE'))->fetch();
-//                                if($phonesAndEmails)
-//                                {
-//                                    $dealRecord['CONTACT_DATA']['PHONES_AND_EMEILS'] = $phonesAndEmails;
-//                                }
                             }
                         }
                         else
                         {
                             //почты и телефоны для компании
                             $dealRecord['PHONES_AND_EMAILS'] = self::getPhonesAndEmails('COMPANY',$companyData['ID'],['EMAIL','PHONE']);
-
-//                            $phonesAndEmailsFilter = array(
-//                                'ENTITY_ID'  => 'COMPANY',
-//                                'ELEMENT_ID' => $companyData['ID'],
-//                                'TYPE_ID'    => ['EMAIL','PHONE'],//сюда NAME?
-//                                'VALUE_TYPE' => [],
-//                            );
-//                            $phonesAndEmails = \CCrmFieldMulti::GetListEx(array(),$phonesAndEmailsFilter,false,array('nTopCount'=>1),array('VALUE'))->fetch();
-//                            if($phonesAndEmails)
-//                            {
-//                                $dealRecord['COMPANY_DATA']['PHONES_AND_EMEILS'] = $phonesAndEmails;
-//                            }
-
                         }
 
                         $dealRecord['COMPANY_DATA'] = $companyData;
@@ -217,202 +194,202 @@ class Hotel
         return $result;
     }
 
-    public function getCategoriesWithRooms($post)
-    {
-        $result = [
-            'result' => false,
-            'error' => false,
-        ];
-
-//        return $post;
-
-        //Получаем по датам категория + кол-во свободных номеров
-        $categoryRes = $this->getCategoriesByFilter($post);
-
-//        $result['result']['test_all_exists_rooms'] = $categoryRes;
-
-        if(!$categoryRes['Result'] === 0)
-        {
-            $result['error'] = $categoryRes['Error'];
-        }
-        else
-        {
-            $data = ['HotelID' => 0];
-            $priceFilter = [];
-            $categoryNameRes = $this->postRequest('GetRoomTypesList',$data);
-
-//            $result['result']['test_all_categories'] = $categoryNameRes;
-
-            if(!$categoryNameRes['Result'] === 0)
-            {
-                $result['error'] = $categoryNameRes['Error'];
-            }
-            else
-            {
-                $roomsData = [];//записываем массив категорий с данными по резевам, если есть свободные комнаты
-                foreach ($categoryRes['RoomTypes'] as $categoryArr)
-                {
-                    if($categoryArr['FreeRoom'] > 0)
-                    {
-                        $index = array_search($categoryArr['ID'],$categoryNameRes['IDs']);
-                        if($index !== false)
-                        {
-                            $priceFilter[] = $categoryNameRes['IDs'][$index];
-
-                            $roomsData[$categoryArr['ID']] = [
-                                'FreeRoom' => $categoryArr['FreeRoom'],
-                                'MainPlacesCount' => $categoryArr['MainPlacesCount'],
-                                'NearestDateToReservation' => $categoryArr['NearestDateToReservation'],
-                            ];
-
-//                            $result['result']['rooms_test'][] = [
-//                                'Id' => $categoryNameRes['IDs'][$index],
-//                                'HotelId' => $categoryNameRes['HotelIDs'][$index],
-//                                'CategoryName' => $categoryNameRes['ClassNames'][$index],
-//                                'FreeRoom'  => $categoryArr['FreeRoom'],
-//                                'MainPlacesCount'  => $categoryArr['MainPlacesCount'],
-//                                'NearestDateToReservation'  => $categoryArr['NearestDateToReservation'],
+//    public function getCategoriesWithRooms($post)
+//    {
+//        $result = [
+//            'result' => false,
+//            'error' => false,
+//        ];
+//
+////        return $post;
+//
+//        //Получаем по датам категория + кол-во свободных номеров
+//        $categoryRes = $this->getCategoriesByFilter($post);
+//
+////        $result['result']['test_all_exists_rooms'] = $categoryRes;
+//
+//        if(!$categoryRes['Result'] === 0)
+//        {
+//            $result['error'] = $categoryRes['Error'];
+//        }
+//        else
+//        {
+//            $data = ['HotelID' => 0];
+//            $priceFilter = [];
+//            $categoryNameRes = $this->postRequest('GetRoomTypesList',$data);
+//
+////            $result['result']['test_all_categories'] = $categoryNameRes;
+//
+//            if(!$categoryNameRes['Result'] === 0)
+//            {
+//                $result['error'] = $categoryNameRes['Error'];
+//            }
+//            else
+//            {
+//                $roomsData = [];//записываем массив категорий с данными по резевам, если есть свободные комнаты
+//                foreach ($categoryRes['RoomTypes'] as $categoryArr)
+//                {
+//                    if($categoryArr['FreeRoom'] > 0)
+//                    {
+//                        $index = array_search($categoryArr['ID'],$categoryNameRes['IDs']);
+//                        if($index !== false)
+//                        {
+//                            $priceFilter[] = $categoryNameRes['IDs'][$index];
+//
+//                            $roomsData[$categoryArr['ID']] = [
+//                                'FreeRoom' => $categoryArr['FreeRoom'],
+//                                'MainPlacesCount' => $categoryArr['MainPlacesCount'],
+//                                'NearestDateToReservation' => $categoryArr['NearestDateToReservation'],
 //                            ];
-                        }
-                    }
-                }
-
-                if(!$priceFilter)
-                {
-                    $result['error'] = 'Нет свободных комнат!';
-                }
-                else
-                {
-
-                    //получение цен по каждой категории
-                    $categoryPriceArr = $this->getPriceByCategories($post,$priceFilter);
-
-//                    $result['result']['test_all_prices'] = $categoryNameRes;
-
-//                $this->logData($categoryPriceArr);
-
-                    //переформатирование массива
-                    $newArr = [];
-
-                    if($categoryPriceArr['Result'] !== 0)
-                    {
-                        $result['error'] = $categoryPriceArr['Error'];
-                    }
-                    else
-                    {
-
-//                    $result['result']['priceLists'] =
-//                        [
-//                            'ValuteShort' => $categoryPriceArr['ValuteShort'],
-//                            'PriceLists' => $categoryPriceArr['PriceLists'],
-//                        ];
-
-
-
-                        foreach ($categoryPriceArr['PriceLists'] as $priceList)
-                        {
-                            foreach ($priceList['RoomTypes'] as $roomType)
-                            {
-                                foreach ($roomType['Services'] as $servise)
-                                {
-
-                                    $serviseArr[$servise['ServiceID']] = [
-                                        'serviseName' => $servise['ServiceName'],
-                                        'serviseTypeName' => $servise['ServiceTypeName'],
-                                        'serviseSumArr' => []
-                                    ];
-
-                                    foreach ($servise['PriceDates'] as $priceDate)
-                                    {
-                                        $serviseArr[$servise['ServiceID']]['serviseSumArr'][] = $priceDate['Price'];
-                                    }
-
-                                    $dateFrom = date('d.m.Y',strtotime($post['dateFrom']));
-                                    $dateTo = date('d.m.Y',strtotime($post['dateTo']));
-                                    $dates = "{$dateFrom} - {$dateTo}";
-                                    if(
-                                        date('n',strtotime($post['dateFrom'])) === date('n',strtotime($post['dateTo']))
-                                        &&
-                                        date('Y',strtotime($post['dateFrom'])) === date('Y',strtotime($post['dateTo']))
-                                    )
-                                    {
-                                        $dates = date('d',strtotime($post['dateFrom'])).' - '.date('d.m.Y',strtotime($post['dateTo']));
-                                    }
-                                    elseif(
-                                        date('n',strtotime($post['dateFrom'])) !== date('n',strtotime($post['dateTo']))
-                                        &&
-                                        date('Y',strtotime($post['dateFrom'])) === date('Y',strtotime($post['dateTo']))
-                                    )
-                                    {
-                                        $dates = date('d.m',strtotime($post['dateFrom'])).' - '.date('d.m.Y',strtotime($post['dateTo']));
-                                    }
-
-
-                                    $newArr[] = [
-                                        'priceId' => $priceList['PriceListID'],
-                                        'IsNonReturnRate' => $priceList['IsNonReturnRate'],
-                                        'IsSpecRate' => $priceList['IsSpecRate'],
-                                        'totalDays' => count($servise['PriceDates']),
-                                        'servises' =>  $serviseArr,
-                                        'totalPrice' => '',
-                                        'dates' => "{$dates}", //??? правильно???
-                                        'currency' => $categoryPriceArr['ValuteShort'],
-                                        'roomTypeId' => $roomType['ID'],
-                                        'roomTypeName' => '',
-                                        'HotelId' => 0,
-                                        'FreeRoom'  => 0,
-                                        'MainPlacesCount'  => 0,
-                                        'NearestDateToReservation'  => '',
-                                    ];
-
-                                }
-                            }
-                        }
-
-                        if($newArr)
-                        {
-                            foreach ($newArr as $roomTypeS)
-                            {
-                                foreach ($roomTypeS['servises'] as $id => $servise)
-                                {
-                                    $servise['sum'] = array_sum($servise['serviseSumArr']);
-                                    $roomTypeS['servises'][$id] = $servise;
-                                    $roomTypeS['totalPrice'] += $servise['sum'];
-                                }
-
-                                $indexN = array_search($roomTypeS['roomTypeId'],$categoryNameRes['IDs']);
-                                if($indexN !== false)
-                                {
-                                    $roomTypeS['roomTypeName'] = $categoryNameRes['ClassNames'][$indexN];
-                                    $roomTypeS['HotelId'] = $categoryNameRes['HotelIDs'][$indexN];
-
-                                }
-
-                                if(in_array($roomTypeS['roomTypeId'],array_keys($roomsData)))
-                                {
-                                    $roomTypeS['FreeRoom'] = $roomsData[$roomTypeS['roomTypeId']]['FreeRoom'];
-                                    $roomTypeS['MainPlacesCount'] = $roomsData[$roomTypeS['roomTypeId']]['MainPlacesCount'];
-                                    $roomTypeS['NearestDateToReservation'] = $roomsData[$roomTypeS['roomTypeId']]['NearestDateToReservation'];
-                                }
-
-//                                $result['result']['priceLists'][$roomTypeS['roomTypeId']] = $roomTypeS;
-                                $result['result']['rooms'][$roomTypeS['roomTypeId']] = $roomTypeS;
-                            }
-                        }
-
-//                        $result['result']['test'] = $categoryPriceArr;
-                    }
-
-                }
-
-
-
-//                $result['result']['post'] = $post;
-//                $result['result']['test123'] = $newArr;
-            }
-        }
-        return $result;
-    }
+//
+////                            $result['result']['rooms_test'][] = [
+////                                'Id' => $categoryNameRes['IDs'][$index],
+////                                'HotelId' => $categoryNameRes['HotelIDs'][$index],
+////                                'CategoryName' => $categoryNameRes['ClassNames'][$index],
+////                                'FreeRoom'  => $categoryArr['FreeRoom'],
+////                                'MainPlacesCount'  => $categoryArr['MainPlacesCount'],
+////                                'NearestDateToReservation'  => $categoryArr['NearestDateToReservation'],
+////                            ];
+//                        }
+//                    }
+//                }
+//
+//                if(!$priceFilter)
+//                {
+//                    $result['error'] = 'Нет свободных комнат!';
+//                }
+//                else
+//                {
+//
+//                    //получение цен по каждой категории
+//                    $categoryPriceArr = $this->getPriceByCategories($post,$priceFilter);
+//
+////                    $result['result']['test_all_prices'] = $categoryNameRes;
+//
+////                $this->logData($categoryPriceArr);
+//
+//                    //переформатирование массива
+//                    $newArr = [];
+//
+//                    if($categoryPriceArr['Result'] !== 0)
+//                    {
+//                        $result['error'] = $categoryPriceArr['Error'];
+//                    }
+//                    else
+//                    {
+//
+////                    $result['result']['priceLists'] =
+////                        [
+////                            'ValuteShort' => $categoryPriceArr['ValuteShort'],
+////                            'PriceLists' => $categoryPriceArr['PriceLists'],
+////                        ];
+//
+//
+//
+//                        foreach ($categoryPriceArr['PriceLists'] as $priceList)
+//                        {
+//                            foreach ($priceList['RoomTypes'] as $roomType)
+//                            {
+//                                foreach ($roomType['Services'] as $servise)
+//                                {
+//
+//                                    $serviseArr[$servise['ServiceID']] = [
+//                                        'serviseName' => $servise['ServiceName'],
+//                                        'serviseTypeName' => $servise['ServiceTypeName'],
+//                                        'serviseSumArr' => []
+//                                    ];
+//
+//                                    foreach ($servise['PriceDates'] as $priceDate)
+//                                    {
+//                                        $serviseArr[$servise['ServiceID']]['serviseSumArr'][] = $priceDate['Price'];
+//                                    }
+//
+//                                    $dateFrom = date('d.m.Y',strtotime($post['dateFrom']));
+//                                    $dateTo = date('d.m.Y',strtotime($post['dateTo']));
+//                                    $dates = "{$dateFrom} - {$dateTo}";
+//                                    if(
+//                                        date('n',strtotime($post['dateFrom'])) === date('n',strtotime($post['dateTo']))
+//                                        &&
+//                                        date('Y',strtotime($post['dateFrom'])) === date('Y',strtotime($post['dateTo']))
+//                                    )
+//                                    {
+//                                        $dates = date('d',strtotime($post['dateFrom'])).' - '.date('d.m.Y',strtotime($post['dateTo']));
+//                                    }
+//                                    elseif(
+//                                        date('n',strtotime($post['dateFrom'])) !== date('n',strtotime($post['dateTo']))
+//                                        &&
+//                                        date('Y',strtotime($post['dateFrom'])) === date('Y',strtotime($post['dateTo']))
+//                                    )
+//                                    {
+//                                        $dates = date('d.m',strtotime($post['dateFrom'])).' - '.date('d.m.Y',strtotime($post['dateTo']));
+//                                    }
+//
+//
+//                                    $newArr[] = [
+//                                        'priceId' => $priceList['PriceListID'],
+//                                        'IsNonReturnRate' => $priceList['IsNonReturnRate'],
+//                                        'IsSpecRate' => $priceList['IsSpecRate'],
+//                                        'totalDays' => count($servise['PriceDates']),
+//                                        'servises' =>  $serviseArr,
+//                                        'totalPrice' => '',
+//                                        'dates' => "{$dates}", //??? правильно???
+//                                        'currency' => $categoryPriceArr['ValuteShort'],
+//                                        'roomTypeId' => $roomType['ID'],
+//                                        'roomTypeName' => '',
+//                                        'HotelId' => 0,
+//                                        'FreeRoom'  => 0,
+//                                        'MainPlacesCount'  => 0,
+//                                        'NearestDateToReservation'  => '',
+//                                    ];
+//
+//                                }
+//                            }
+//                        }
+//
+//                        if($newArr)
+//                        {
+//                            foreach ($newArr as $roomTypeS)
+//                            {
+//                                foreach ($roomTypeS['servises'] as $id => $servise)
+//                                {
+//                                    $servise['sum'] = array_sum($servise['serviseSumArr']);
+//                                    $roomTypeS['servises'][$id] = $servise;
+//                                    $roomTypeS['totalPrice'] += $servise['sum'];
+//                                }
+//
+//                                $indexN = array_search($roomTypeS['roomTypeId'],$categoryNameRes['IDs']);
+//                                if($indexN !== false)
+//                                {
+//                                    $roomTypeS['roomTypeName'] = $categoryNameRes['ClassNames'][$indexN];
+//                                    $roomTypeS['HotelId'] = $categoryNameRes['HotelIDs'][$indexN];
+//
+//                                }
+//
+//                                if(in_array($roomTypeS['roomTypeId'],array_keys($roomsData)))
+//                                {
+//                                    $roomTypeS['FreeRoom'] = $roomsData[$roomTypeS['roomTypeId']]['FreeRoom'];
+//                                    $roomTypeS['MainPlacesCount'] = $roomsData[$roomTypeS['roomTypeId']]['MainPlacesCount'];
+//                                    $roomTypeS['NearestDateToReservation'] = $roomsData[$roomTypeS['roomTypeId']]['NearestDateToReservation'];
+//                                }
+//
+////                                $result['result']['priceLists'][$roomTypeS['roomTypeId']] = $roomTypeS;
+//                                $result['result']['rooms'][$roomTypeS['roomTypeId']] = $roomTypeS;
+//                            }
+//                        }
+//
+////                        $result['result']['test'] = $categoryPriceArr;
+//                    }
+//
+//                }
+//
+//
+//
+////                $result['result']['post'] = $post;
+////                $result['result']['test123'] = $newArr;
+//            }
+//        }
+//        return $result;
+//    }
 
 
 
@@ -421,7 +398,7 @@ class Hotel
     /*********** 22.06.2020**********/
 
     //get Prices Last - 22/06/2020
-    public function getPricesByFilter($post)
+    public function getPricesByFilter($post,$dealId)
     {
         $result = [
             'errors' => [],
@@ -429,7 +406,42 @@ class Hotel
             'prices' => [],
             'names' => [],
             'table' => [],
+            'fields' => [
+                'COMMENTS' => '',
+                'ADDRESS' => '',
+            ],
         ];
+
+
+        $dealData = $this->getDealDataById($dealId);
+
+//        return $dealData;
+
+        if(!$dealData)
+        {
+            $result['errors'][] = "Не найдена сделка #{$dealId}";
+        }
+        else
+        {
+            //берем коммент из сделки и адрес из компании/контакта
+            $result['fields']['COMMENTS'] = $dealData['COMMENTS'];
+
+            if($dealData['CONTACT_DATA'] && $dealData['CONTACT_DATA']['UF_CRM_HMS_CONTACT_ADDRESS'])
+            {
+                $result['fields']['ADDRESS'] = $dealData['CONTACT_DATA']['UF_CRM_HMS_CONTACT_ADDRESS'];
+            }
+            elseif($dealData['COMPANY_DATA'] && $dealData['COMPANY_DATA']['UF_CRM_HMS_COMPANY_ADDRESS'])
+            {
+                $result['fields']['ADDRESS'] = $dealData['COMPANY_DATA']['UF_CRM_HMS_COMPANY_ADDRESS'];
+            }
+
+
+
+
+        }
+
+//        return [$dealId,$post];
+//        return $result;
 
        $childAgerResArr = [];
         if($post['childAges'])
@@ -505,8 +517,6 @@ class Hotel
             $result['test_Prices'] = $roomsPrices;
 
         }
-
-
 
 
 
@@ -645,37 +655,36 @@ class Hotel
 
 
     //get prices
-    public function getPriceByCategories($post,$categoryIds)
-    {
-        $data = [
-            'HotelID' => 1,
-            'CompanyID' => $post['companyId'],
-            'DateArrival' => $post['dateFrom'],
-            'DateDeparture' => $post['dateTo'],
-            'TimeArrival' =>  '',
-            'TimeDeparture' =>  '',
-            'Adults' => $post['adults'],
-            'Childs' => $post['childs'],
-            'ChildAges' => [],
-            'IsExtraBedUsed' => false,
-            'IsoLanguage'  => 'ru',
-            'RoomTypeIDs' => $categoryIds, // [1,2,3,5],
-            'СontractConditionID' => 0,
-            'PaidType' => 100,
+//    public function getPriceByCategories($post,$categoryIds)
+//    {
+//        $data = [
+//            'HotelID' => 1,
+//            'CompanyID' => $post['companyId'],
+//            'DateArrival' => $post['dateFrom'],
+//            'DateDeparture' => $post['dateTo'],
+//            'TimeArrival' =>  '',
+//            'TimeDeparture' =>  '',
+//            'Adults' => $post['adults'],
+//            'Childs' => $post['childs'],
+//            'ChildAges' => [],
+//            'IsExtraBedUsed' => false,
+//            'IsoLanguage'  => 'ru',
+//            'RoomTypeIDs' => $categoryIds, // [1,2,3,5],
+//            'СontractConditionID' => 0,
+//            'PaidType' => 100,
 //            'PaidType' => $post['paidType'],
-            'IsExtraBedUsed' => false,
-            'NeedTransport' => 0,
-//            'IsTouristTax' => 0,
-            'LPAuthCode' => '',
-        ];
-
-        if($post['companyId'])
-        {
-            $data['CompanyID'] = $post['companyId'];
-        }
-
-        return $this->postRequest('GetPrices',$data);
-    }
+//            'NeedTransport' => 0,
+////            'IsTouristTax' => 0,
+//            'LPAuthCode' => '',
+//        ];
+//
+//        if($post['companyId'])
+//        {
+//            $data['CompanyID'] = $post['companyId'];
+//        }
+//
+//        return $this->postRequest('GetPrices',$data);
+//    }
 
 
     //создание резерва
@@ -693,7 +702,6 @@ class Hotel
 
 //        return $dealData;
 
-
         if($dealData)
         {
 
@@ -707,7 +715,6 @@ class Hotel
 //                $company = 'STATIC TEST COMPANY';
                 $clientName = '';
                 $clientLastName = '';
-
 
 
                 $company = ($fields['FILTERS']['companyName']) ? $fields['FILTERS']['companyName'] : 'STATIC TEST COMPANY';
@@ -820,26 +827,13 @@ class Hotel
                     //обновление адреса в  компании или контакте
                     if($address)
                     {
-                        if($dealData['COMPANY_DATA'])
+                        if($dealData['CONTACT_DATA'])
                         {
-                            $companyAddr = $dealData['COMPANY_DATA'][$this->settings['SERVIO_FIELD_COMPANY_ADDRESS']];
-                            if($companyAddr)
-                            {
-                                $companyAddr = $companyAddr.'\n'.$address;
-                            }
-                            else
-                            {
-                                $companyAddr = $address;
-                            }
-                            $addressUpdate = \Bitrix\Crm\CompanyTable::update($dealData['COMPANY_DATA']['ID'],
-                                [$this->settings['SERVIO_FIELD_COMPANY_ADDRESS'] => trim($companyAddr)]);
-                        }
-                        else
-                        {
+
                             $contactAddr = $dealData['CONTACT_DATA'][$this->settings['SERVIO_FIELD_CONTACT_ADDRESS']];
                             if($contactAddr)
                             {
-                                $contactAddr = $contactAddr.'\n'.$address;
+                                $contactAddr = "$contactAddr\n".date('d.m.Y H:i').": $address";
                             }
                             else
                             {
@@ -847,6 +841,24 @@ class Hotel
                             }
                             $addressUpdate = \Bitrix\Crm\ContactTable::update($dealData['CONTACT_DATA']['ID'],
                                 [$this->settings['SERVIO_FIELD_CONTACT_ADDRESS'] => trim($contactAddr)]);
+
+                        }
+                        else
+                        {
+                           if($dealData['COMPANY_DATA'])
+                           {
+                               $companyAddr = $dealData['COMPANY_DATA'][$this->settings['SERVIO_FIELD_COMPANY_ADDRESS']];
+                               if($companyAddr)
+                               {
+                                   $companyAddr = "$companyAddr\n".date('d.m.Y H:i').": $address";
+                               }
+                               else
+                               {
+                                   $companyAddr = $address;
+                               }
+                               $addressUpdate = \Bitrix\Crm\CompanyTable::update($dealData['COMPANY_DATA']['ID'],
+                                   [$this->settings['SERVIO_FIELD_COMPANY_ADDRESS'] => trim($companyAddr)]);
+                           }
 
                         }
                     }
@@ -861,8 +873,6 @@ class Hotel
         {
             $result['error'] = 'Ошибка при получении данных клиента в Б24!';
         }
-
-
 
         return $result;
     }
@@ -905,13 +915,65 @@ class Hotel
 
     public function getReserveData($id)
     {
-        $data['Account'] = $id;
+        $result = [
+            'result' => [],
+            'error' => '',
+        ];
+        $data['Account'] = intval($id);
         $reserveData = $this->postRequest('GetReservationInfo',$data);
-        if($reserveData['Result'] === 0)
+        if($reserveData['Result'] !== 0)
         {
-            $reserveData['PaidTypeText'] = $this->payTypes[$reserveData['PaidType']];
+            $result['error'] = $reserveData['Error'];
         }
-        return $reserveData;
+        else
+        {
+            unset($reserveData['Error']);
+            unset($reserveData['ErrorCode']);
+            unset($reserveData['Result']);
+            $reserveData['PaidTypeText'] = $this->payTypes[$reserveData['PaidType']];
+            $reserveData['DateArrival'] = date('d.m.Y H:i',strtotime($reserveData['DateArrival']));
+            $reserveData['DateDeparture'] = date('d.m.Y H:i',strtotime($reserveData['DateDeparture']));
+
+
+            $servicesResultArray = [];
+            $servisesArr = []; //для формирования массива услуг в th
+
+            if($reserveData['Services'])
+            {
+                foreach ($reserveData['Services'] as $service)
+                {
+                    $servisesArr[] = [
+                        'ServiceID' => $service['ServiceID'],
+                        'ServiceName' => $service['ServiceName'],
+                        'ServiceTypeName' => $service['ServiceTypeName']
+                    ];
+
+                    foreach ($service['PriceDate'] as $oneDate) {
+
+                        $rDate = date('d.m.Y',strtotime($oneDate['Date']));
+
+                        $servicesResultArray[$rDate]['Price'] += $oneDate['Price'];
+                        $servicesResultArray[$rDate]['CustomerAccount'] = $oneDate['CustomerAccount'];
+                        $servicesResultArray[$rDate]['Date'] = date('d.m.Y',strtotime($oneDate['Date']));
+                        $servicesResultArray[$rDate]['IsPaid'] = $oneDate['IsPaid'];
+                        $servicesResultArray[$rDate]['IsPaidFromSite'] = $oneDate['IsPaidFromSite'];
+                        $servicesResultArray[$rDate]['OrderID'] = $oneDate['OrderID'];
+                        $servicesResultArray[$rDate]['PayAccount'] = $oneDate['PayAccount'];
+                        $servicesResultArray[$rDate]['ServiceProviderID'] = $oneDate['ServiceProviderID'];
+                        $servicesResultArray[$rDate]['ServiceProviderName'] = $oneDate['ServiceProviderName'];
+                        $servicesResultArray[$rDate]['ServicePrices'][] = $oneDate['Price'];
+                    }
+                }
+            }
+
+            //th
+            $reserveData['ThServises'] = $servisesArr;
+            //Formated Servises Prices By Dates
+            $reserveData['ResultServises'] = array_values($servicesResultArray);
+
+            $result['result'] = $reserveData;
+        }
+        return $result;
     }
 
     public function logData($filename,$data){
@@ -919,11 +981,11 @@ class Hotel
         file_put_contents($file, print_r([date('d.m.Y H:i:s'),$data],true), FILE_APPEND | LOCK_EX);
     }
 
-    public function logData_Make($filename,$content)
-    {
-        $file = $_SERVER["DOCUMENT_ROOT"].'/'.$filename;
-        file_put_contents($file, print_r($content,true));
-    }
+//    public function logData_Make($filename,$content)
+//    {
+//        $file = $_SERVER["DOCUMENT_ROOT"].'/'.$filename;
+//        file_put_contents($file, print_r($content,true));
+//    }
 
     //подтверждение брони
     public function confirmReserve($fields)
@@ -936,7 +998,8 @@ class Hotel
         $data = [
             'Account' => $fields['reserveId'],
             'IsoLanguage'  => 'ru',
-            'Format' => 0,
+//            'Format' => 0,
+            'Format' => $this->settings['SERVIO_RESERVE_CONFIRM_FILE_FORMAT'],
         ];
 
         $confirmResult = $this->postRequest('GetAccountConfirm',$data);
@@ -962,8 +1025,6 @@ class Hotel
 //            return $fileResult;
 
 
-
-
                 if(!$fileResult['result'])
                 {
                     $result['error'] = $fileResult['error'];
@@ -983,10 +1044,9 @@ class Hotel
                     {
                         $result['result'] = $updDealRes;
                     }
-                unlink($_SERVER['DOCUMENT_ROOT'].'/'.$fileArr['tmp_name']);
+                    unlink($_SERVER['DOCUMENT_ROOT'].'/'.$fileArr['tmp_name']);
                 }
             }
-
 
 //            $result['result'] = $confirmResult;
         }
@@ -1005,7 +1065,8 @@ class Hotel
         $data = [
             'Account' => $fields['reserveId'],
             'IsoLanguage'  => 'ru',
-            'Format' => 0,
+//            'Format' => 1,
+            'Format' => $this->settings['SERVIO_RESERVE_CONFIRM_FILE_FORMAT'],
         ];
 
         $billDataResult = $this->postRequest('GetAccountBill',$data);
@@ -1018,6 +1079,8 @@ class Hotel
         {
             //записываем ID документа счета в сделку и получаем документ
             $result['result'] = $billDataResult;
+
+            //получение документа
         }
 
         return $result;
@@ -1055,7 +1118,8 @@ class Hotel
             }
             else
             {
-                $fileName = $_SERVER['DOCUMENT_ROOT'].'/servio_archive_'.strtotime('now').'.zip';
+//                $fileName = $_SERVER['DOCUMENT_ROOT'].'/servio_archive_'.strtotime('now').'.zip';
+                $fileName = $_SERVER['DOCUMENT_ROOT'].'/'.$myFileName.'_'.strtotime('now').'.zip';
 //            $fileName = 'FFFFF_'.strtotime('now').'.zip';
 
 
@@ -1074,6 +1138,75 @@ class Hotel
             }
         }
         return $result;
+    }
+
+    public function abortReserve($fields)
+    {
+        $result = [
+            'result' => false,
+            'error' => false,
+        ];
+
+//        return $fields;
+
+        $data['Account'] = $fields['reserveId'];
+
+        $reserveAbortResult = $this->postRequest('CancelReservation',$data);
+        if($reserveAbortResult['Result'] !== 0)
+        {
+            $result['error'] = $reserveAbortResult['Error'];
+        }
+        else
+        {
+            //получаем направление (CATEGORY_ID) на проигрыш
+            //учистим поля: id резерва ...
+
+            \CModule::IncludeModule("crm"); //Какого хера??
+            $dealData = \Bitrix\Crm\DealTable::getRow([
+                'select' => [/*'*',$this->settings['SERVIO_FIELD_RESERVE_ID'],*/'ID','CATEGORY_ID'],
+                'filter' => ['ID' => intval($fields['id'])],
+            ]);
+
+            $result['test'] = $dealData;
+
+            if(!$dealData)
+            {
+                $result['error'] = "Не найдена сделка #{$fields['id']}";
+            }
+            else
+            {
+                //определение стадии пригрыша - стандарт от Б24 = C{CATEGORY_ID}:LOSE или LOSE (CATEGORY_ID === 0)
+                $loseStageId = (intval($dealData['CATEGORY_ID']) === 0)
+                    ? $this->defaultValues['LOSE_STAGE_ID_NAME_PART']
+                    : "C{$dealData['CATEGORY_ID']}:{$this->defaultValues['LOSE_STAGE_ID_NAME_PART']}";
+
+                $updDealFields = [
+                    'STAGE_ID' => $loseStageId,
+                    $this->settings['SERVIO_FIELD_RESERVE_ID'] => ''
+                ];
+
+                $dealUpdRes = $this->updateDeal($fields['id'],$updDealFields);
+                if($dealUpdRes['errors'])
+                {
+                    $result['error'] = implode("\n ",$dealUpdRes['errors']);
+                }
+                else
+                {
+                    $result['result'] = $dealUpdRes['result'];
+                }
+
+
+                //обновление полей сделки
+
+//                $result['test_update_fields'] = $updDealFields;
+//                $result['test_update_res'] = $dealUpdRes;
+
+            }
+
+        }
+
+        return $result;
+//        return $reserveAbortResult;
     }
 
     private function postRequest($operation,$data)

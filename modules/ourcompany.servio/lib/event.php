@@ -13,6 +13,8 @@ class Event
         'SERVIO_URI_LINK',
         'SERVIO_REST_KEY',
         'SERVIO_COMPANY_CODE',
+        'SERVIO_RESERVE_CONFIRM_FILE_FORMAT',
+        'SERVIO_BILL_FILE_FORMAT',
         'SERVIO_FIELD_RESERVE_ID',
         'SERVIO_FIELD_COMPANY_ID',
         'SERVIO_FIELD_COMPANY_ADDRESS',
@@ -21,6 +23,8 @@ class Event
         'SERVIO_FIELD_COMPANY_ADDRESS',
         'SERVIO_FIELD_RESERVE_CONFIRM_FILE_ID',
         'SERVIO_FIELD_RESERVE_CONFIRM_FILE',
+        'SERVIO_FIELD_BILL_FILE_ID',
+        'SERVIO_FIELD_BILL_FILE',
         ];
 
     private $techFields = [
@@ -255,15 +259,81 @@ class Event
                     'en' => 'Reserve Confirm File in Servio',
                 ],
             ],
+
+        'SERVIO_FIELD_BILL_FILE_ID' =>
+            [
+                'ENTITY_ID' => 'CRM_DEAL',
+                'FIELD_NAME' => 'UF_CRM_HMS_BILL_FILE_ID',
+                'USER_TYPE_ID' => 'double',
+                'XML_ID' => '',
+                'SORT' => 100,
+                'MULTIPLE' => 'Y',  //множ
+                'MANDATORY' => 'N', //обязательное
+                'SHOW_FILTER' => 'I',   //показывать в фильтре
+                'SHOW_IN_LIST' => '1', //показывать в списке
+                'EDIT_IN_LIST' => '',  //редактировать в списке
+                'IS_SEARCHABLE' => 'Y', //участвует в поиске
+                'EDIT_FORM_LABEL' => [  //подпись в карточке
+                    'ru' => 'ID файла счета в Servio',
+                    'en' => 'Bill File ID in Servio',
+                ],
+                'LIST_COLUMN_LABEL' => [ //название в списке
+                    'ru' => 'ID файла счета в Servio',
+                    'en' => 'Bill File ID in Servio',
+                ],
+                'LIST_FILTER_LABEL' => [ //название в списке фильтра
+                    'ru' => 'ID файла счета в Servio',
+                    'en' => 'Bill File ID in Servio',
+                ],
+                'ERROR_MESSAGE' => [ //название в списке фильтра
+                    'ru' => 'ID файла счета в Servio',
+                    'en' => 'Bill File ID in Servio',
+                ],
+            ],
+
+        'SERVIO_FIELD_BILL_FILE' =>
+            [
+                'ENTITY_ID' => 'CRM_DEAL',
+                'FIELD_NAME' => 'UF_CRM_HMS_BILL_FILE',
+                'USER_TYPE_ID' => 'file',
+                'XML_ID' => '',
+                'SORT' => 100,
+                'MULTIPLE' => 'Y',  //множ
+                'MANDATORY' => 'N', //обязательное
+                'SHOW_FILTER' => 'I',   //показывать в фильтре
+                'SHOW_IN_LIST' => '1', //показывать в списке
+                'EDIT_IN_LIST' => '',  //редактировать в списке
+                'IS_SEARCHABLE' => 'Y', //участвует в поиске
+                'EDIT_FORM_LABEL' => [  //подпись в карточке
+                    'ru' => 'Файл счета из Servio',
+                    'en' => 'Bill File from Servio',
+                ],
+                'LIST_COLUMN_LABEL' => [ //название в списке
+                    'ru' => 'Файл счета из Servio',
+                    'en' => 'Bill File from Servio',
+                ],
+                'LIST_FILTER_LABEL' => [ //название в списке фильтра
+                    'ru' => 'Файл счета из Servio',
+                    'en' => 'Bill File from Servio',
+                ],
+                'ERROR_MESSAGE' => [ //название в списке фильтра
+                    'ru' => 'Файл счета из Servio',
+                    'en' => 'Bill File from Servio',
+                ],
+            ],
+
     ];
 
+    //
     public static $settings = [
-        'SERVIO_URI_LINK' => false,
-        'SERVIO_REST_KEY' => false,
-        'SERVIO_COMPANY_CODE' => false,
-        'SERVIO_FIELD_RESERVE_ID' => false,
-        'SERVIO_FIELD_COMPANY_ID' => false,
-        'SERVIO_FIELD_CONTACT_ID' => false,
+//        'SERVIO_URI_LINK' => false,
+//        'SERVIO_REST_KEY' => false,
+//        'SERVIO_COMPANY_CODE' => false,
+//        'SERVIO_FIELD_RESERVE_ID' => false,
+//        'SERVIO_FIELD_COMPANY_ID' => false,
+//        'SERVIO_FIELD_CONTACT_ID' => false,
+//        'SERVIO_RESERVE_CONFIRM_FILE_FORMAT' => false,
+//        'SERVIO_BILL_FILE_FORMAT' => false,
     ];
     public static $settingErrors = [];
 
@@ -278,15 +348,17 @@ class Event
         foreach (self::SETTINGS_OPTIONS as $option)
         {
             $optionValue = \Bitrix\Main\Config\Option::get(self::MODULE_ID, $option);
-            if($optionValue)
+            if(trim($optionValue) != '')
             {
                 self::$settings[$option] = trim($optionValue);
+
+//                self::logData([self::$settings[$option] => trim($optionValue)]);
             }
             else
             {
                 self::$settingErrors[] = Loc::getMessage("OUR_COMPANY_SETTINGS_{$option}_ERROR");
             }
-
+//            self::logData([$option => trim($optionValue)]);
         }
     }
 

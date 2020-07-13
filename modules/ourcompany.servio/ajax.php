@@ -42,7 +42,7 @@ if(isset($_POST['ACTION']))
 
             //New By Button "Search"
         case('GET_PRICES_BY_FILTER'):
-            $result = (new Hotel)->getPricesByFilter($_POST['FIELDS']);
+            $result = (new Hotel)->getPricesByFilter($_POST['FIELDS'],$_POST['DEAL_ID']);
             break;
 //        case('GET_CATEGORY_PRICE'):
 //            $result = (new Hotel)->getPriceByCategory($_POST['FIELDS']);
@@ -58,10 +58,14 @@ if(isset($_POST['ACTION']))
             $result = (new Hotel)->getBillForReserve($_POST['FIELDS']);
             break;
 
-
-        case('TEST_GET_DOCUMENT'):
-            $result = (new Hotel)->getDocument($_POST['DOCUMENT_ID']);
+        case('ABORT_RESERVE'):
+            $result = (new Hotel)->abortReserve($_POST['FIELDS']);
             break;
+
+            //test
+//        case('TEST_GET_DOCUMENT'):
+//            $result = (new Hotel)->getDocument($_POST['DOCUMENT_ID']);
+//            break;
 
 
         default:

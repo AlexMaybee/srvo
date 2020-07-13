@@ -19,17 +19,22 @@ if ( $APPLICATION -> GetGroupRight( $moduleId ) < "R" )
 Loader ::includeModule( $moduleId );
 
 
+$servioFormatsList =  [
+    '0' => 'PDF',
+    '1' => 'HTML',
+    '2' => 'EXCEL',
+    '3' => 'DOC',
+];
+
 
 
 $aTabs = [
     [
-        'DIV' => 'ourcompany',
+        'DIV' => 'ourcompany1',
         'TAB' => Loc::getMessage('OUR_COMPANY_SERVIO_OPTIONS_TAB'),
         'TITLE' => Loc::getMessage("OUR_COMPANY_SERVIO_OPTIONS_TAB_TITLE"),
         'OPTIONS' => [
-
-           '',
-
+            Loc::getMessage('OUR_COMPANY_SERVIO_OPTIONS_BLOCK_CONNECT'),
             [
                 'SERVIO_URI_LINK',
                 Loc::getMessage( 'OUR_COMPANY_SERVIO_LINK_FIELD_TITLE' ),
@@ -48,6 +53,61 @@ $aTabs = [
                 '',
                 ['text', 100]
             ],
+
+            Loc::getMessage('OUR_COMPANY_SERVIO_OPTIONS_BLOCK_FORMAT'),
+            [
+                'SERVIO_RESERVE_CONFIRM_FILE_FORMAT',
+                Loc::getMessage('OUR_COMPANY_SERVIO_RESERVE_CONFIRM_FILE_FORMAT_FIELD_TITLE'),
+                '',
+                ['selectbox', $servioFormatsList]
+            ],
+            [
+                'SERVIO_BILL_FILE_FORMAT',
+                Loc::getMessage('OUR_COMPANY_SERVIO_BILL_FILE_FORMAT_FIELD_TITLE'),
+                '',
+                ['selectbox', $servioFormatsList]
+            ],
+        ]
+    ],
+
+    [
+        'DIV' => 'ourcompany2',
+        'TAB' => Loc::getMessage('OUR_COMPANY_SERVIO_OPTIONS_TAB_2'),
+        'TITLE' => Loc::getMessage("OUR_COMPANY_SERVIO_OPTIONS_TAB_TITLE_2"),
+        'OPTIONS' => [
+               Loc::getMessage('OUR_COMPANY_SERVIO_DEAL_OPTIONS_BLOCK'),
+            [
+                'SERVIO_FIELD_RESERVE_ID',
+                Loc::getMessage('OUR_COMPANY_SERVIO_RESERVE_FIELD_TITLE'),
+                '',
+                ['text', 100]
+            ],
+            [
+                'SERVIO_FIELD_RESERVE_CONFIRM_FILE_ID',
+                Loc::getMessage('OUR_COMPANY_SERVIO_RESERVE_CONFIRM_FILE_ID_FIELD_TITLE'),
+                '',
+                ['text', 100]
+            ],
+            [
+                'SERVIO_FIELD_RESERVE_CONFIRM_FILE',
+                Loc::getMessage('OUR_COMPANY_SERVIO_RESERVE_CONFIRM_FILE_FIELD_TITLE'),
+                '',
+                ['text', 100]
+            ],
+            [
+                'SERVIO_FIELD_BILL_FILE_ID',
+                Loc::getMessage('OUR_COMPANY_SERVIO_BILL_FILE_ID_FIELD_TITLE'),
+                '',
+                ['text', 100]
+            ],
+            [
+                'SERVIO_FIELD_BILL_FILE',
+                Loc::getMessage('OUR_COMPANY_SERVIO_BILL_FILE_FIELD_TITLE'),
+                '',
+                ['text', 100]
+            ],
+
+            Loc::getMessage('OUR_COMPANY_SERVIO_COMPANY_CONTACT_OPTIONS_BLOCK'),
             [
                 'SERVIO_FIELD_COMPANY_ID',
                 Loc::getMessage('OUR_COMPANY_SERVIO_COMPANY_FIELD_TITLE'),
@@ -72,26 +132,9 @@ $aTabs = [
                 '',
                 ['text', 100]
             ],
-            [
-                'SERVIO_FIELD_RESERVE_ID',
-                Loc::getMessage('OUR_COMPANY_SERVIO_RESERVE_FIELD_TITLE'),
-                '',
-                ['text', 100]
-            ],
-            [
-                'SERVIO_FIELD_RESERVE_CONFIRM_FILE_ID',
-                Loc::getMessage('OUR_COMPANY_SERVIO_RESERVE_CONFIRM_FILE_ID_FIELD_TITLE'),
-                '',
-                ['text', 100]
-            ],
-            [
-                'SERVIO_FIELD_RESERVE_CONFIRM_FILE',
-                Loc::getMessage('OUR_COMPANY_SERVIO_RESERVE_CONFIRM_FILE_FIELD_TITLE'),
-                '',
-                ['text', 100]
-            ],
         ]
     ],
+
 ];
 
 

@@ -733,7 +733,9 @@ class ServioPopup
             priceTableTh = '',
             priceTableBody = '',
             reserveButtons,
-            roomCategoryInput
+            roomCategoryInput,
+            addressField,
+            commentField
 
         //задаем даты и ограничения
         dateFinish.setDate(dateFinish.getDate()  + 1);
@@ -995,7 +997,7 @@ class ServioPopup
 
                     //ajax для получения цен
 
-                    self.makeAjaxRequest(self.url.ajax,{ACTION : 'GET_PRICES_BY_FILTER',FIELDS : fields},
+                    self.makeAjaxRequest(self.url.ajax,{ACTION : 'GET_PRICES_BY_FILTER',FIELDS : fields, DEAL_ID : self.deal.id },
                         function (response) {
 
                             i = 1
@@ -1032,21 +1034,21 @@ class ServioPopup
 
                                 priceTableTh =
                                     `<table class="table table-sm table-responsive text-center">
-                                                <thead>
-                                                   <tr>
-                                                       <th scope="col-sm">#</th>
-                                                       <th scope="col-sm">Type</th>
-                                                       <th scope="col-sm">Free Room</th>
-                                                       <th scope="col-sm">Date</th>
-                                                       <th scope="col-sm">Min Pay Days</th>
-                                                       <th scope="col-sm">Min Days</th>
-                                                       <th scope="col-sm">Neares Date To Free</th>
-                                                       <th scope="col-sm">Total Price</th>
-                                                       <th scope="col-sm"></th>
-                                                   </tr>
-                                                </thead>
-                                                <tbody> ${priceTableBody}</tbody>
-                                            </table>`
+                                        <thead>
+                                           <tr>
+                                               <th scope="col-sm">#</th>
+                                               <th scope="col-sm">Type</th>
+                                               <th scope="col-sm">Free Room</th>
+                                               <th scope="col-sm">Date</th>
+                                               <th scope="col-sm">Min Pay Days</th>
+                                               <th scope="col-sm">Min Days</th>
+                                               <th scope="col-sm">Neares Date To Free</th>
+                                               <th scope="col-sm">Total Price</th>
+                                               <th scope="col-sm"></th>
+                                           </tr>
+                                        </thead>
+                                        <tbody> ${priceTableBody}</tbody>
+                                    </table>`
 
                                 priceHtmlBlock.innerHTML = priceTableTh;
 
@@ -1069,6 +1071,18 @@ class ServioPopup
                                     })
                                 }
 
+
+                                addressField = document.getElementById('address')
+                                commentField = document.getElementById('comment')
+
+                                if(addressField != null && response.fields.ADDRESS.length > 0 && addressField.value.trim().length == 0)
+                                {
+                                    addressField.value = response.fields.ADDRESS
+                                }
+                                if(commentField != null && response.fields.COMMENTS.length > 0 && commentField.value.trim().length == 0)
+                                {
+                                    commentField.value = response.fields.COMMENTS
+                                }
                             }
                             else
                             {
@@ -1086,8 +1100,6 @@ class ServioPopup
                         }
                     )
                 }
-
-
 
             }
         }
@@ -1194,7 +1206,8 @@ class ServioPopup
             servisesTable = '',
             servisesTableInner = '',
             reserveDataHtml = '',
-            cancelBtn, confirmBtn, billBtn
+            cancelBtn, confirmBtn, billBtn,
+            k = 1
 
 
         popupObj = self.makePopupV2('servio-hotel-reservation-view',html,'Hotel Reservation View',)
@@ -1206,40 +1219,66 @@ class ServioPopup
                 console.log('Load Reserve',response);
                 popupBody = document.getElementById('servio_reserve_view')
 
-                if(response.Result !== 0)
+                if(popupBody !== null)
+                {}
+
+                if(response.error.length > 0)
                 {
-                    if(popupBody !== null)
-                    {
-                        reserveDataHtml =
-                            `<div class="ui-alert ui-alert-danger custom-error">
-                                <span class="ui-alert-message"><strong>Error! </strong>${response.Error}</span>
-                            </div>`
-                    }
+                    reserveDataHtml =
+                        `<div class="ui-alert ui-alert-danger custom-error">
+                            <span class="ui-alert-message"><strong>Error! </strong>${response.error}</span>
+                        </div>`
                 }
                 else
                 {
-                    if(response.Services.length > 0)
+                    if(response.result.ResultServises.length > 0)
                     {
-                        for(let service of response.Services){
-                            for(let price of service.PriceDate){
-                                servisesTableInner +=
-                                    `<tr>
-                                        <td>${service.ServiceName}</td>
-                                        <td>${price.Date}</td>
-                                        <td>${price.Price}</td>
-                                        <td class="ui-alert ${(price.IsPaid === true) ? 'ui-alert-success' : 'ui-alert-danger'}">${price.IsPaid}</td>
-                                    </tr>`
+
+                        //Разбор сервисов в th, td
+                        let thService = '',
+                            tdServicePrice = ''
+
+                        for(let thServ of response.result.ThServises)
+                        {
+                            thService += `<th>${thServ.ServiceName}, ${response.result.ValuteShort}</th>`
+                        }
+
+                        for(let resultPrices of response.result.ResultServises){
+
+                            tdServicePrice = ''
+
+                            for(let servPrice of resultPrices.ServicePrices)
+                            {
+                                tdServicePrice += `<td>${servPrice}</td>`
                             }
+
+                            servisesTableInner +=
+                                `<tr>
+                                    <td>${k}</td>
+                                    <td>${resultPrices.Date}</td>
+                                    ${tdServicePrice}
+                                    <td>${resultPrices.Price}</td>
+                                    <td class="ui-alert ${(resultPrices.IsPaid === true) ? 'ui-alert-success' : 'ui-alert-danger'}">${resultPrices.IsPaid}</td>
+
+                                    ${
+                                    (resultPrices.IsPaid !== true)
+                                        ?`<td><button class="ui-btn ui-btn-xs ui-btn-primary pay-the-day data-account-id="${resultPrices.CustomerAccount}">To Pay</button></td>`
+                                        : `<td></td>`
+                                    }
+                                </tr>`
+                            k++
                         }
 
                         servisesTable =
                             `<div class="row">
-                                <table class="table table-sm table-responsive">
+                                <table class="table table-sm table-responsive text-center">
                                     <thead>
-                                        <th>Servise</th>
-                                        <th>Dates</th>
-                                        <th>Prices, ${response.ValuteShort}</th>
+                                        <th>#</th>
+                                        <th>Date</th>
+                                        ${thService}
+                                        <th>Total Day Price, ${response.result.ValuteShort}</th>
                                         <th>Is Paid</th>
+                                        <th></th>
                                     </thead>
                                     <tbody>
                                         ${servisesTableInner}
@@ -1248,66 +1287,63 @@ class ServioPopup
                             </div>`
                     }
 
-
                     reserveDataHtml =
                         `<div class="row">
-                                        <div class="col-sm-6 ui-alert ui-alert-default">Serviceprovider Name</div>
-                                        <div class="col-sm-6 ui-alert ui-alert-primary">
-                                            <span class="ui-alert-message"><strong>${response.ServiceProviderName}</strong></span>
-                                            </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-6 ui-alert ui-alert-default">Reserve Status</div>
-                                        <div class="col-sm-6 ui-alert ui-alert-danger">
-                                            <span class="ui-alert-message"><strong>${response.StatusName}</strong></span>
-                                            </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-6 ui-alert ui-alert-default">Account Name</div>
-                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.AccountName}</div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-6 ui-alert ui-alert-default">Email</div>
-                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.Email}</div>
-                                    </div>
-                                      <div class="row">
-                                        <div class="col-sm-6 ui-alert ui-alert-default">Date From</div>
-                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.DateArrival}</div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-6 ui-alert ui-alert-default">Date To</div>
-                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.DateDeparture}</div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-6 ui-alert ui-alert-default">Adults</div>
-                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.Adults}</div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-6 ui-alert ui-alert-default">Childs</div>
-                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.Childs}</div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-6 ui-alert ui-alert-default">Room Type</div>
-                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.RoomType}</div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-6 ui-alert ui-alert-default">Paid Type</div>
-                                        <div class="col-sm-6 ui-alert ui-alert-primary">${response.PaidTypeText}</div>
-                                    </div>
+                            <div class="col-sm-6 ui-alert ui-alert-default">Serviceprovider Name</div>
+                                <div class="col-sm-6 ui-alert ui-alert-primary">
+                                    <span class="ui-alert-message"><strong>${response.result.ServiceProviderName}</strong></span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6 ui-alert ui-alert-default">Reserve Status</div>
+                                <div class="col-sm-6 ui-alert ui-alert-danger">
+                                    <span class="ui-alert-message"><strong>${response.result.StatusName}</strong></span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6 ui-alert ui-alert-default">Account Name</div>
+                                <div class="col-sm-6 ui-alert ui-alert-primary">${response.result.AccountName}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6 ui-alert ui-alert-default">Email</div>
+                                <div class="col-sm-6 ui-alert ui-alert-primary">${response.result.Email}</div>
+                            </div>
+                              <div class="row">
+                                <div class="col-sm-6 ui-alert ui-alert-default">Date From</div>
+                                <div class="col-sm-6 ui-alert ui-alert-primary">${response.result.DateArrival}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6 ui-alert ui-alert-default">Date To</div>
+                                <div class="col-sm-6 ui-alert ui-alert-primary">${response.result.DateDeparture}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6 ui-alert ui-alert-default">Adults</div>
+                                <div class="col-sm-6 ui-alert ui-alert-primary">${response.result.Adults}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6 ui-alert ui-alert-default">Childs</div>
+                                <div class="col-sm-6 ui-alert ui-alert-primary">${response.result.Childs}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6 ui-alert ui-alert-default">Room Type</div>
+                                <div class="col-sm-6 ui-alert ui-alert-primary">${response.result.RoomType}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6 ui-alert ui-alert-default">Paid Type</div>
+                                <div class="col-sm-6 ui-alert ui-alert-primary">${response.result.PaidTypeText}</div>
+                            </div>
+                            
+                            ${servisesTable}
                                     
-                                    ${servisesTable}
                                     
-                                    
-                                    ${
-                            (
-                                Number(self.deal.reserveId) > 0
-                            )
+                            ${
+                            (Number(self.deal.reserveId) > 0)
                                 ? '<button class="ui-btn ui-btn-danger" id="reserveCancelBtn">Отменить</button>'
                                 : ''
 
                             }
                                     
-                                    ${
+                            ${
                             (
                                 Number(self.deal.reserveId) > 0 &&
                                 (self.deal.reserveConfirmFileId > 0) != true &&
@@ -1317,11 +1353,11 @@ class ServioPopup
                                 : ''
                             }
                                     
-                                    <button class="ui-btn ui-btn-secondary" id="getReserveBill">Счет</button>`
+                            <button class="ui-btn ui-btn-secondary" id="getReserveBill">Счет</button>`
                 }
 
 
-                console.log('OOOOOO',self.deal);
+                // console.log('OOOOOO',self.deal);
                 popupBody.innerHTML = reserveDataHtml
 
 
@@ -1336,7 +1372,9 @@ class ServioPopup
                 {
                     cancelBtn.onclick = () =>
                     {
-                        console.log('cancelBtn');
+                        // console.log('cancelBtn');
+
+                        self.cancelReserve(popupObj,cancelBtn)
                     }
                 }
 
@@ -1481,9 +1519,48 @@ class ServioPopup
                 self.toggleClockLoaderToBtn(btnObj)
             }
         )
-
     }
 
+    cancelReserve(popupObj,cancelBtn)
+    {
+        let self = this,
+            viewPopup = document.getElementById('servio_reserve_view'),
+            firstRow = viewPopup.querySelector('.row')
+
+        //удаление ошибок и сообщений
+        self.deleteErrorsinForm(viewPopup);
+
+        self.toggleClockLoaderToBtn(cancelBtn)
+
+        this.makeAjaxRequest(this.url.ajax, {'ACTION': 'ABORT_RESERVE', 'FIELDS': self.deal},
+            function (response) {
+                console.log('Abort Ajax:',response)
+
+                if(response.error)
+                {
+                    self.addErrorsBeforeFormNew(firstRow,response.error,'error')
+                    self.toggleClockLoaderToBtn(cancelBtn)
+
+                }
+                else
+                {
+                    self.addErrorsBeforeFormNew(firstRow,'Резерв отменен!','success')
+
+                    self.toggleClockLoaderToBtn(cancelBtn)
+
+                    setTimeout(() => {
+                        popupObj.destroy()
+
+                        self.deal.reserveId = response.result
+                        location.reload()
+                    }, 2000)
+                }
+
+            }
+        )
+
+        console.log('Test Abort Reserve');
+    }
 
 
 }
