@@ -1,14 +1,22 @@
 <?php
-namespace Ourcompany\Servio;
 
-use \Bitrix\Main\Page\Asset,
-    \Bitrix\Main\Localization\Loc;
+namespace Ourcompany\Servio\Work;
 
+use \Bitrix\Main\Localization\Loc;
 
-class Event
+class Mysettings
 {
+    //массивы полученных из cOption настроеки ошибок
+    public $settings = [
+        'success' => [],
+        'errors' => [],
+    ];
+//    public $settingsErrors = [];
+
+    //нужен для получения cOption
     const MODULE_ID = 'ourcompany.servio';
 
+    //названия Options ( в т.ч. в options.php)
     const SETTINGS_OPTIONS = [
         'SERVIO_URI_LINK',
         'SERVIO_REST_KEY',
@@ -25,9 +33,10 @@ class Event
         'SERVIO_FIELD_RESERVE_CONFIRM_FILE',
         'SERVIO_FIELD_BILL_FILE_ID',
         'SERVIO_FIELD_BILL_FILE',
-        ];
+    ];
 
-    private $techFields = [
+    //массив полей для /install/index.php
+    const TECH_FIELDS = [
         'SERVIO_FIELD_RESERVE_ID' =>
             [
                 'ENTITY_ID' => 'CRM_DEAL',
@@ -260,6 +269,7 @@ class Event
                 ],
             ],
 
+        //МНОЖ
         'SERVIO_FIELD_BILL_FILE_ID' =>
             [
                 'ENTITY_ID' => 'CRM_DEAL',
@@ -291,6 +301,8 @@ class Event
                 ],
             ],
 
+
+        //МНОЖ
         'SERVIO_FIELD_BILL_FILE' =>
             [
                 'ENTITY_ID' => 'CRM_DEAL',
@@ -323,147 +335,21 @@ class Event
             ],
     ];
 
-    //
-    public static $settings = [
-//        'SERVIO_URI_LINK' => false,
-//        'SERVIO_REST_KEY' => false,
-//        'SERVIO_COMPANY_CODE' => false,
-//        'SERVIO_FIELD_RESERVE_ID' => false,
-//        'SERVIO_FIELD_COMPANY_ID' => false,
-//        'SERVIO_FIELD_CONTACT_ID' => false,
-//        'SERVIO_RESERVE_CONFIRM_FILE_FORMAT' => false,
-//        'SERVIO_BILL_FILE_FORMAT' => false,
-    ];
-    public static $settingErrors = [];
 
-
-//    public function __construct()
-//    {
-//        self::getSettings();
-//    }
-
-    public function getSettings()
+    function __construct()
     {
         foreach (self::SETTINGS_OPTIONS as $option)
         {
             $optionValue = \Bitrix\Main\Config\Option::get(self::MODULE_ID, $option);
             if(trim($optionValue) != '')
             {
-                self::$settings[$option] = trim($optionValue);
-
-//                self::logData([self::$settings[$option] => trim($optionValue)]);
+                $this->settings['success'][$option] = trim($optionValue);
             }
             else
             {
-                self::$settingErrors[] = Loc::getMessage("OUR_COMPANY_SETTINGS_{$option}_ERROR");
-            }
-//            self::logData([$option => trim($optionValue)]);
-        }
-    }
-
-
-    public function addButtonAndScripts()
-    {
-        self::getSettings();
-
-        //Подключение б24 библиотеки типа бутстрапа
-        \Bitrix\Main\Ui\Extension::load('ui.buttons');
-        \Bitrix\Main\Ui\Extension::load('ui.buttons.icons');
-
-
-        //css & js for popup
-        \Bitrix\Main\Page\Asset::getInstance()->addCss("https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css",true);
-        \Bitrix\Main\Page\Asset::getInstance()->addJs("http://code.jquery.com/jquery-3.5.1.min.js",true);
-        \Bitrix\Main\Page\Asset::getInstance()->addJs("https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js",true);
-        \Bitrix\Main\Page\Asset::getInstance()->addJs("https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js",true);
-
-        global $APPLICATION;
-
-
-        //если что-то не заполнено в настройках, не подключаем файлы с кнопками и скриптами
-
-
-        if(preg_match('#^/crm/deal/details/[0-9]+/#',$APPLICATION->GetCurPage()))
-        {
-
-            $dir = implode('_',explode('.',self::MODULE_ID));
-
-            \CJSCore::RegisterExt($dir, array(
-                "js" => "/bitrix/js/{$dir}/script.js",
-                "css" => "/bitrix/css/{$dir}/style.css",
-            ));
-            \CJSCore::init($dir);
-
-            //Штатная библиотека
-//            if(!\CJSCore::Init(["jquery2"]))
-//                \CJSCore::Init(["jquery2"]);
-
-
-            if(!self::$settingErrors)
-            {
-                $html = '<button class="ui-btn ui-btn-success ui-btn-icon-task ui-btn-round mar-rl-1" id="servio">Servio!</button>';
-                $APPLICATION->AddViewContent('inside_pagetitle', $html,50000);
-            }
-            else
-            {
-                $html = '<button class="ui-btn ui-btn-danger mar-rl-1 "
-                    title="'.implode("\n",array_values(self::$settingErrors)).'">Servio Error</button>';
-                $APPLICATION->AddViewContent('inside_pagetitle', $html,50000);
-            }
-
-
-        }
-
-
-
-//        self::logData([self::$settings,self::$settingErrors]);
-
-        return [self::$settings,self::$settingErrors];
-    }
-
-    public function createFiedsAndOptions()
-    {
-        foreach($this->techFields as $cOpt => $field)
-        {
-            $obj = new \CUserTypeEntity;
-            $createRes = $obj->add($field);
-            if ($createRes) {
-                $this->setCoptionValue($cOpt, $field['FIELD_NAME']);
+                $this->settings['errors'][] = Loc::getMessage("OUR_COMPANY_MYSETTINGS_{$option}_ERROR");
             }
         }
-    }
-
-    public function deleteFieds()
-    {
-        $fieldNames = [];
-        foreach ($this->techFields as $cOpt => $val)
-        {
-            $fieldNames[] = $val['FIELD_NAME'];
-//            delCoption($cOpt);
-
-            if($fieldNames)
-            {
-                $obj = new \CUserTypeEntity;
-
-                $fieldsObj = \Bitrix\Main\UserFieldTable::getList([
-                    'filter' => ['FIELD_NAME' => $fieldNames],
-                    'select' => ['ID']
-                ]);
-                while($ob = $fieldsObj->fetch())
-                {
-                    $obj->delete($ob['ID']);
-                }
-            }
-        }
-    }
-
-    private function setCoptionValue($name,$value){
-        return \Bitrix\Main\Config\Option::set(self::MODULE_ID,$name,$value);
-    }
-
-    public function logData($data){
-        $file = $_SERVER["DOCUMENT_ROOT"].'/test.log';
-        file_put_contents($file, print_r([date('d.m.Y H:i:s'),$data],true), FILE_APPEND | LOCK_EX);
     }
 
 }

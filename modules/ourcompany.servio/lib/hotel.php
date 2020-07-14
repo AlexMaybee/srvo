@@ -410,6 +410,7 @@ class Hotel
                 'COMMENTS' => '',
                 'ADDRESS' => '',
             ],
+            'contractConditions' => [],
         ];
 
 
@@ -469,6 +470,8 @@ class Hotel
         }
         else
         {
+            $result['contractConditions'] = $roomsData['ContractConditions'];
+
             $roomsCatFilter = [];
             foreach ($roomsData['RoomTypes'] as $roomCategory)
             {

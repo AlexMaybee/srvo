@@ -69,41 +69,57 @@ class ServioPopup
             {
 
                 servioBtn.onclick = function () {
-                    self.makeAjaxRequest(self.url.ajax,
-                        {
-                            'ACTION' : 'GET_DEAL_SERVIO_FIELDS',
-                            'DEAL_ID' : self.deal.id
-                        },
-                        function (response) {
-                            self.deal.reserveId = response.UF_CRM_HMS_RESERVE_ID || 0;
-                            self.deal.reserveConfirmFileId = response.UF_CRM_HMS_RESERVE_CONFIRM_FILE_ID;
-                            self.deal.reserveConfirmFile = response.UF_CRM_HMS_RESERVE_CONFIRM_FILE;
 
-                            if(self.deal.id > 0 && self.deal.reserveId === 0)
-                            {
-                                //здесь popup с формой
 
-                                self.loadReservePopupV5()
-                            }
-                            else if(self.deal.id > 0 && self.deal.reserveId > 0)
-                            {
-                                //здесь popup с полученным по id данными резерва
+                    // BX.ajax.runAction('ourcompany:servio.nmspc.company.companyTest', {
+                    //     data: {
+                    //         paramAA: 'test 1234' //в php принимаемый параметр должен иметь то же имя
+                    //     }
+                    // }).then((result) => {
+                    //     console.log('Result Promice',result);
+                    // });
 
-                                console.log('NEW POPUP WITH RESERVE DATA');
+                    self.decideWichWindow(servioBtn);
 
-                                // self.loadServioReservePopup()
-                                self.loadServioPopupWithReserervation()
-                            }
-                            else
-                            {
-                                //иначе форма без возможности резерва
-                                // self.loadServioPopup();
+                    // self.makeAjaxRequestPromice()
 
-                                self.loadReservePopupV5()
-                                console.log('ШТА?');
-                            }
 
-                        })
+
+                    // self.makeAjaxRequest(self.url.ajax,
+                    //     {
+                    //         'ACTION' : 'GET_DEAL_SERVIO_FIELDS',
+                    //         'DEAL_ID' : self.deal.id
+                    //     },
+                    //     function (response) {
+                    //         self.deal.reserveId = response.UF_CRM_HMS_RESERVE_ID || 0;
+                    //         self.deal.reserveConfirmFileId = response.UF_CRM_HMS_RESERVE_CONFIRM_FILE_ID;
+                    //         self.deal.reserveConfirmFile = response.UF_CRM_HMS_RESERVE_CONFIRM_FILE;
+                    //
+                    //         if(self.deal.id > 0 && self.deal.reserveId === 0)
+                    //         {
+                    //             //здесь popup с формой
+                    //
+                    //             self.loadReservePopupV5()
+                    //         }
+                    //         else if(self.deal.id > 0 && self.deal.reserveId > 0)
+                    //         {
+                    //             //здесь popup с полученным по id данными резерва
+                    //
+                    //             console.log('NEW POPUP WITH RESERVE DATA');
+                    //
+                    //             // self.loadServioReservePopup()
+                    //             self.loadServioPopupWithReserervation()
+                    //         }
+                    //         else
+                    //         {
+                    //             //иначе форма без возможности резерва
+                    //             // self.loadServioPopup();
+                    //
+                    //             self.loadReservePopupV5()
+                    //             console.log('ШТА?');
+                    //         }
+                    //
+                    //     })
                 }
 
                 //поиск кнопки + нажатие + проверка ШВ резерва или отображение формы
@@ -120,6 +136,70 @@ class ServioPopup
 
     }
 
+    /*
+    * Main function to get deal Fields and choose popup to show
+    * */
+    decideWichWindow(servioBtn)
+    {
+        let self = this
+
+        console.log('START FROM LOADing DEAL FIELDS',this.deal);
+
+        BX.ajax.runAction('ourcompany:servio.nmspc.handler.dealFields', {
+            data: {
+                DEAL_ID: this.deal.id, //в php принимаемый параметр должен иметь то же имя
+            }
+        }).then(
+            (ajaxResult) => {
+                console.log('Result Promice DEAL',ajaxResult);
+
+                if(ajaxResult.status !== 'success')
+                {
+                    //вывод ошибок из ajaxResult.errors
+                }
+                else
+                {
+                    // повторяем то, что уже есть выше
+                    self.deal.reserveId = ajaxResult.data.UF_CRM_HMS_RESERVE_ID || 0;
+                    self.deal.reserveConfirmFileId = ajaxResult.data.UF_CRM_HMS_RESERVE_CONFIRM_FILE_ID;
+                    self.deal.reserveConfirmFile = ajaxResult.data.UF_CRM_HMS_RESERVE_CONFIRM_FILE;
+
+                    if(self.deal.id > 0 && self.deal.reserveId === 0)
+                    {
+                        //здесь popup с формой
+                        // self.loadReservePopupV5()
+                        self.loadFormV6()
+                    }
+                    else if(self.deal.id > 0 && self.deal.reserveId > 0)
+                    {
+                        //здесь popup с полученным по id данными резерва
+                        self.loadServioPopupWithReserervation()
+                    }
+                    else
+                    {
+                        //иначе форма без возможности резерва
+                        // self.loadReservePopupV5()
+                        self.loadFormV6()
+                        console.log('ШТА?');
+                    }
+                }
+            }).catch(
+            (ajaxResult) => {
+                console.log('Errors: ', ajaxResult.errors);
+
+                let title = ''
+                for(let err of ajaxResult.errors)
+                {
+                    title += err.message
+                }
+                console.log('EEEE',title);
+                servioBtn.classList.remove('ui-btn-success')
+                servioBtn.classList.add('ui-btn-danger')
+                servioBtn.title = title
+            }
+        );
+
+    }
 
     /*
      * Universal ajax request
@@ -144,6 +224,7 @@ class ServioPopup
             }
         })
     }
+
 
 
     makePopupV2(popupTechName,htmlContent,popupTitle)
@@ -712,6 +793,299 @@ class ServioPopup
 
     }
 
+    //замена для V5
+    loadFormV6()
+    {
+        let self = this,
+            dateStart = new Date(),
+            dateFinish = new Date(),
+            dateFrom = '',
+            dateTo = '',
+            popupObj = {},
+            html = ``,
+            form,
+            nextStepBtn,
+            searchBtn,
+            step1Elems,
+            priceHtmlBlock = '',
+            i,
+            priceTableTh = '',
+            priceTableBody = '',
+            reserveButtons,
+            roomCategoryInput,
+            addressField,
+            commentField
+
+        //задаем даты и ограничения
+        dateFinish.setDate(dateFinish.getDate()  + 1);
+        dateFrom = this.createDate(dateStart)
+        dateTo = this.createDate(dateFinish)
+        //задаем даты и ограничения
+
+
+        html =
+            `<form id="servio_popup" onsubmit="return false" autocomplete="off">
+                <div class="form-row">
+                    <div class="col-sm-6 form-group">
+                        <label for="dateFrom" class="col-form-label-sm">Date From</label>
+                        <input type="date" name="dateFrom" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus" id="dateFrom" title="Select date from" autocomplete="off"
+                            value="${dateFrom}"
+                            min="${dateFrom}"
+                            >
+                    </div>
+                    <div class="col-sm-6 form-group">
+                        <label for="dateTo" class="col-form-label-sm">Date To</label>
+                        <input type="date" name="dateTo" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus" id="dateTo" title="Select date from" autocomplete="off"
+                             value="${dateTo}"
+                             min="${dateTo}"
+                            >
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-sm">
+                        <label for="adults">Adults</label>
+                        <input id="adults" name="adults" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus"
+                            value="1"
+                        >
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group col-sm">
+                        <label for="childs">Childs</label>
+                        <input id="childs" name="childs" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus"
+                             value="0"
+                        >
+                    </div>
+                </div>
+                
+                 <div class="form-row hidden-input">
+                    <div class="form-group col-sm">
+                        <label for="childAges">Child Ages</label>
+                        <input id="childAges" name="childAges" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group col-sm">
+                       <label for="hootelId">Hotel</label>
+                       <select id="hootelId" name="hootelId" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus" disabled>
+                           <option value="">Select...</option>
+                           <option value="1" selected>Hotel 1</option>
+                       </select>
+                    </div>
+                </div>
+                                
+                
+               <div class="form-row">
+                   <div class="form-group col-sm">
+                        <label for="lpAuthCode">Loyality Programm Code</label>
+                        <input id="lpAuthCode" name="lpAuthCode" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">
+                   </div>
+               </div>
+                
+               <div class="form-group form-check">
+                    <input type="checkbox" class="form-check-input" id="extraBed" name="extraBed" value="">
+                    <label class="form-check-label" for="extraBed">Need Extra Bed</label>
+               </div>
+                
+               <div class="form-group form-check">
+                    <input type="checkbox" class="form-check-input" id="transport" name="transport" value="">
+                    <label class="form-check-label" for="transport">Need Transport</label>
+               </div>
+                
+               <div class="form-group form-check">
+                    <input type="checkbox" class="form-check-input" id="touristTax" name="touristTax" value="">
+                    <label class="form-check-label" for="touristTax">Tourist Tax</label>
+               </div>
+                
+               
+               <input type="hidden" name="companyId" id="companyId" value="">
+               <input type="hidden" name="companyName" id="companyName" value="">
+               <input type="hidden" name="companyCodeId" id="companyCodeId" value="">
+               <input type="hidden" name="roomCategory" id="roomCategory" value="">
+                
+               <div class="ui-btn-container ui-btn-container-center text-right hidden-input">
+                  <button type="button" id="servio_step1" class="mt-2 ui-btn ui-btn-primary-dark ui-btn-right ui-btn-icon-business">
+                      Next Step
+                  </button>
+               </div>
+                      
+               <div class="form-row servio-step-1-elem hidden-input">      
+                   <div class="form-group col-sm">
+                       <label for="contractCondition">Contract Condition</label>
+                       <select id="contractCondition" name="contractCondition" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">
+                       </select>
+                   </div>
+               </div>
+                
+               <div class="form-row servio-step-1-elem hidden-input">
+                   <div class="form-group col-sm">
+                      <label for="paidType">Paid Type</label>
+                      <select id="paidType" name="paidType" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">
+                      </select>
+                   </div>
+               </div>
+                
+               <div class="ui-btn-container ui-btn-container-center text-right hidden-input">
+                  <button type="button" id="servio_search" class="mt-2 ui-btn ui-btn-primary-dark ui-btn-right ui-btn-icon-search">
+                      Search
+                  </button>
+               </div>
+                                
+               <div class="form-row reserve-hidden hidden-input">
+                   <div class="form-group col-sm">
+                       <label for="address">Address</label>
+                       <textarea class="form-control" id="address" name="address" rows="2"></textarea>
+                   </div>
+               </div>
+               
+                <div class="form-row reserve-hidden hidden-input">
+                   <div class="form-group col-sm">
+                       <label for="comment">Comment</label>
+                       <textarea class="form-control" id="comment" name="comment" rows="3"></textarea>
+                   </div>
+               </div>
+                  
+               <div id="servio_price_info" class="text-center">
+                   
+               </div>
+                  
+             <!--  <button type="button" id="add_servio_reserve" class="mt-2 ui-btn ui-btn-danger-dark ui-btn-icon-cloud">
+                  Reserve!
+               </button>-->
+            </form>`
+
+        popupObj = self.makePopupV2('servio-hotel-reservation', html, 'Hotel Reservation')
+        form = document.getElementById('servio_popup')
+        roomCategoryInput = document.getElementById('roomCategory')
+
+        searchBtn = document.getElementById('servio_search')
+        nextStepBtn = document.getElementById('servio_step1')
+        step1Elems = document.querySelectorAll('.servio-step-1-elem')
+
+        //получение данных компании
+        BX.ajax.runAction('ourcompany:servio.nmspc.handler.companyData', {
+            data: {}
+        })
+            .then(
+
+                //Все действие формы
+
+                function (companyResponse) {
+                    console.log('Promise Company',companyResponse);
+
+                    if(companyResponse.data.error != false)
+                    {
+                        self.addErrorsBeforeFormNew(form, companyResponse.data.error, 'error')
+                    }
+                    else
+                    {
+                        //передаем результат дальше
+                        return companyResponse.data.result
+                    }
+                })
+            .then(
+                (companyAjaxResult) =>
+                {
+                    console.log('Next Step',companyAjaxResult);
+
+                    if(companyAjaxResult)
+                    {
+                        let companyIdField = document.getElementById('companyId'),
+                            companyNameField = document.getElementById('companyName'),
+                            companyCodeIdField = document.getElementById('companyCodeId')
+
+                        if (companyIdField !== null) {
+                            companyIdField.value = companyAjaxResult.CompanyID || 0;
+                        }
+                        if (companyNameField !== null) {
+                            companyNameField.value = companyAjaxResult.CompanyName;
+                        }
+                        if (companyCodeIdField !== null) {
+                            companyCodeIdField.value = companyAjaxResult.CompanyCodeID;
+                        }
+
+                        //только для постепенного продвижения
+                        return true
+                    }
+                }
+            )
+            .then(
+                (chain3) =>
+                {
+                    if(chain3)
+                    {
+                        //нажатие на кнопку
+
+                        console.log('chain 3',chain3);
+
+                        if(nextStepBtn !== null)
+                        {
+                            //показываем кнопку "Next Step"
+                            self.toggleShowDOM(nextStepBtn.closest('div'),true)
+                            nextStepBtn.onclick = () =>
+                            {
+
+                                console.log('valid start!')
+
+                                //валидация полей(кроме CC и PT)
+                                self.validateForm(form)
+
+                                //получаем contract conditions + paid type
+                                BX.ajax.runAction('ourcompany:servio.nmspc.handler.contractConditions', {
+                                    data: {
+                                        fields: '1234'
+                                    }
+                                })
+                                    .then(
+                                        function(CcAjaxResult)
+                                        {
+                                            console.log('Cc & Pt',CcAjaxResult);
+                                        }
+                                    )
+                                    .catch(
+                                        function (CcAjaxResult) {
+                                            console.log('ERR',CcAjaxResult)
+                                        }
+                                    )
+                            }
+                        }
+
+
+                        //в chain4
+                        // if(step1Elems !== null)
+                        // {
+                        //     self.toggleShowNodeList(step1Elems, false)
+                        // }
+                        // console.log('step 3',typeof nextStepBtn.closest('div'),typeof step1Elems);
+                    }
+                }
+            )
+            .catch(
+
+                //Ошибка, если данные компании не получены
+
+                (ajaxResultObject) =>
+                {
+                    //цикл вывода ошибок!!!
+                    // типа
+                    // self.addErrorsBeforeFormNew(form, companyResponse.data.error, 'error')
+
+                    console.log('ERR',ajaxResultObject);
+                }
+            )
+
+
+        popupObj.show()
+    }
+
+    validateForm(form)
+    {
+        console.log('validate Form',form);
+        // self.deleteErrorsinForm(popupContent);
+    }
 
     loadReservePopupV5()
     {
@@ -852,8 +1226,10 @@ class ServioPopup
                       Search
                   </button>
                </div>
+               
+              
                 
-                <div class="form-row reserve-hidden hidden-input">
+               <div class="form-row reserve-hidden hidden-input">
                    <div class="form-group col-sm">
                        <label for="address">Address</label>
                        <textarea class="form-control" id="address" name="address" rows="2"></textarea>
@@ -1430,7 +1806,7 @@ class ServioPopup
         }
     }
 
-    //отображение/скрытие 2х полей
+    //отображение/скрытие 2х полей - old
     toggleReserveFields(flag)
     {
         let form = document.getElementById('servio_popup'),
@@ -1452,6 +1828,40 @@ class ServioPopup
         }
         // console.log('UUUU',hiddenBlocks);
 
+    }
+
+    toggleShowDOM(domObj,flag)
+    {
+
+        // if(domObj.constructor === Object)
+        // {
+        if(flag === true)
+        {
+            domObj.classList.remove('hidden-input')
+        }
+        else
+        {
+            domObj.classList.add('hidden-input')
+        }
+        // }
+    }
+
+    //отображение/скрытие 2х полей
+    toggleShowNodeList(nodeObj,flag)
+    {
+        if(nodeObj.length > 0 )
+        {
+            nodeObj.forEach(elem => {
+                if(flag === true)
+                {
+                    elem.classList.remove('hidden-input')
+                }
+                else
+                {
+                    elem.classList.add('hidden-input')
+                }
+            })
+        }
     }
 
     // testGetDocument(docId)
@@ -1561,6 +1971,8 @@ class ServioPopup
 
         console.log('Test Abort Reserve');
     }
+
+
 
 
 }
