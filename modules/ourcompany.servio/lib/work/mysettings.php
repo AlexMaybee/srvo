@@ -13,6 +13,9 @@ class Mysettings
     ];
 //    public $settingsErrors = [];
 
+    //названия типопв оплат, пока не напишут api
+    public $payTypes = [];
+
     //нужен для получения cOption
     const MODULE_ID = 'ourcompany.servio';
 
@@ -349,6 +352,12 @@ class Mysettings
             {
                 $this->settings['errors'][] = Loc::getMessage("OUR_COMPANY_MYSETTINGS_{$option}_ERROR");
             }
+
+            $this->payTypes = [
+                100 => Loc::getMessage("OUR_COMPANY_MYSETTINGS_PAY_TYPE_CASH"),
+                200 => Loc::getMessage("OUR_COMPANY_MYSETTINGS_PAY_TYPE_CREDIT_CARD"),
+                300 => Loc::getMessage("OUR_COMPANY_MYSETTINGS_PAY_TYPE_CASHLESS")
+            ];
         }
     }
 

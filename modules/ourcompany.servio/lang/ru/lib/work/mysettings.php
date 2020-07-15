@@ -16,3 +16,9 @@ $MESS['OUR_COMPANY_MYSETTINGS_SERVIO_FIELD_RESERVE_CONFIRM_FILE_ID_ERROR'] = 'В
 $MESS['OUR_COMPANY_MYSETTINGS_SERVIO_FIELD_RESERVE_CONFIRM_FILE_ERROR'] = 'В настройках модуля не указано ID поля файла подтверждения брони!';
 $MESS['OUR_COMPANY_MYSETTINGS_SERVIO_FIELD_BILL_FILE_ID_ERROR'] = 'В настройках модуля не указано ID поля кодов файлов счетов!';
 $MESS['OUR_COMPANY_MYSETTINGS_SERVIO_FIELD_BILL_FILE_ERROR'] = 'В настройках модуля не указано ID поля файлов счетов!';
+
+
+
+$MESS['OUR_COMPANY_MYSETTINGS_PAY_TYPE_CASH'] = 'Наличные';
+$MESS['OUR_COMPANY_MYSETTINGS_PAY_TYPE_CREDIT_CARD'] = 'Кредитная Карта';
+$MESS['OUR_COMPANY_MYSETTINGS_PAY_TYPE_CASHLESS'] = 'Безналичная Оплата';

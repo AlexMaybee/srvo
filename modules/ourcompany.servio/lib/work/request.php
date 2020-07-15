@@ -31,4 +31,22 @@ class Request
 
         return json_decode($result,true);
     }
+
+    public function safeInputData($arrayOrField)
+    {
+        $result = [];
+        if(is_array($arrayOrField))
+        {
+            foreach ($arrayOrField as $key => $value)
+            {
+                $result[htmlspecialchars(stripslashes(trim($key)))] = htmlspecialchars(stripslashes(trim($value)));
+            }
+
+        }
+        else
+        {
+            $result = htmlspecialchars(stripslashes(trim($arrayOrField)));
+        }
+        return $result;
+    }
 }

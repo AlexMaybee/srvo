@@ -807,6 +807,7 @@ class ServioPopup
             nextStepBtn,
             searchBtn,
             step1Elems,
+            step2Elems,
             priceHtmlBlock = '',
             i,
             priceTableTh = '',
@@ -814,7 +815,15 @@ class ServioPopup
             reserveButtons,
             roomCategoryInput,
             addressField,
-            commentField
+            commentField,
+            formData,
+            ccSelect,
+            ptSelect,
+            income = {
+                contractConditions : {},  //массив условий договора для селекта
+                roomTypes : {}, //массив комнат с вол-вом свободных без названий
+                payTypes : {},
+            }
 
         //задаем даты и ограничения
         dateFinish.setDate(dateFinish.getDate()  + 1);
@@ -869,8 +878,8 @@ class ServioPopup
                 
                 <div class="form-row">
                     <div class="form-group col-sm">
-                       <label for="hootelId">Hotel</label>
-                       <select id="hootelId" name="hootelId" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus" disabled>
+                       <label for="hotelId">Hotel</label>
+                       <select id="hotelId" name="hotelId" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus" disabled>
                            <option value="">Select...</option>
                            <option value="1" selected>Hotel 1</option>
                        </select>
@@ -964,6 +973,14 @@ class ServioPopup
         searchBtn = document.getElementById('servio_search')
         nextStepBtn = document.getElementById('servio_step1')
         step1Elems = document.querySelectorAll('.servio-step-1-elem')
+        step2Elems = document.querySelectorAll('.reserve-hidden')
+
+        ccSelect = document.getElementById('contractCondition')
+        ptSelect = document.getElementById('paidType')
+
+        priceHtmlBlock = document.getElementById('servio_price_info')
+
+        const popupContent = document.getElementById('popup-window-content-servio-hotel-reservation')
 
         //получение данных компании
         BX.ajax.runAction('ourcompany:servio.nmspc.handler.companyData', {
@@ -1028,28 +1045,130 @@ class ServioPopup
                             nextStepBtn.onclick = () =>
                             {
 
-                                console.log('valid start!')
+                                // //удаление ошибок и сообщений
+                                // self.deleteErrorsinForm(popupContent);
+
+
+                                //данные формы
+                                formData = self.getFromFieldsData(form)
+
+                                console.log('valid start!',formData)
 
                                 //валидация полей(кроме CC и PT)
-                                self.validateForm(form)
+                                if(!self.validateForm(form,popupContent,formData)){
+                                    //скрываем поля типа оплаты и условий контракта
+                                }
+                                else
+                                {
+                                    //получаем contract conditions + paid type
+                                    BX.ajax.runAction('ourcompany:servio.nmspc.handler.contractConditions', {
+                                        data: {
+                                            fields: formData
+                                        }
+                                    })
+                                        .then(
+                                            function(CcAjaxResult)
+                                            {
+                                                console.log('chain 3.1, Cc & Pt',CcAjaxResult);
 
-                                //получаем contract conditions + paid type
-                                BX.ajax.runAction('ourcompany:servio.nmspc.handler.contractConditions', {
-                                    data: {
-                                        fields: '1234'
-                                    }
-                                })
-                                    .then(
-                                        function(CcAjaxResult)
-                                        {
-                                            console.log('Cc & Pt',CcAjaxResult);
-                                        }
-                                    )
-                                    .catch(
-                                        function (CcAjaxResult) {
-                                            console.log('ERR',CcAjaxResult)
-                                        }
-                                    )
+                                                if(CcAjaxResult.data.error)
+                                                {
+                                                    self.addErrorsBeforeFormNew(form, CcAjaxResult.data.error, 'error')
+
+                                                    //Херовый сценарий
+
+                                                    //скрываем селекты сс && pt
+                                                    self.toggleShowNodeList(step1Elems)
+                                                    //скрываем адрес, коммент и таблицу с ценами
+                                                    // self.toggleShowNodeList(step1Elems)
+
+                                                    //скрывааем кнопку Search
+                                                    self.toggleShowDOM(searchBtn.closest('div'),true)
+                                                }
+                                                else
+                                                {
+                                                    //передаем в chain4 полученные данные из ajax
+                                                    // contractConditions = CcAjaxResult.data.result.ContractConditions
+                                                    // roomTypes = CcAjaxResult.data.result.RoomTypes
+                                                    // payTypes = CcAjaxResult.data.result.PayTypes
+                                                    income.contractConditions = CcAjaxResult.data.result.ContractConditions
+                                                    income.roomTypes = CcAjaxResult.data.result.RoomTypes
+                                                    income.payTypes = CcAjaxResult.data.result.PayTypes
+
+                                                    //хороший сценарий
+
+
+                                                    //скрываем кнопку "Next Step"
+                                                    self.toggleShowDOM(nextStepBtn.closest('div'))
+
+                                                    //показываем кнопку Search
+                                                    self.toggleShowDOM(searchBtn.closest('div'),true)
+
+                                                    self.toggleShowNodeList(step1Elems,true)
+
+                                                    //вставка значений в селекты cc && pt
+
+                                                    //селект cc
+                                                    // let cCoptions = `<option value="0">System</option>`
+                                                    let cCoptions = ``
+                                                    if(CcAjaxResult.data.result.ContractConditions.length > 0)
+                                                    {
+                                                        for(let cC of CcAjaxResult.data.result.ContractConditions)
+                                                        {
+                                                            cCoptions += `<option value="${cC.ContractConditionID}">${cC.ContractConditionName}</option>`
+                                                        }
+                                                    }
+
+
+                                                    if(ccSelect !== null)
+                                                    {
+                                                        ccSelect.innerHTML = cCoptions
+                                                    }
+
+                                                    // console.log('test val start',ccSelect.value);
+
+                                                    //селекты pt
+                                                    if(Object.keys(income.payTypes).length > 0)
+                                                    {
+                                                        //ptSelect
+                                                        if(ptSelect !== null)
+                                                        {
+                                                            ptSelect.innerHTML = self.optionsForPayTypeField(income.payTypes,ccSelect.value)
+                                                        }
+                                                    }
+
+                                                    //5. изменение поля СС
+                                                    ccSelect.onchange = function()
+                                                    {
+                                                        if(ccSelect.value.trim().length > 0)
+                                                        {
+                                                            //ptSelect
+                                                            if(ptSelect !== null)
+                                                            {
+                                                                ptSelect.innerHTML = self.optionsForPayTypeField(income.payTypes,ccSelect.value)
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            ptSelect.innerHTML = ''
+                                                        }
+                                                    }
+
+
+                                                    console.log('chain 3.2',CcAjaxResult.data.result);
+
+                                                }
+                                            }
+                                        )
+                                        .catch(
+                                            function (CcAjaxResult) {
+                                                console.log('ERR',CcAjaxResult)
+
+                                                //вывод ошибок в окно
+                                            }
+                                        )
+                                }
+
                             }
                         }
 
@@ -1077,15 +1196,312 @@ class ServioPopup
                 }
             )
 
+        //Нажатие Search
+        searchBtn.onclick = () =>
+        {
+            console.log('Search Start');
+
+            //данные формы
+            formData = self.getFromFieldsData(form)
+
+            self.toggleClockLoaderToBtn(searchBtn)
+
+            //валидация полей(кроме CC и PT)
+            if(!self.validateForm(form,popupContent,formData,'all')){
+                // здесь НЕ скрываем поля типа оплаты и условий контракта
+            }
+            else
+            {
+                BX.ajax.runAction('ourcompany:servio.nmspc.handler.pricesByFilter', {
+                    data: {
+                        FIELDS: formData,
+                        DEAL_ID: self.deal.id,
+                        // ROOM_TYPES: income.roomTypes
+                    }
+                })
+                    .then(
+                        (responseObj) =>
+                        {
+                            addressField = document.getElementById('address')
+                            commentField = document.getElementById('comment')
+
+                            console.log('Success Prices',responseObj)
+
+
+                            if(Object.keys(responseObj.data.table).length > 0)
+                            {
+                                i = 1
+
+                                self.categoriesObj = responseObj.data.table
+
+                                priceTableBody = ''
+                                Object.entries(responseObj.data.table).forEach(([key, row]) => {
+                                    priceTableBody +=
+                                        `<tr>
+                                            <td>${i}</td>
+                                            <td>${row.CategoryName}</td>
+                                            <td>${row.FreeRoom}</td>
+                                            <td>${row.Date}</td>
+                                            <td>${row.MinPayDays}</td>
+                                            <td>${row.MinStayDays}</td>
+                                            <td>${row.NearestDateToReservation}</td>
+                                            <td>${row.Price.toFixed(2)} ${row.Currency}</td>
+                                            ${
+                                            self.deal.id > 0
+                                                ? '<td><button class="ui-btn ui-btn-xs ui-btn-primary-dark add-reserve ' + ((row.FreeRoom == 0) ? 'servio-custom-disable' : '')  +  '" data-category-id="' + row.ID + '">Reserve</button></td>'
+                                                : '<td></td>'
+                                            }
+                                        </tr>`
+
+                                    i++
+                                })
+
+                                priceTableTh =
+                                    `<table class="table table-sm table-responsive text-center">
+                                        <thead>
+                                           <tr>
+                                               <th scope="col-sm">#</th>
+                                               <th scope="col-sm">Type</th>
+                                               <th scope="col-sm">Free Room</th>
+                                               <th scope="col-sm">Date</th>
+                                               <th scope="col-sm">Min Pay Days</th>
+                                               <th scope="col-sm">Min Days</th>
+                                               <th scope="col-sm">Neares Date To Free</th>
+                                               <th scope="col-sm">Total Price</th>
+                                               <th scope="col-sm"></th>
+                                           </tr>
+                                        </thead>
+                                        <tbody> ${priceTableBody}</tbody>
+                                    </table>`
+
+                                priceHtmlBlock.innerHTML = priceTableTh
+
+
+
+                                if(addressField != null && responseObj.data.fields.ADDRESS.length > 0 && addressField.value.trim().length == 0)
+                                {
+                                    addressField.value = responseObj.data.fields.ADDRESS
+                                }
+                                if(commentField != null && responseObj.data.fields.COMMENTS.length > 0 && commentField.value.trim().length == 0)
+                                {
+                                    commentField.value = responseObj.data.fields.COMMENTS
+                                }
+
+                                self.toggleShowNodeList(step2Elems,true)
+                            }
+                            else
+                            {
+                                //     //выводим ошибки перед формой
+                                //      self.toggleShowNodeList(step2Elems)
+                                //        addressField.value = ''
+                                //        commentField.value = ''
+                            }
+
+                            // self.toggleClockLoaderToBtn(searchBtn)
+
+                        }
+                    )
+                    .catch(
+                        (responseObj) =>
+                        {
+                            console.log('ERR get Prices',responseObj)
+                        }
+                    )
+
+                //выводим цены и т.д.
+                // self.toggleClockLoaderToBtn(searchBtn)
+            }
+
+            self.toggleClockLoaderToBtn(searchBtn)
+
+        }
+
+
+        //  1,2  Изменение поля dateFrom и dateTo
+        let dateFromInput = document.getElementById('dateFrom'),
+            dateToInput = document.getElementById('dateTo')
+
+        if(dateFromInput !== null && dateToInput !== null)
+        {
+            dateFromInput.onchange = () => {
+
+                let startDate = new Date(dateFromInput.value),
+                    finishDate = new Date(dateToInput.value)
+
+                if(startDate >= finishDate)
+                {
+                    if(startDate.getMonth() === finishDate.getMonth())
+                    {
+                        finishDate.setDate(startDate.getDate() + 1)
+                    }
+                    else if(startDate.getMonth() > finishDate.getMonth())
+                    {
+                        finishDate.setDate(startDate.getDate() + 1)
+                        finishDate.setMonth(startDate.getMonth())
+                    }
+                    else if(startDate.getFullYear() > finishDate.getFullYear())
+                    {
+                        finishDate.setDate(startDate.getDate() + 1)
+                        finishDate.setMonth(startDate.getMonth())
+                        finishDate.setFullYear(startDate.getFullYear())
+                    }
+                    dateToInput.value = self.createDate(finishDate)
+                }
+
+                //обновление цен  +  селекта комнат
+                // self.getRoomsByFilterNew()
+                // self.showReserveButton();
+            }
+
+            dateToInput.onchange = () => {
+                let startDate = new Date(dateFromInput.value),
+                    finishDate = new Date(dateToInput.value)
+                if(startDate >= finishDate)
+                {
+                    // startDate.setDate(finishDate.getDate() - 1)
+
+                    if(startDate.getMonth() === finishDate.getMonth())
+                    {
+                        startDate.setDate(finishDate.getDate() - 1)
+                    }
+                    if(startDate.getMonth() > finishDate.getMonth())
+                    {
+                        startDate.setDate(finishDate.getDate() - 1)
+                        startDate.setMonth(finishDate.getMonth())
+                    }
+                    if(startDate.getFullYear() > finishDate.getFullYear())
+                    {
+                        startDate.setDate(finishDate.getDate() - 1)
+                        startDate.setMonth(finishDate.getMonth())
+                        startDate.setFullYear(finishDate.getFullYear())
+                    }
+                    dateFromInput.value = self.createDate(startDate)
+                }
+            }
+        }
+
+        // 3,4 Изменение значений в полях Adults и Childs
+        let adultsAndChildFields = document.querySelectorAll('#adults, #childs'),
+            chuldAgesField = document.getElementById('childAges')
+
+        if(adultsAndChildFields.length > 0)
+        {
+            for(let elem of adultsAndChildFields)
+            {
+                //удаление из полей всего кроме цифр
+                elem.onkeyup = function () {
+                    this.value = Number(this.value.replace(/[^\d]/g,''))
+
+                    if(this.name === 'adults' && this.value == 0)
+                    {
+                        this.value = 1
+                    }
+                }
+            }
+        }
+
 
         popupObj.show()
     }
 
-    validateForm(form)
+    validateForm(form,popupContent,formData,checkFlag = 'notAll')
     {
-        console.log('validate Form',form);
-        // self.deleteErrorsinForm(popupContent);
+        let errorFlag = true,
+            inptField
+
+        //удаление ошибок и сообщений
+        this.deleteErrorsinForm(popupContent);
+
+        if(form !== null)
+        {
+            //удаление рамок и ошибок
+            let formFileldsElems = form.querySelectorAll('input,select,textarea')
+            if(formFileldsElems.length > 0)
+            {
+                for(inptField of formFileldsElems)
+                {
+                    if(inptField.classList.contains('my-error-field'))
+                    {
+                        inptField.classList.remove('my-error-field')
+                    }
+                }
+            }
+
+            console.log('validate Form Data',formData);
+
+            //валидация и вывод ошибок
+
+            if(formData.dateFrom.trim() == '' )
+            {
+                const df = form.querySelector('#dateFrom')
+                df.classList.add('my-error-field')
+                this.addErrorsBeforeFormNew(form,`Fill Date From field!`, 'error')
+                errorFlag = false
+            }
+            if(formData.dateTo.trim() == '' )
+            {
+                const dt = form.querySelector('#dateTo')
+                dt.classList.add('my-error-field')
+                this.addErrorsBeforeFormNew(form,`Fill Date To field!`, 'error')
+                errorFlag = false
+            }
+            if(formData.adults.trim() == '' )
+            {
+                const adt = form.querySelector('#adults')
+                adt.classList.add('my-error-field')
+                this.addErrorsBeforeFormNew(form,`Set adults number > 0!`, 'error')
+                errorFlag = false
+            }
+            if(formData.childs.trim() == '' )
+            {
+                const chlds = form.querySelector('#childs')
+                chlds.classList.add('my-error-field')
+                this.addErrorsBeforeFormNew(form,`Set childs number or 0!`, 'error')
+                errorFlag = false
+            }
+
+
+            //это валидация всех полей формы, если нужно(по кнопке Search)
+            if(checkFlag === 'all')
+            {
+                // contractCondition
+                if(formData.contractCondition.trim() == '' )
+                {
+                    const cconds = form.querySelector('#childs')
+                    cconds.classList.add('my-error-field')
+                    this.addErrorsBeforeFormNew(form,`Choose Contract Condition!`, 'error')
+                    errorFlag = false
+                }
+
+                if(formData.paidType.trim() == '' )
+                {
+                    const pt = form.querySelector('#paidType')
+                    pt.classList.add('my-error-field')
+                    this.addErrorsBeforeFormNew(form,`Choose Paid Type!`, 'error')
+                    errorFlag = false
+                }
+
+            }
+            return (errorFlag === false) ? false : true;
+        }
+        return false
     }
+
+    //формируем options
+    optionsForPayTypeField(valuesObject,fieldValue)
+    {
+        let options = ``,
+            pt
+        if(valuesObject.hasOwnProperty(fieldValue.trim()))
+        {
+            for(pt of valuesObject[fieldValue.trim()])
+            {
+                options += `<option value="${pt.ID}">${pt.NAME}</option>`
+            }
+        }
+        return options
+    }
+
 
     loadReservePopupV5()
     {
