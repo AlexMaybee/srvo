@@ -6,6 +6,8 @@ use \Bitrix\Main\Page\Asset,
 
 class Servio
 {
+
+    //создание резерва с 16.07.2020
     public function addReserve($fields,$settings)
     {
         $result = [
@@ -32,7 +34,6 @@ class Servio
             {
                 $dealData = $dealResut['result'];
 
-
                 $clientName = '';
                 $clientLastName = '';
 
@@ -48,14 +49,10 @@ class Servio
                 {
                     $clientName = $dealData['COMPANY_DATA']['TITLE'];
                     $clientLastName = $dealData['COMPANY_DATA']['TITLE'];
-//                  $address  = $dealData['COMPANY_DATA']['ADDRESS'];
-//                   $comment = $dealData['COMPANY_DATA']['TITLE'];
-//                   $company = $dealData['COMPANY_DATA']['TITLE'];
                 }
                 if($dealData['CONTACT_DATA']){
                     $clientName = $dealData['CONTACT_DATA']['NAME'];
                     $clientLastName = $dealData['CONTACT_DATA']['LAST_NAME'];
-//                $address = $dealData['CONTACT_DATA']['ADDRESS'];
                     $contactName = $dealData['CONTACT_DATA']['FULL_NAME'];
                 }
                 if($dealData['PHONES_AND_EMAILS'])
@@ -123,7 +120,8 @@ class Servio
                     //очистка формы и отображение резерва с кнопками продолжения или отмены
 
                     $result['result'] = $reserveRes['Account'];
-                    $dealFields[$settings['SERVIO_FIELD_RESERVE_ID']] = $reserveRes['Account'];
+                    $dealFields[$settings['success']['SERVIO_FIELD_RESERVE_ID']] = $reserveRes['Account'];
+
 
                     //Сохранение коммента в сделку
                     if($comment)
@@ -131,7 +129,7 @@ class Servio
                         $dealFields['COMMENTS'] = $comment;
                     }
 
-                    $dealUdRes = $this->updateDeal($fields['DEAL_ID'],$dealFields);
+                    $dealUdRes = (new \Ourcompany\Servio\Deal)->updateDeal($fields['DEAL_ID'],$dealFields);
                     if($dealUdRes['errors'])
                     {
                         $result['errors'] = $dealUdRes['errors'];
@@ -143,17 +141,21 @@ class Servio
                         if($dealData['CONTACT_DATA'])
                         {
 
-                            $contactAddr = $dealData['CONTACT_DATA'][$settings['SERVIO_FIELD_CONTACT_ADDRESS']];
+                            $contactAddr = trim($dealData['CONTACT_DATA'][$settings['success']['SERVIO_FIELD_CONTACT_ADDRESS']]);
                             if($contactAddr)
                             {
-                                $contactAddr = "$contactAddr\n".date('d.m.Y H:i').": $address";
+                                if($address !== $contactAddr)
+                                {
+                                    $contactAddr = "$contactAddr\n".date('d.m.Y H:i').": $address";
+                                }
+
                             }
                             else
                             {
                                 $contactAddr = $address;
                             }
                             $addressUpdate = \Bitrix\Crm\ContactTable::update($dealData['CONTACT_DATA']['ID'],
-                                [$settings['SERVIO_FIELD_CONTACT_ADDRESS'] => trim($contactAddr)]);
+                                [$settings['success']['SERVIO_FIELD_CONTACT_ADDRESS'] => trim($contactAddr)]);
 
                             if(!$addressUpdate->isSuccess())
                             {
@@ -164,17 +166,21 @@ class Servio
                         {
                             if($dealData['COMPANY_DATA'])
                             {
-                                $companyAddr = $dealData['COMPANY_DATA'][$settings['SERVIO_FIELD_COMPANY_ADDRESS']];
+                                $companyAddr = trim($dealData['COMPANY_DATA'][$settings['success']['SERVIO_FIELD_COMPANY_ADDRESS']]);
                                 if($companyAddr)
                                 {
-                                    $companyAddr = "$companyAddr\n".date('d.m.Y H:i').": $address";
+//                                    $companyAddr = "$companyAddr\n".date('d.m.Y H:i').": $address";
+                                    if($address !== $contactAddr)
+                                    {
+                                        $contactAddr = "$contactAddr\n".date('d.m.Y H:i').": $address";
+                                    }
                                 }
                                 else
                                 {
                                     $companyAddr = $address;
                                 }
                                 $addressUpdate = \Bitrix\Crm\CompanyTable::update($dealData['COMPANY_DATA']['ID'],
-                                    [$settings['SERVIO_FIELD_COMPANY_ADDRESS'] => trim($companyAddr)]);
+                                    [$settings['success']['SERVIO_FIELD_COMPANY_ADDRESS'] => trim($companyAddr)]);
 
                                 if(!$addressUpdate->isSuccess())
                                 {
@@ -190,7 +196,7 @@ class Servio
                 }
 
 
-                return $reserveRes;
+//                return $reserveRes;
             }
 
         }
@@ -198,4 +204,74 @@ class Servio
 
         return $result;
     }
+
+
+    //получение резерва с 16.07.2020
+    public function getReserveData($id,$settings,$payTypes)
+    {
+        $result = [
+            'result' => [],
+            'errors' => [],
+        ];
+
+
+        $reserveData = (new \Ourcompany\Servio\Work\Request)->postRequest('GetReservationInfo', ['Account' => intval($id)], $settings);
+        if($reserveData['Result'] !== 0)
+        {
+            $result['errors'][] = $reserveData['Error'];
+        }
+        else
+        {
+            unset($reserveData['Error']);
+            unset($reserveData['ErrorCode']);
+            unset($reserveData['Result']);
+            $reserveData['PaidTypeText'] = $payTypes[$reserveData['PaidType']];
+            $reserveData['DateArrival'] = date('d.m.Y H:i',strtotime($reserveData['DateArrival']));
+            $reserveData['DateDeparture'] = date('d.m.Y H:i',strtotime($reserveData['DateDeparture']));
+
+            $servicesResultArray = [];
+            $servisesArr = []; //для формирования массива услуг в th
+
+            if($reserveData['Services'])
+            {
+                foreach ($reserveData['Services'] as $service)
+                {
+                    $servisesArr[] = [
+                        'ServiceID' => $service['ServiceID'],
+                        'ServiceName' => $service['ServiceName'],
+                        'ServiceTypeName' => $service['ServiceTypeName']
+                    ];
+
+                    foreach ($service['PriceDate'] as $oneDate) {
+
+                        $rDate = date('d.m.Y',strtotime($oneDate['Date']));
+
+                        $servicesResultArray[$rDate]['Price'] += $oneDate['Price'];
+                        $servicesResultArray[$rDate]['CustomerAccount'] = $oneDate['CustomerAccount'];
+                        $servicesResultArray[$rDate]['Date'] = date('d.m.Y',strtotime($oneDate['Date']));
+                        $servicesResultArray[$rDate]['IsPaid'] = $oneDate['IsPaid'];
+                        $servicesResultArray[$rDate]['IsPaidFromSite'] = $oneDate['IsPaidFromSite'];
+                        $servicesResultArray[$rDate]['OrderID'] = $oneDate['OrderID'];
+                        $servicesResultArray[$rDate]['PayAccount'] = $oneDate['PayAccount'];
+                        $servicesResultArray[$rDate]['ServiceProviderID'] = $oneDate['ServiceProviderID'];
+                        $servicesResultArray[$rDate]['ServiceProviderName'] = $oneDate['ServiceProviderName'];
+                        $servicesResultArray[$rDate]['ServicePrices'][] = $oneDate['Price'];
+                    }
+                }
+            }
+
+            //th
+            $reserveData['ThServises'] = $servisesArr;
+            //Formated Servises Prices By Dates
+            $reserveData['ResultServises'] = array_values($servicesResultArray);
+
+            $result['result'] = $reserveData;
+        }
+
+
+        $result['test_reserv_info'] = $reserveData;
+
+        return $result;
+    }
+
 }

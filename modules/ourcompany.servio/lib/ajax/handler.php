@@ -356,4 +356,10 @@ class Handler extends \Bitrix\Main\Engine\Controller
         return $result;
     }
 
+    public function reserveDataAction($RESERVE_ID)
+    {
+        $id = (new \Ourcompany\Servio\Work\Request)->safeInputData($RESERVE_ID);
+        return (new \Ourcompany\Servio\Servio)->getReserveData($id,$this->settings,$this->payTypes);
+//        return ['test' => $id];
+    }
 }
