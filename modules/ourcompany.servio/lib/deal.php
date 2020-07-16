@@ -184,25 +184,26 @@ class Deal
                         {
                             $result['errors'][] = "Компания #{$dealRecord['COMPANY_ID']} не найдена!";
                         }
+                    }
 
-                        if($dealRecord['CONTACT_ID'] > 0) {
+                    if($dealRecord['CONTACT_ID'] > 0) {
 
-                            $contactData = $this->getContactFields(
-                                ['ID' => $dealRecord['CONTACT_ID']],
-                                ['*',$settings['success']['SERVIO_FIELD_CONTACT_ADDRESS']]
-                            );
-                            if($contactData) {
-                                $dealRecord['CONTACT_DATA'] = $contactData;
+                        $contactData = $this->getContactFields(
+                            ['ID' => $dealRecord['CONTACT_ID']],
+                            ['*',$settings['success']['SERVIO_FIELD_CONTACT_ADDRESS']]
+                        );
+                        if($contactData) {
+                            $dealRecord['CONTACT_DATA'] = $contactData;
 
-                                //почты и телефоны в одном массиве
-                                $dealRecord['PHONES_AND_EMAILS'] = $this->getPhonesAndEmails('CONTACT',$dealRecord['CONTACT_ID'],['EMAIL','PHONE']);
-                            }
-                            else
-                            {
-                                $result['errors'][] = "Контакт #{$dealRecord['CONTACT_ID']} не найден!";
-                            }
+                            //почты и телефоны в одном массиве
+                            $dealRecord['PHONES_AND_EMAILS'] = $this->getPhonesAndEmails('CONTACT',$dealRecord['CONTACT_ID'],['EMAIL','PHONE']);
+                        }
+                        else
+                        {
+                            $result['errors'][] = "Контакт #{$dealRecord['CONTACT_ID']} не найден!";
                         }
                     }
+
                     $result['result'] = $dealRecord;
                 }
             }
@@ -215,6 +216,20 @@ class Deal
         {
             $result['errors'][] = "Проблема с переданным значением ID сделки = {$dealId}!";
         }
+        return $result;
+    }
+
+    //скрипт обновления сделки
+    public function updateDeal($id,$fields){
+        $result = [
+            'result' => false,
+            'errors' => [],
+        ];
+        $updResult = \Bitrix\Crm\DealTable::update($id,$fields);
+        (!$updResult->isSuccess())
+            ? $result['errors'] = $updResult->getErrorMessages()
+            : $result['result'] = $updResult->getId();
+
         return $result;
     }
 

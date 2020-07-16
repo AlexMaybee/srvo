@@ -679,15 +679,66 @@ class ServioPopup
     //     }
     // }
 
+    addReservationNew(popupObj,reserveButtons,buttonObj,formData,form)
+    {
+        let self = this
+
+        this.toggleClockLoaderToBtn(buttonObj)
+
+        //страховка
+        if(
+            this.deal.id > 0
+            &&
+            formData.roomCategory.trim() != ''
+            && this.categoriesObj.hasOwnProperty(formData.roomCategory)
+        )
+        {
+            //получаем contract conditions + paid type
+            BX.ajax.runAction('ourcompany:servio.nmspc.handler.addReserve', {
+                data: {
+                    FIELDS : {
+                        FILTERS: formData,
+                        ROOM_CATEGORY : self.categoriesObj[formData.roomCategory],
+                        DEAL_ID : self.deal.id,
+                    }
+                }
+            })
+                .then(
+                    (reserveAjaxObj) =>
+                    {
+                        console.log('SUCC Reserve obj',reserveAjaxObj);
+                    }
+                )
+                .catch(
+                    (reserveAjaxObj)=>
+                    {
+                        console.log('ERR Reserve obj',reserveAjaxObj);
+
+                        for(let arErr of reserveAjaxObj.errors)
+                        {
+                            self.addErrorsBeforeFormNew(form, arErr.message, 'error')
+                        }
+
+                    }
+                )
+            this.toggleClockLoaderToBtn(buttonObj)
+        }
+        else
+        {
+            console.log('EEE Reserve will not create! Or Deal Not exists, or error with params!');
+        }
+
+    }
+
     //создание резерва
-    addReservation(popupObj,buttonObj)
+    addReservation(popupObj,reserveButtons,buttonObj)
     {
         let self = this,
             formData = {},
-            popup = document.getElementById('servio_popup'),
-            reserveButtons
+            popup = document.getElementById('servio_popup')/*,
+            reserveButtons*/
 
-        reserveButtons = popup.querySelectorAll('.add-reserve')
+        // reserveButtons = popup.querySelectorAll('.add-reserve')
         // console.log('3123',reserveButtons);
 
         // console.log('reserve test',buttonObj);
@@ -987,9 +1038,6 @@ class ServioPopup
             data: {}
         })
             .then(
-
-                //Все действие формы
-
                 function (companyResponse) {
                     console.log('Promise Company',companyResponse);
 
@@ -999,207 +1047,159 @@ class ServioPopup
                     }
                     else
                     {
-                        //передаем результат дальше
-                        return companyResponse.data.result
-                    }
-                })
-            .then(
-                (companyAjaxResult) =>
-                {
-                    console.log('Next Step',companyAjaxResult);
+                        // console.log('Next Step',companyResponse.data.result);
 
-                    if(companyAjaxResult)
-                    {
-                        let companyIdField = document.getElementById('companyId'),
-                            companyNameField = document.getElementById('companyName'),
-                            companyCodeIdField = document.getElementById('companyCodeId')
-
-                        if (companyIdField !== null) {
-                            companyIdField.value = companyAjaxResult.CompanyID || 0;
-                        }
-                        if (companyNameField !== null) {
-                            companyNameField.value = companyAjaxResult.CompanyName;
-                        }
-                        if (companyCodeIdField !== null) {
-                            companyCodeIdField.value = companyAjaxResult.CompanyCodeID;
-                        }
-
-                        //только для постепенного продвижения
-                        return true
-                    }
-                }
-            )
-            .then(
-                (chain3) =>
-                {
-                    if(chain3)
-                    {
-                        //нажатие на кнопку
-
-                        console.log('chain 3',chain3);
-
-                        if(nextStepBtn !== null)
+                        if(companyResponse.data.result)
                         {
-                            //показываем кнопку "Next Step"
-                            self.toggleShowDOM(nextStepBtn.closest('div'),true)
-                            nextStepBtn.onclick = () =>
+                            let companyIdField = document.getElementById('companyId'),
+                                companyNameField = document.getElementById('companyName'),
+                                companyCodeIdField = document.getElementById('companyCodeId')
+
+                            if (companyIdField !== null) {
+                                companyIdField.value = companyResponse.data.result.CompanyID || 0;
+                            }
+                            if (companyNameField !== null) {
+                                companyNameField.value = companyResponse.data.result.CompanyName;
+                            }
+                            if (companyCodeIdField !== null) {
+                                companyCodeIdField.value = companyResponse.data.result.CompanyCodeID;
+                            }
+
+                            if(nextStepBtn !== null)
                             {
-
-                                // //удаление ошибок и сообщений
-                                // self.deleteErrorsinForm(popupContent);
-
-
-                                //данные формы
-                                formData = self.getFromFieldsData(form)
-
-                                console.log('valid start!',formData)
-
-                                //валидация полей(кроме CC и PT)
-                                if(!self.validateForm(form,popupContent,formData)){
-                                    //скрываем поля типа оплаты и условий контракта
-                                }
-                                else
-                                {
-                                    //получаем contract conditions + paid type
-                                    BX.ajax.runAction('ourcompany:servio.nmspc.handler.contractConditions', {
-                                        data: {
-                                            fields: formData
-                                        }
-                                    })
-                                        .then(
-                                            function(CcAjaxResult)
-                                            {
-                                                console.log('chain 3.1, Cc & Pt',CcAjaxResult);
-
-                                                if(CcAjaxResult.data.error)
-                                                {
-                                                    self.addErrorsBeforeFormNew(form, CcAjaxResult.data.error, 'error')
-
-                                                    //Херовый сценарий
-
-                                                    //скрываем селекты сс && pt
-                                                    self.toggleShowNodeList(step1Elems)
-                                                    //скрываем адрес, коммент и таблицу с ценами
-                                                    // self.toggleShowNodeList(step1Elems)
-
-                                                    //скрывааем кнопку Search
-                                                    self.toggleShowDOM(searchBtn.closest('div'),true)
-                                                }
-                                                else
-                                                {
-                                                    //передаем в chain4 полученные данные из ajax
-                                                    // contractConditions = CcAjaxResult.data.result.ContractConditions
-                                                    // roomTypes = CcAjaxResult.data.result.RoomTypes
-                                                    // payTypes = CcAjaxResult.data.result.PayTypes
-                                                    income.contractConditions = CcAjaxResult.data.result.ContractConditions
-                                                    income.roomTypes = CcAjaxResult.data.result.RoomTypes
-                                                    income.payTypes = CcAjaxResult.data.result.PayTypes
-
-                                                    //хороший сценарий
-
-
-                                                    //скрываем кнопку "Next Step"
-                                                    self.toggleShowDOM(nextStepBtn.closest('div'))
-
-                                                    //показываем кнопку Search
-                                                    self.toggleShowDOM(searchBtn.closest('div'),true)
-
-                                                    self.toggleShowNodeList(step1Elems,true)
-
-                                                    //вставка значений в селекты cc && pt
-
-                                                    //селект cc
-                                                    // let cCoptions = `<option value="0">System</option>`
-                                                    let cCoptions = ``
-                                                    if(CcAjaxResult.data.result.ContractConditions.length > 0)
-                                                    {
-                                                        for(let cC of CcAjaxResult.data.result.ContractConditions)
-                                                        {
-                                                            cCoptions += `<option value="${cC.ContractConditionID}">${cC.ContractConditionName}</option>`
-                                                        }
-                                                    }
-
-
-                                                    if(ccSelect !== null)
-                                                    {
-                                                        ccSelect.innerHTML = cCoptions
-                                                    }
-
-                                                    // console.log('test val start',ccSelect.value);
-
-                                                    //селекты pt
-                                                    if(Object.keys(income.payTypes).length > 0)
-                                                    {
-                                                        //ptSelect
-                                                        if(ptSelect !== null)
-                                                        {
-                                                            ptSelect.innerHTML = self.optionsForPayTypeField(income.payTypes,ccSelect.value)
-                                                        }
-                                                    }
-
-                                                    //5. изменение поля СС
-                                                    ccSelect.onchange = function()
-                                                    {
-                                                        if(ccSelect.value.trim().length > 0)
-                                                        {
-                                                            //ptSelect
-                                                            if(ptSelect !== null)
-                                                            {
-                                                                ptSelect.innerHTML = self.optionsForPayTypeField(income.payTypes,ccSelect.value)
-                                                            }
-                                                        }
-                                                        else
-                                                        {
-                                                            ptSelect.innerHTML = ''
-                                                        }
-                                                    }
-
-
-                                                    console.log('chain 3.2',CcAjaxResult.data.result);
-
-                                                }
-                                            }
-                                        )
-                                        .catch(
-                                            function (CcAjaxResult) {
-                                                console.log('ERR',CcAjaxResult)
-
-                                                //вывод ошибок в окно
-                                            }
-                                        )
-                                }
-
+                                //показываем кнопку "Next Step"
+                                self.toggleShowDOM(nextStepBtn.closest('div'),true)
                             }
                         }
-
-
-                        //в chain4
-                        // if(step1Elems !== null)
-                        // {
-                        //     self.toggleShowNodeList(step1Elems, false)
-                        // }
-                        // console.log('step 3',typeof nextStepBtn.closest('div'),typeof step1Elems);
+                    }
+                })
+            .catch(
+                //цикл вывода ошибок!!!
+                (companyResponse) =>
+                {
+                    // console.log('ERR',companyResponse);
+                    for(let cErr of companyResponse.errors)
+                    {
+                        self.addErrorsBeforeFormNew(form, cErr.message, 'error')
                     }
                 }
             )
-            .catch(
 
-                //Ошибка, если данные компании не получены
+        //нажатие на Next Btn
+        nextStepBtn.onclick = () =>
+        {
+            self.toggleClockLoaderToBtn(nextStepBtn)
 
-                (ajaxResultObject) =>
-                {
-                    //цикл вывода ошибок!!!
-                    // типа
-                    // self.addErrorsBeforeFormNew(form, companyResponse.data.error, 'error')
+            //данные формы
+            formData = self.getFromFieldsData(form)
 
-                    console.log('ERR',ajaxResultObject);
-                }
-            )
+            // console.log('valid start!',formData)
+
+            //валидация полей(кроме CC и PT)
+            if(!self.validateForm(form,popupContent,formData)){
+                //скрываем поля типа оплаты и условий контракта
+
+                self.toggleClockLoaderToBtn(nextStepBtn)
+
+                //скрываем селекты сс && pt
+                self.toggleShowNodeList(step1Elems)
+
+                //скрывааем кнопку Search
+                self.toggleShowDOM(searchBtn.closest('div'))
+            }
+            else
+            {
+                //получаем contract conditions + paid type
+                BX.ajax.runAction('ourcompany:servio.nmspc.handler.contractConditions', {
+                    data: {
+                        fields: formData
+                    }
+                })
+                    .then(
+                        function(CcAjaxResult)
+                        {
+                            console.log('chain 3.1, Cc & Pt',CcAjaxResult);
+
+                            if(CcAjaxResult.data.error)
+                            {
+                                self.addErrorsBeforeFormNew(form, CcAjaxResult.data.error, 'error')
+
+                                //скрываем селекты сс && pt
+                                self.toggleShowNodeList(step1Elems)
+
+                                //скрывааем кнопку Search
+                                self.toggleShowDOM(searchBtn.closest('div'))
+
+                                self.toggleClockLoaderToBtn(nextStepBtn)
+                            }
+                            else
+                            {
+                                income.contractConditions = CcAjaxResult.data.result.ContractConditions
+                                income.roomTypes = CcAjaxResult.data.result.RoomTypes
+                                income.payTypes = CcAjaxResult.data.result.PayTypes
+
+                                //убираем часики скрываем кнопку "Next Step"
+                                self.toggleClockLoaderToBtn(nextStepBtn)
+                                self.toggleShowDOM(nextStepBtn.closest('div'))
+
+                                //показываем кнопку Search
+                                self.toggleShowDOM(searchBtn.closest('div'),true)
+
+                                //отображение 2х селектов: cc и pt
+                                self.toggleShowNodeList(step1Elems,true)
+
+                                //вставка значений в селекты cc && pt
+
+                                //селект cc
+                                // let cCoptions = `<option value="0">System</option>`
+                                let cCoptions = ``
+                                if(CcAjaxResult.data.result.ContractConditions.length > 0)
+                                {
+                                    for(let cC of CcAjaxResult.data.result.ContractConditions)
+                                    {
+                                        cCoptions += `<option value="${cC.ContractConditionID}">${cC.ContractConditionName}</option>`
+                                    }
+                                }
+
+                                if(ccSelect !== null)
+                                {
+                                    ccSelect.innerHTML = cCoptions
+                                }
+
+                                //селекты pt
+                                if(Object.keys(income.payTypes).length > 0)
+                                {
+                                    if(ptSelect !== null)
+                                    {
+                                        ptSelect.innerHTML = self.optionsForPayTypeField(income.payTypes,ccSelect.value)
+                                    }
+                                }
+                            }
+                        }
+                    )
+                    .catch(
+                        function (CcAjaxResult) {
+                            console.log('Contract ERR',CcAjaxResult)
+
+                            //вывод ошибок в окно
+                            for(let ccErr of CcAjaxResult.errors)
+                            {
+                                self.addErrorsBeforeFormNew(form, ccErr.message, 'error')
+                            }
+                            self.toggleClockLoaderToBtn(nextStepBtn)
+                        }
+                    )
+            }
+        }
+
 
         //Нажатие Search
         searchBtn.onclick = () =>
         {
             console.log('Search Start');
+
+            //очищаем список с ценами
+            priceHtmlBlock.innerHTML = ''
 
             //данные формы
             formData = self.getFromFieldsData(form)
@@ -1208,7 +1208,9 @@ class ServioPopup
 
             //валидация полей(кроме CC и PT)
             if(!self.validateForm(form,popupContent,formData,'all')){
+
                 // здесь НЕ скрываем поля типа оплаты и условий контракта
+                self.toggleClockLoaderToBtn(searchBtn)
             }
             else
             {
@@ -1216,7 +1218,6 @@ class ServioPopup
                     data: {
                         FIELDS: formData,
                         DEAL_ID: self.deal.id,
-                        // ROOM_TYPES: income.roomTypes
                     }
                 })
                     .then(
@@ -1226,7 +1227,6 @@ class ServioPopup
                             commentField = document.getElementById('comment')
 
                             console.log('Success Prices',responseObj)
-
 
                             if(Object.keys(responseObj.data.table).length > 0)
                             {
@@ -1276,6 +1276,33 @@ class ServioPopup
 
                                 priceHtmlBlock.innerHTML = priceTableTh
 
+                                reserveButtons = document.querySelectorAll('.add-reserve')
+
+
+                                if(reserveButtons.length > 0)
+                                {
+                                    reserveButtons.forEach(reserveButton => {
+                                        reserveButton.onclick = function(){
+
+                                            //Вставляем в поле ID выбранной категории комнат
+                                            roomCategoryInput.value = this.dataset.categoryId
+
+                                            formData = self.getFromFieldsData(form)
+
+                                            if(!self.validateForm(form,popupContent,formData)) {
+                                                //скрываем поля типа оплаты и условий контракта
+                                            }
+                                            else
+                                            {
+                                                // self.addReservation(popupObj,reserveButtons,this)
+
+                                                self.addReservationNew(popupObj,reserveButtons,this,formData,form)
+                                            }
+
+                                        }
+                                    })
+                                }
+
 
 
                                 if(addressField != null && responseObj.data.fields.ADDRESS.length > 0 && addressField.value.trim().length == 0)
@@ -1291,28 +1318,30 @@ class ServioPopup
                             }
                             else
                             {
+                                for(let error of responseObj.data.errors)
+                                {
+                                    self.addErrorsBeforeFormNew(form, error, 'error')
+                                    console.log('test err 123',error);
+                                }
+
                                 //     //выводим ошибки перед формой
                                 //      self.toggleShowNodeList(step2Elems)
                                 //        addressField.value = ''
                                 //        commentField.value = ''
                             }
 
-                            // self.toggleClockLoaderToBtn(searchBtn)
-
+                            self.toggleClockLoaderToBtn(searchBtn)
                         }
                     )
                     .catch(
                         (responseObj) =>
                         {
                             console.log('ERR get Prices',responseObj)
+
+                            self.toggleClockLoaderToBtn(searchBtn)
                         }
                     )
-
-                //выводим цены и т.д.
-                // self.toggleClockLoaderToBtn(searchBtn)
             }
-
-            self.toggleClockLoaderToBtn(searchBtn)
 
         }
 
@@ -1397,6 +1426,23 @@ class ServioPopup
                         this.value = 1
                     }
                 }
+            }
+        }
+
+        //5. изменение поля СС
+        ccSelect.onchange = function()
+        {
+            if(ccSelect.value.trim().length > 0)
+            {
+                //ptSelect
+                if(ptSelect !== null)
+                {
+                    ptSelect.innerHTML = self.optionsForPayTypeField(income.payTypes,ccSelect.value)
+                }
+            }
+            else
+            {
+                ptSelect.innerHTML = ''
             }
         }
 
@@ -1856,7 +1902,7 @@ class ServioPopup
                                         reserveButton.onclick = function(){
                                             //Вставляем в поле ID выбранной категории комнат
                                             roomCategoryInput.value = this.dataset.categoryId
-                                            self.addReservation(popupObj,this)
+                                            self.addReservation(popupObj,reserveButtons,this)
 
                                             // console.log('Button Click!!!!!')
                                         }

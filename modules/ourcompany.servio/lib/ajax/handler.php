@@ -145,7 +145,8 @@ class Handler extends \Bitrix\Main\Engine\Controller
 
         if($dealResut['errors'])
         {
-            $result['errors'] = array_merge($result['errors'],$dealResut['errors']);
+//            $result['errors'] = array_merge($result['errors'],$dealResut['errors']);
+            $result['errors'] = $dealResut['errors'];
         }
         else
         {
@@ -213,17 +214,15 @@ class Handler extends \Bitrix\Main\Engine\Controller
         else
         {
             $roomsCatFilter = [];
-            $roomsCatFilter = $roomCatNames['IDs']; //если не нужно убирать комнаты с кол-вом == 0
 
-//            Если нужно убрать категории, в которых нет пустых комнат
-//            foreach ($roomsData['RoomTypes'] as $roomCategory)
-//            {
-//                //НЕ БЕРЕМ категории, где комнаты должны только освободиться!!!
-////                if($roomCategory['FreeRoom'] > 0)
-////                {
-//                $roomsCatFilter[] = $roomCategory['ID'];
-////                }
-//            }
+            foreach ($roomsData['RoomTypes'] as $roomCategory)
+            {
+                //НЕ БЕРЕМ категории, где комнаты должны только освободиться!!!
+//                if($roomCategory['FreeRoom'] > 0)
+//                {
+                $roomsCatFilter[] = $roomCategory['ID'];
+//                }
+            }
 
 //            $result['test_cat_filter_for_price'] = $roomsCatFilter;
 
@@ -346,5 +345,15 @@ class Handler extends \Bitrix\Main\Engine\Controller
         return $result;
     }
 
+    public function addReserveAction($FIELDS)
+    {
+        $fields['DEAL_ID'] = (new \Ourcompany\Servio\Work\Request)->safeInputData($FIELDS['DEAL_ID']);
+        $fields['FILTERS'] = (new \Ourcompany\Servio\Work\Request)->safeInputData($FIELDS['FILTERS']);
+        $fields['ROOM_CATEGORY'] = (new \Ourcompany\Servio\Work\Request)->safeInputData($FIELDS['ROOM_CATEGORY']);
+        $result = (new \Ourcompany\Servio\Servio)->addReserve($fields,$this->settings);
+
+//        return ['test_reserve' => $FIELDS];
+        return $result;
+    }
 
 }
