@@ -71,13 +71,14 @@ class Handler extends \Bitrix\Main\Engine\Controller
         return (new \Ourcompany\Servio\Servio)->confirmReserve($fields,$this->settings);
     }
 
-    public function createBillReserveAction($FIELDS,$SERVICES,$FIRST_PAY)
+    public function createBillReserveAction($FIELDS,$SERVICES,$DATES,$FIRST_PAY)
     {
         $fields = (new \Ourcompany\Servio\Work\Request)->safeInputData($FIELDS);
 //        $servises = (new \Ourcompany\Servio\Work\Request)->safeInputData($SERVICES);
+        $dates = (new \Ourcompany\Servio\Work\Request)->safeInputData($DATES);
 
-        return (new \Ourcompany\Servio\Servio)->createBill($fields,$SERVICES,$FIRST_PAY,$this->settings);
-        return [$fields,$servises];
+        return (new \Ourcompany\Servio\Servio)->createBill($fields,$SERVICES,$DATES,$FIRST_PAY,$this->settings);
+        return [$fields,$SERVICES,$dates];
     }
 
 

@@ -296,6 +296,7 @@ class ServioPopup
         if(formObj !== null)
         {
             Object.entries(formObj.elements).forEach(([index,elem]) => {
+
                 if(elem.name !== '')
                 {
                     fields[elem.name] = elem.value
@@ -1108,7 +1109,7 @@ class ServioPopup
             servisesTable = '',
             servisesTableInner = '',
             reserveDataHtml = '',
-            cancelBtn, confirmBtn, billBtn,
+            cancelBtn, confirmBtn, billBtn, billCheckboxes,
             k = 1,
             thService = '',
             tdServicePrice = '',
@@ -1167,7 +1168,11 @@ class ServioPopup
     
                                         ${
                                         (resultPrices.IsPaid !== true)
-                                            ?`<td><button class="ui-btn ui-btn-xs ui-btn-primary pay-the-day data-date-id="${resultPrices.Date}">To Pay</button></td>`
+                                            ?`<td>
+                                                <label class="ui-ctl ui-ctl-checkbox">
+                                                    <input type="checkbox" name="${resultPrices.Date}" class="ui-ctl-element servio-date-bill" value="${resultPrices.Date}">
+                                                </label>
+                                              </td>`
                                             : `<td></td>`
                                         }
                                     </tr>`
@@ -1176,20 +1181,22 @@ class ServioPopup
 
                             servisesTable =
                                 `<div class="row">
-                                <table class="table table-sm table-responsive text-center">
-                                    <thead>
-                                        <th>#</th>
-                                        <th>Date</th>
-                                        ${thService}
-                                        <th>Total Day Price, ${reserveAjaxObj.data.result.ValuteShort}</th>
-                                        <th>Is Paid</th>
-                                        <th></th>
-                                    </thead>
-                                    <tbody>
-                                        ${servisesTableInner}
-                                    </tbody>
-                                </table>
-                            </div>`
+                                    <form id="servio-dates-bill" name="servio-dates-bill">
+                                        <table class="table table-sm table-responsive text-center">
+                                            <thead>
+                                                <th>#</th>
+                                                <th>Date</th>
+                                                ${thService}
+                                                <th>Total Day Price, ${reserveAjaxObj.data.result.ValuteShort}</th>
+                                                <th>Is Paid</th>
+                                                <th>Add To Bill</th>
+                                            </thead>
+                                            <tbody>
+                                                ${servisesTableInner}
+                                            </tbody>
+                                        </table>
+                                    </form>
+                                </div>`
                         }
 
                         reserveDataHtml =
@@ -1257,7 +1264,7 @@ class ServioPopup
                                     : ''
                                 }
                                     
-                            <button class="ui-btn ui-btn-secondary" id="getReserveBill">Счет</button>`
+                            <button class="ui-btn ui-btn-secondary hidden-input" id="getReserveBill">Счет</button>`
 
                         //сервисы по датам и просто массив (для формирования счетов)
                         clientServises = reserveAjaxObj.data.result.Services
@@ -1272,9 +1279,8 @@ class ServioPopup
                     //НАЖАТИЕ НА КНОПКИ
                     cancelBtn = document.getElementById('reserveCancelBtn')
                     confirmBtn = document.getElementById('reserveAcceptBtn')
-                    billBtn = document.getElementById('getReserveBill')
-
-                    // console.log(cancelBtn,confirmBtn);
+                    // billBtn = document.getElementById('getReserveBill')
+                    billCheckboxes = document.querySelectorAll('.servio-date-bill')
 
                     if(cancelBtn !== null)
                     {
@@ -1295,14 +1301,28 @@ class ServioPopup
                         }
                     }
 
-                    if(billBtn !== null)
+                    if(billCheckboxes !== null)
                     {
-                        billBtn.onclick = () =>
-                        {
-                            console.log('billBtn New');
-                            self.getBillForReserveV2(billBtn,clientServises)
-                        }
+                        billCheckboxes.forEach(checkbox => {
+
+                            // console.log('checkbox',checkbox);
+                            checkbox.onclick = function()
+                            {
+                                // self.showBillBtn(billBtn,billCheckboxes);
+                                self.showBillBtn(clientServises);
+                            }
+                        })
+
                     }
+
+                    // if(billBtn !== null)
+                    // {
+                    //     billBtn.onclick = () =>
+                    //     {
+                    //         console.log('billBtn New');
+                    //         self.getBillForReserveV2(billBtn,clientServises)
+                    //     }
+                    // }
 
                 }
             )
@@ -1818,7 +1838,56 @@ class ServioPopup
     //     )
     // }
 
-    getBillForReserveV2(btnObj,servises)
+    showBillBtn(clientServises)
+    {
+        let self = this,
+            selected,
+            billDatesForm = document.getElementById('servio-dates-bill'),
+            billBtn = document.getElementById('getReserveBill'),
+            selectedDates = []
+
+        // console.log(this.getFromFieldsData());
+        // console.log(billDatesForm.length);
+
+        Object.entries(billDatesForm.elements).forEach(([index,elem]) => {
+            if(elem.name !== '')
+            {
+                if(elem.checked === true )
+                {
+                    selectedDates.push(elem.value)
+                }
+            }
+        });
+
+        if(selectedDates.length > 0)
+        {
+            //покахываем кнопку счета
+            this.toggleShowDOM(billBtn,true)
+        }
+        else
+        {
+            //скрываем кнопку счета
+            this.toggleShowDOM(billBtn)
+        }
+
+        console.log('selectedDates chbxs',selectedDates,clientServises);
+
+        if(billBtn !== null)
+        {
+            billBtn.onclick = () =>
+            {
+                // console.log('billBtn New');
+                // self.getBillForReserveV2(billBtn,clientServises)
+                self.getBillForReserveV2(billBtn,selectedDates,clientServises)
+            }
+        }
+
+
+        // console.log('get for work!',document.forms['servio-dates-bill'])
+    }
+
+    // getBillForReserveV2(btnObj,servises)
+    getBillForReserveV2(btnObj,selectedDates,clientServises)
     {
         let self = this,
             viewPopup = document.getElementById('servio_reserve_view'),
@@ -1831,8 +1900,9 @@ class ServioPopup
         BX.ajax.runAction('ourcompany:servio.nmspc.handler.createBillReserve', {
             data: {
                 FIELDS: this.deal,
-                SERVICES: servises,
-                FIRST_PAY: '2499.00'
+                SERVICES: clientServises,
+                DATES: selectedDates,
+                FIRST_PAY: '2799.00'
             }
         })
             .then(

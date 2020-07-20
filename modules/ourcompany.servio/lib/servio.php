@@ -715,17 +715,49 @@ class Servio
         return $result;
     }
 
-    public function createBill($fields,$servises,$firstPayment,$settings)
+    public function createBill($fields,$servises,$dates,$firstPayment,$settings)
     {
         $result = [
             'result' => [],
             'errors' => [],
         ];
+
+        $realServises = [];
+        foreach ($servises as $servise)
+        {
+            $priceDates = [];
+
+            foreach ($servise['PriceDate'] as $priceDate)
+            {
+                if(in_array(date('d.m.Y',strtotime($priceDate['Date'])),$dates))
+                {
+                    $priceDates[] = [
+                        'Date' => $priceDate['Date'],
+                        'Price' => $priceDate['Price'],
+                        'CustomerAccount' => $priceDate['CustomerAccount'],
+                    ];
+                }
+            }
+
+            $realServises[] = [
+                'ServiceID' => $servise['ServiceID'],
+                'ServiceName' => $servise['ServiceName'],
+                'ServiceCode' => $servise['ServiceCode'],
+                'ServiceSystemCode' => $servise['ServiceSystemCode'],
+                'ServiceTypeName' => $servise['ServiceTypeName'],
+                'PriceDates' => $priceDates
+            ];
+        }
+
         $data = [
             'Account' => $fields['reserveId'],
-            'Services' => $servises,
-            'Amount' => $firstPayment
+            'Services' => $realServises,
+//            'TTT_SERVICES' => $servises,
+            'Amount' => $firstPayment,
+
         ];
+
+//        return $data;
 
         $billCreateResult = (new \Ourcompany\Servio\Work\Request)->postRequest('SetReservationBill',
             [
@@ -737,8 +769,8 @@ class Servio
 
 //        return [$fields,$servises,$firstPayment];
 
-        return $data;
-//        return $result;
+
+        return $billCreateResult;
     }
 
 }
