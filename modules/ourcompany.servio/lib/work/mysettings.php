@@ -16,6 +16,11 @@ class Mysettings
     //названия типопв оплат, пока не напишут api
     public $payTypes = [];
 
+    //значения полей по умолчанию
+    public $defaultValues = [
+        'LOSE_STAGE_ID_NAME_PART' => 'LOSE',
+    ];
+
     //нужен для получения cOption
     const MODULE_ID = 'ourcompany.servio';
 

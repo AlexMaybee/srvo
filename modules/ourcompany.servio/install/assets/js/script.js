@@ -1111,7 +1111,9 @@ class ServioPopup
             cancelBtn, confirmBtn, billBtn,
             k = 1,
             thService = '',
-            tdServicePrice = ''
+            tdServicePrice = '',
+            clientServises = [], //массив всехсервисов для формирования общего счета по заказу
+            clientServisesByDates = {} //объек, с разбивкой сервисов по дням
 
         popupObj = self.makePopupV2('servio-hotel-reservation-view',html,'Hotel Reservation View')
         popupBody = document.getElementById('servio_reserve_view')
@@ -1157,18 +1159,18 @@ class ServioPopup
 
                                 servisesTableInner +=
                                     `<tr>
-                                    <td>${k}</td>
-                                    <td>${resultPrices.Date}</td>
-                                    ${tdServicePrice}
-                                    <td>${resultPrices.Price}</td>
-                                    <td class="ui-alert ${(resultPrices.IsPaid === true) ? 'ui-alert-success' : 'ui-alert-danger'}">${resultPrices.IsPaid}</td>
-
-                                    ${
+                                        <td>${k}</td>
+                                        <td>${resultPrices.Date}</td>
+                                        ${tdServicePrice}
+                                        <td>${resultPrices.Price}</td>
+                                        <td class="ui-alert ${(resultPrices.IsPaid === true) ? 'ui-alert-success' : 'ui-alert-danger'}">${resultPrices.IsPaid}</td>
+    
+                                        ${
                                         (resultPrices.IsPaid !== true)
-                                            ?`<td><button class="ui-btn ui-btn-xs ui-btn-primary pay-the-day data-account-id="${resultPrices.CustomerAccount}">To Pay</button></td>`
+                                            ?`<td><button class="ui-btn ui-btn-xs ui-btn-primary pay-the-day data-date-id="${resultPrices.Date}">To Pay</button></td>`
                                             : `<td></td>`
                                         }
-                                </tr>`
+                                    </tr>`
                                 k++
                             }
 
@@ -1257,7 +1259,13 @@ class ServioPopup
                                     
                             <button class="ui-btn ui-btn-secondary" id="getReserveBill">Счет</button>`
 
+                        //сервисы по датам и просто массив (для формирования счетов)
+                        clientServises = reserveAjaxObj.data.result.Services
+                        clientServisesByDates = reserveAjaxObj.data.result.ServicesByDates
+
                     }
+
+
 
                     popupBody.innerHTML = reserveDataHtml
 
@@ -1273,8 +1281,7 @@ class ServioPopup
                         cancelBtn.onclick = () =>
                         {
                             console.log('cancelBtn');
-
-                            // self.cancelReserve(popupObj,cancelBtn)
+                            self.cancelReserveV2(popupObj,cancelBtn)
                         }
                     }
 
@@ -1283,7 +1290,7 @@ class ServioPopup
                         confirmBtn.onclick = () =>
                         {
                             console.log('confirmBtn');
-                            // self.confirmReserve(confirmBtn)
+                            self.confirmReserveV2(confirmBtn)
                             // self.testGetDocument(28199)
                         }
                     }
@@ -1292,8 +1299,8 @@ class ServioPopup
                     {
                         billBtn.onclick = () =>
                         {
-                            console.log('billBtn');
-                            // self.getBillForReserve(billBtn)
+                            console.log('billBtn New');
+                            self.getBillForReserveV2(billBtn,clientServises)
                         }
                     }
 
@@ -1555,28 +1562,28 @@ class ServioPopup
     }
 
     //отображение/скрытие 2х полей - old
-    toggleReserveFields(flag)
-    {
-        let form = document.getElementById('servio_popup'),
-            hiddenBlocks = document.querySelectorAll('.reserve-hidden')
-
-        if(hiddenBlocks.length > 0 )
-        {
-            hiddenBlocks.forEach(elem => {
-                // console.log(222,elem);
-                if(flag === true /*&& elem.classList.contains('hidden-input')*/)
-                {
-                    elem.classList.remove('hidden-input')
-                }
-                else
-                {
-                    elem.classList.add('hidden-input')
-                }
-            })
-        }
-        // console.log('UUUU',hiddenBlocks);
-
-    }
+    // toggleReserveFields(flag)
+    // {
+    //     let form = document.getElementById('servio_popup'),
+    //         hiddenBlocks = document.querySelectorAll('.reserve-hidden')
+    //
+    //     if(hiddenBlocks.length > 0 )
+    //     {
+    //         hiddenBlocks.forEach(elem => {
+    //             // console.log(222,elem);
+    //             if(flag === true /*&& elem.classList.contains('hidden-input')*/)
+    //             {
+    //                 elem.classList.remove('hidden-input')
+    //             }
+    //             else
+    //             {
+    //                 elem.classList.add('hidden-input')
+    //             }
+    //         })
+    //     }
+    //     // console.log('UUUU',hiddenBlocks);
+    //
+    // }
 
     toggleShowDOM(domObj,flag)
     {
@@ -1621,7 +1628,114 @@ class ServioPopup
     //     )
     // }
 
-    confirmReserve(btnObj)
+
+    cancelReserveV2(popupObj,cancelBtn)
+    {
+        let self = this,
+            viewPopup = document.getElementById('servio_reserve_view'),
+            firstRow = viewPopup.querySelector('.row')
+
+        //удаление ошибок и сообщений
+        this.deleteErrorsinForm(viewPopup);
+
+        this.toggleClockLoaderToBtn(cancelBtn)
+
+        BX.ajax.runAction('ourcompany:servio.nmspc.handler.abortReserve', {
+            data: {
+                FIELDS: this.deal
+            }
+        })
+            .then(
+                (abortRequestObj) =>
+                {
+                    // console.log('Success Abort reserve result',abortRequestObj);
+
+                    if(abortRequestObj.data.errors.length > 0)
+                    {
+                        for(let error of abortRequestObj.data.errors)
+                        {
+                            self.addErrorsBeforeFormNew(firstRow,error,'error')
+                        }
+
+                        // self.toggleClockLoaderToBtn(cancelBtn)
+                    }
+                    else
+                    {
+                        self.addErrorsBeforeFormNew(firstRow,'Резерв отменен!','success')
+
+                        // self.toggleClockLoaderToBtn(cancelBtn)
+                        // self.disableElement(cancelBtn)
+
+                        setTimeout(() =>
+                        {
+                            popupObj.destroy()
+
+                            self.deal.reserveId = abortRequestObj.data.result
+                            location.reload()
+                        }, 2000)
+                    }
+                    self.toggleClockLoaderToBtn(cancelBtn)
+                }
+            )
+            .catch(
+                (abortRequestObj) =>
+                {
+                    // console.log('Error Abort reserve result',abortRequestObj);
+
+                    for(let ccErr of abortRequestObj.errors)
+                    {
+                        self.addErrorsBeforeFormNew(firstRow, ccErr.message, 'error')
+                    }
+
+                    self.toggleClockLoaderToBtn(cancelBtn)
+                }
+            )
+    }
+
+    //old
+    // cancelReserve(popupObj,cancelBtn)
+    // {
+    //     let self = this,
+    //         viewPopup = document.getElementById('servio_reserve_view'),
+    //         firstRow = viewPopup.querySelector('.row')
+    //
+    //     //удаление ошибок и сообщений
+    //     self.deleteErrorsinForm(viewPopup);
+    //
+    //     self.toggleClockLoaderToBtn(cancelBtn)
+    //
+    //     this.makeAjaxRequest(this.url.ajax, {'ACTION': 'ABORT_RESERVE', 'FIELDS': self.deal},
+    //         function (response) {
+    //             console.log('Abort Ajax:',response)
+    //
+    //             if(response.error)
+    //             {
+    //                 self.addErrorsBeforeFormNew(firstRow,response.error,'error')
+    //                 self.toggleClockLoaderToBtn(cancelBtn)
+    //
+    //             }
+    //             else
+    //             {
+    //                 self.addErrorsBeforeFormNew(firstRow,'Резерв отменен!','success')
+    //
+    //                 self.toggleClockLoaderToBtn(cancelBtn)
+    //
+    //                 setTimeout(() => {
+    //                     popupObj.destroy()
+    //
+    //                     self.deal.reserveId = response.result
+    //                     location.reload()
+    //                 }, 2000)
+    //             }
+    //
+    //         }
+    //     )
+    //
+    //     console.log('Test Abort Reserve');
+    // }
+
+
+    confirmReserveV2(btnObj)
     {
         let self = this,
             viewPopup = document.getElementById('servio_reserve_view'),
@@ -1631,23 +1745,112 @@ class ServioPopup
 
         this.toggleClockLoaderToBtn(btnObj)
 
-        this.makeAjaxRequest(this.url.ajax, {'ACTION': 'CONFIRM_RESERVE', 'FIELDS': self.deal},
-            function (response) {
-                console.log('CONFIRM RESERVE', response)
-
-                if(response.error)
-                {
-                    self.addErrorsBeforeFormNew(firstRow,response.error,'error')
-                }
-                else
-                {
-                    self.addErrorsBeforeFormNew(firstRow,'Файл потверждения сохранен в сделке! Обновите страницу!','success')
-                }
-
-                self.disableElement(btnObj)
-                self.toggleClockLoaderToBtn(btnObj)
+        BX.ajax.runAction('ourcompany:servio.nmspc.handler.confirmReserve', {
+            data: {
+                FIELDS: this.deal
             }
-        )
+        })
+            .then(
+                (confirmRequestObj) =>
+                {
+                    console.log('Success Confirm reserve result',confirmRequestObj);
+
+                    if(confirmRequestObj.data.errors.length > 0)
+                    {
+                        for(let error of confirmRequestObj.data.errors)
+                        {
+                            self.addErrorsBeforeFormNew(firstRow,error,'error')
+                        }
+
+                        self.toggleClockLoaderToBtn(btnObj)
+                    }
+                    else
+                    {
+                        self.addErrorsBeforeFormNew(firstRow,'Файл потверждения сохранен в сделке! Обновите страницу!','success')
+                        self.toggleClockLoaderToBtn(btnObj)
+                        self.disableElement(btnObj)
+                    }
+                }
+            )
+            .catch(
+                (confirmRequestObj) =>
+                {
+                    console.log('Error Confirm reserve result',confirmRequestObj);
+
+                    for(let ccErr of confirmRequestObj.errors)
+                    {
+                        self.addErrorsBeforeFormNew(firstRow, ccErr.message, 'error')
+                    }
+
+                    self.toggleClockLoaderToBtn(btnObj)
+                }
+            )
+
+    }
+
+    //old
+    // confirmReserve(btnObj)
+    // {
+    //     let self = this,
+    //         viewPopup = document.getElementById('servio_reserve_view'),
+    //         firstRow = viewPopup.querySelector('.row')
+    //
+    //     this.deleteErrorsinForm(viewPopup)
+    //
+    //     this.toggleClockLoaderToBtn(btnObj)
+    //
+    //     this.makeAjaxRequest(this.url.ajax, {'ACTION': 'CONFIRM_RESERVE', 'FIELDS': self.deal},
+    //         function (response) {
+    //             console.log('CONFIRM RESERVE', response)
+    //
+    //             if(response.error)
+    //             {
+    //                 self.addErrorsBeforeFormNew(firstRow,response.error,'error')
+    //             }
+    //             else
+    //             {
+    //                 self.addErrorsBeforeFormNew(firstRow,'Файл потверждения сохранен в сделке! Обновите страницу!','success')
+    //             }
+    //
+    //             self.disableElement(btnObj)
+    //             self.toggleClockLoaderToBtn(btnObj)
+    //         }
+    //     )
+    // }
+
+    getBillForReserveV2(btnObj,servises)
+    {
+        let self = this,
+            viewPopup = document.getElementById('servio_reserve_view'),
+            firstRow = viewPopup.querySelector('.row')
+
+        this.deleteErrorsinForm(viewPopup)
+
+        this.toggleClockLoaderToBtn(btnObj)
+
+        BX.ajax.runAction('ourcompany:servio.nmspc.handler.createBillReserve', {
+            data: {
+                FIELDS: this.deal,
+                SERVICES: servises,
+                FIRST_PAY: '2499.00'
+            }
+        })
+            .then(
+                (createBillRequestObj) =>
+                {
+                    console.log('Success Create Bill reserve result',createBillRequestObj);
+
+                    self.toggleClockLoaderToBtn(btnObj)
+                }
+            )
+            .catch(
+                (createBillRequestObj) =>
+                {
+                    console.log('Error Create Bill reserve result',createBillRequestObj);
+
+                    self.toggleClockLoaderToBtn(btnObj)
+                }
+            )
     }
 
     getBillForReserve(btnObj)
@@ -1679,46 +1882,7 @@ class ServioPopup
         )
     }
 
-    cancelReserve(popupObj,cancelBtn)
-    {
-        let self = this,
-            viewPopup = document.getElementById('servio_reserve_view'),
-            firstRow = viewPopup.querySelector('.row')
 
-        //удаление ошибок и сообщений
-        self.deleteErrorsinForm(viewPopup);
-
-        self.toggleClockLoaderToBtn(cancelBtn)
-
-        this.makeAjaxRequest(this.url.ajax, {'ACTION': 'ABORT_RESERVE', 'FIELDS': self.deal},
-            function (response) {
-                console.log('Abort Ajax:',response)
-
-                if(response.error)
-                {
-                    self.addErrorsBeforeFormNew(firstRow,response.error,'error')
-                    self.toggleClockLoaderToBtn(cancelBtn)
-
-                }
-                else
-                {
-                    self.addErrorsBeforeFormNew(firstRow,'Резерв отменен!','success')
-
-                    self.toggleClockLoaderToBtn(cancelBtn)
-
-                    setTimeout(() => {
-                        popupObj.destroy()
-
-                        self.deal.reserveId = response.result
-                        location.reload()
-                    }, 2000)
-                }
-
-            }
-        )
-
-        console.log('Test Abort Reserve');
-    }
 
 
 

@@ -7,6 +7,283 @@ use \Bitrix\Main\Page\Asset,
 class Servio
 {
 
+    //данные нашей компании при загрузке
+    public function companyData($settings)
+    {
+        $result = [
+            'result' => false,
+            'error' => false,
+        ];
+
+        $companyInfoRes = (new \Ourcompany\Servio\Work\Request)->postRequest('GetCompanyInfo', ['CompanyCode' => $settings['success']['SERVIO_COMPANY_CODE'],], $settings);
+
+        if($companyInfoRes['Result'] === 0)
+        {
+            unset($companyInfoRes['Error']);
+            unset($companyInfoRes['ErrorCode']);
+            unset($companyInfoRes['Result']);
+            $result['result'] = $companyInfoRes;
+        }
+        else
+        {
+            $result['error'] = $companyInfoRes['Error'];
+        }
+
+        return $result;
+    }
+
+    //условия договоров + типы оплаты в селекты
+    public function contractConditions($fields,$settings,$payTypes)
+    {
+        $result = [
+            'result' => false,
+            'error' => false,
+        ];
+
+        $data = [
+            'CompanyCodeID' => intval($fields['companyCodeId']),
+            'HotelID' => intval($fields['hotelId']),
+            'DateArrival' => $fields['dateFrom'],
+            'DateDeparture' => $fields['dateTo'],
+            'ChildAges' => $fields['childAges'],
+            'Adults' => intval($fields['adults']),
+            'Childs' => intval($fields['childs']),
+            'IsExtraBedUsed' => boolval($fields['extraBed']),
+            'IsoLanguage'  => 'ru',
+            'TimeArrival' =>  '', //пока константы
+            'TimeDeparture' =>  '',  //пока константы
+        ];
+
+        $requestResult = (new \Ourcompany\Servio\Work\Request)->postRequest('GetRooms', $data, $settings);
+        if($requestResult['Error'])
+        {
+            $result['error'] = $requestResult['Error'];
+        }
+        else
+        {
+            unset($requestResult['Error']);
+            unset($requestResult['ErrorCode']);
+            unset($requestResult['Result']);
+
+            //заносим текст типов оплат
+            if($requestResult['ContractConditions'])
+            {
+                foreach ($requestResult['ContractConditions'] as $cC)
+                {
+                    foreach ($cC['PaidTypes'] as $payType)
+                    {
+                        $requestResult['PayTypes'][$cC['ContractConditionID']][] = ['ID' => $payType, 'NAME' => $payTypes[$payType]];
+                    }
+                }
+            }
+            $result['result'] = $requestResult;
+        }
+
+        return $result;
+    }
+
+    //цены
+    public function pricesByFilter($fields,$dealId,$settings)
+    {
+        $result = [
+            'errors' => [],
+            'rooms' => [],
+            'prices' => [],
+            'names' => [],
+            'table' => [],
+            'fields' => [
+                'COMMENTS' => '',
+                'ADDRESS' => '',
+            ],
+        ];
+
+        $dealResut = (new \Ourcompany\Servio\Deal)->getDealAndClientShort($dealId,$settings);
+        if($dealResut['errors'])
+        {
+            $result['errors'] = array_merge($result['errors'],$dealResut['errors']);
+        }
+        else
+        {
+            $dealData = $dealResut['result'];
+
+            //берем коммент из сделки и адрес из компании/контакта
+            $result['fields']['COMMENTS'] = $dealData['COMMENTS'];
+
+            if($dealData['CONTACT_DATA'] && $dealData['CONTACT_DATA'][$settings['success']['SERVIO_FIELD_CONTACT_ADDRESS']])
+            {
+                $result['fields']['ADDRESS'] = $dealData['CONTACT_DATA'][$settings['success']['SERVIO_FIELD_CONTACT_ADDRESS']];
+            }
+            elseif($dealData['COMPANY_DATA'] && $dealData['COMPANY_DATA'][$settings['success']['SERVIO_FIELD_COMPANY_ADDRESS']])
+            {
+                $result['fields']['ADDRESS'] = $dealData['COMPANY_DATA'][$settings['success']['SERVIO_FIELD_COMPANY_ADDRESS']];
+            }
+        }
+
+        $childAgerResArr = [];
+        if($fields['childAges'])
+        {
+            foreach (explode(' ',$fields['childAges']) as $age)
+            {
+                $childAgerResArr[] = intval($age);
+            }
+        }
+        $fields['childAges'] = $childAgerResArr;
+
+        //названия комнат
+        $roomCatNames = (new \Ourcompany\Servio\Work\Request)->postRequest('GetRoomTypesList', ['HotelID' => $fields['hotelId']], $settings);
+        if($roomCatNames['Error'])
+        {
+            $result['errors'][] = $roomCatNames['Error'];
+        }
+        else
+        {
+            $roomsData = (new \Ourcompany\Servio\Work\Request)->postRequest('GetRooms',
+                [
+                    'CompanyCodeID' => intval($fields['companyCodeId']),
+                    'HotelID' => intval($fields['hotelId']),
+                    'DateArrival' => $fields['dateFrom'],
+                    'DateDeparture' => $fields['dateTo'],
+                    'ChildAges' => $fields['childAges'],
+                    'Adults' => intval($fields['adults']),
+                    'Childs' => intval($fields['childs']),
+                    'IsExtraBedUsed' => boolval($fields['extraBed']),
+                    'IsoLanguage'  => 'ru',
+                    'TimeArrival' =>  '', //пока константы
+                    'TimeDeparture' =>  '',  //пока константы
+                ]
+                , $settings);
+
+
+            if($roomsData['Error'])
+            {
+                $result['errors'][] = $roomsData['Error'];
+            }
+            else
+            {
+                $roomsCatFilter = [];
+
+                foreach ($roomsData['RoomTypes'] as $roomCategory)
+                {
+                    //НЕ БЕРЕМ категории, где комнаты должны только освободиться!!!
+//                if($roomCategory['FreeRoom'] > 0)
+//                {
+                    $roomsCatFilter[] = $roomCategory['ID'];
+//                }
+                }
+
+                //цены комнат
+                $roomsPrices = (new \Ourcompany\Servio\Work\Request)->postRequest('GetPrices',
+                    [
+                        'HotelID' => intval($fields['hotelId']),
+                        'CompanyID' => intval($fields['companyId']),
+                        'DateArrival' => $fields['dateFrom'],
+                        'DateDeparture' => $fields['dateTo'],
+                        'TimeArrival' =>  '',
+                        'TimeDeparture' =>  '',
+                        'Adults' => intval($fields['adults']),
+                        'Childs' => intval($fields['childs']),
+                        'ChildAges' => $fields['childAges'],
+                        'IsExtraBedUsed' => boolval($fields['extraBed']),
+                        'IsoLanguage'  => 'ru',
+                        'RoomTypeIDs' => $roomsCatFilter, // [1,2,3,5],
+                        'СontractConditionID' => 0,
+                        'PaidType' => $fields['paidType'],
+                        'NeedTransport' => $fields['transport'],
+                        'IsTouristTax' => $fields['touristTax'],
+                        'LPAuthCode' => '',
+                    ]
+                    , $settings);
+
+                if($roomsPrices['Error'])
+                {
+                    $result['errors'][] = $roomsPrices['Error'];
+                }
+                else
+                {
+                    $dateFrom = date('d.m.Y',strtotime($fields['dateFrom']));
+                    $dateTo = date('d.m.Y',strtotime($fields['dateTo']));
+                    $dates = "{$dateFrom} - {$dateTo}";
+
+                    if(
+                        date('n',strtotime($fields['dateFrom'])) === date('n',strtotime($fields['dateTo']))
+                        &&
+                        date('Y',strtotime($fields['dateFrom'])) === date('Y',strtotime($fields['dateTo']))
+                    )
+                    {
+                        $dates = date('d',strtotime($fields['dateFrom'])).' - '.date('d.m.Y',strtotime($fields['dateTo']));
+                    }
+                    elseif(
+                        date('n',strtotime($fields['dateFrom'])) !== date('n',strtotime($fields['dateTo']))
+                        &&
+                        date('Y',strtotime($fields['dateFrom'])) === date('Y',strtotime($fields['dateTo']))
+                    )
+                    {
+                        $dates = date('d.m',strtotime($fields['dateFrom'])).' - '.date('d.m.Y',strtotime($fields['dateTo']));
+                    }
+
+                    $result['table'] = $this->makePriceTable($roomCatNames,$roomsData,$roomsPrices,$dates);
+                }
+            }
+        }
+        return $result;
+    }
+
+    //преобразование массива для вывода в таблицу
+    private function makePriceTable($roomCatNames,$roomsData,$roomsPrices,$dates)
+    {
+        $result = [];
+        $arr = [];
+
+        if($roomsPrices)
+        {
+            foreach ($roomsData['RoomTypes'] as $roomCategory)
+            {
+//            if($roomCategory['FreeRoom'] > 0)
+//            {
+                $index = array_search($roomCategory['ID'],$roomCatNames['IDs']);
+                if($index !== false)
+                {
+                    $roomCategory['CategoryName'] = $roomCatNames['ClassNames'][$index];
+                    $roomCategory['HotelId'] = $roomCatNames['HotelIDs'][$index];
+                    $roomCategory['Currency'] = $roomsPrices['ValuteShort'];
+
+                    $arr[$roomCategory['ID']] = $roomCategory;
+                }
+//            }
+            }
+
+
+            //новый массив по дням
+            foreach ($roomsPrices['PriceLists'] as $priceList)
+            {
+                foreach ($priceList['RoomTypes'] as $roomCategory)
+                {
+//                    $roomCategory['NearestDateToReservation'] = date('d.m.Y',strtotime($roomCategory['NearestDateToReservation']));
+
+                    foreach ($roomCategory['Services'] as $service)
+                    {
+                        foreach ($service['PriceDates'] as $roomDate)
+                        {
+                            $arr[$roomCategory['ID']]['NearestDateToReservation'] = date('d.m.Y',strtotime($arr[$roomCategory['ID']]['NearestDateToReservation']));
+
+                            $arr[$roomCategory['ID']]['PriceListId'] = $priceList['PriceListID'];
+//                            $arr[$roomCategory['ID']]['Date'] = $roomDate['Date'];
+                            $arr[$roomCategory['ID']]['Date'] = $dates;
+                            $arr[$roomCategory['ID']]['Price'] += $roomDate['Price'];
+                            $arr[$roomCategory['ID']]['MinPayDays'] += $roomCategory['SaleRestrictions']['MinPay']['Days'];
+                            $arr[$roomCategory['ID']]['MinStayDays'] += $roomCategory['SaleRestrictions']['MinStay']['Days'];
+                        }
+                    }
+                }
+            }
+
+            $result = $arr;
+        }
+
+        return $result;
+    }
+
+
     //создание резерва с 16.07.2020
     public function addReserve($fields,$settings)
     {
@@ -170,9 +447,9 @@ class Servio
                                 if($companyAddr)
                                 {
 //                                    $companyAddr = "$companyAddr\n".date('d.m.Y H:i').": $address";
-                                    if($address !== $contactAddr)
+                                    if($address !== $companyAddr)
                                     {
-                                        $contactAddr = "$contactAddr\n".date('d.m.Y H:i').": $address";
+                                        $contactAddr = "$companyAddr\n".date('d.m.Y H:i').": $address";
                                     }
                                 }
                                 else
@@ -231,6 +508,7 @@ class Servio
 
             $servicesResultArray = [];
             $servisesArr = []; //для формирования массива услуг в th
+            $servisesByDate = []; //разбивка сервисов по дням
 
             if($reserveData['Services'])
             {
@@ -256,6 +534,7 @@ class Servio
                         $servicesResultArray[$rDate]['ServiceProviderID'] = $oneDate['ServiceProviderID'];
                         $servicesResultArray[$rDate]['ServiceProviderName'] = $oneDate['ServiceProviderName'];
                         $servicesResultArray[$rDate]['ServicePrices'][] = $oneDate['Price'];
+                        $servisesByDate[$rDate][] = $service;
                     }
                 }
             }
@@ -264,14 +543,202 @@ class Servio
             $reserveData['ThServises'] = $servisesArr;
             //Formated Servises Prices By Dates
             $reserveData['ResultServises'] = array_values($servicesResultArray);
+            $reserveData['ServicesByDates'] = $servisesByDate;
 
             $result['result'] = $reserveData;
         }
 
 
-        $result['test_reserv_info'] = $reserveData;
+//        $result['test_reserv_info'] = $reserveData;
 
         return $result;
+    }
+
+
+    //отмена резерва + смена стадии на проигрышную
+    public function abortReserve($fields,$settings,$defaultValues)
+    {
+        $result = [
+            'result' => false,
+            'errors' => [],
+        ];
+
+        if(!$defaultValues)
+        {
+            $result['errors'][] = 'Ошибка при передаче default параметров из настроек (не админки)!';
+        }
+        else
+        {
+            $reserveAbortResult = (new \Ourcompany\Servio\Work\Request)->postRequest('CancelReservation', ['Account' => $fields['reserveId']], $settings);
+            if($reserveAbortResult['Result'] !== 0)
+            {
+                $result['errors'][] = $reserveAbortResult['Error'];
+            }
+            else
+            {
+                $dealData = (new \Ourcompany\Servio\Deal)->getDealFields(
+                    ['ID' => intval($fields['id'])],
+                    ['ID','CATEGORY_ID']
+                );
+                if(!$dealData)
+                {
+                    $result['errors'][] = "Не найдена сделка #{$fields['id']}";
+                }
+                else
+                {
+                    //определение стадии пригрыша - стандарт от Б24 = C{CATEGORY_ID}:LOSE или LOSE (CATEGORY_ID === 0)
+                    $loseStageId = (intval($dealData['CATEGORY_ID']) === 0)
+                        ? $defaultValues['LOSE_STAGE_ID_NAME_PART']
+                        : "C{$dealData['CATEGORY_ID']}:{$defaultValues['LOSE_STAGE_ID_NAME_PART']}";
+
+                    $dealUpdRes = (new \Ourcompany\Servio\Deal)->updateDeal($fields['id'],[
+                        'STAGE_ID' => $loseStageId,
+                        $settings['success']['SERVIO_FIELD_RESERVE_ID'] => ''
+                    ]);
+                    if($dealUpdRes['errors'])
+                    {
+                        $result['errors'] = array_merge($result['errors'],$dealUpdRes['errors']);
+                    }
+                    else
+                    {
+                        $result['result'] = $dealUpdRes['result'];
+                    }
+                }
+            }
+//            $result['result'] = [$fields,$settings];
+//            $result['result'] = [$dealData,$loseStageId];
+        }
+        return $result;
+    }
+
+    public function confirmReserve($fields,$settings)
+    {
+        $result = [
+            'result' => false,
+            'errors' => [],
+        ];
+
+        $confirmResult = (new \Ourcompany\Servio\Work\Request)->postRequest('GetAccountConfirm',
+            [
+                'Account' => $fields['reserveId'],
+                'IsoLanguage'  => 'ru',
+                'Format' => $settings['success']['SERVIO_RESERVE_CONFIRM_FILE_FORMAT'],
+            ],
+            $settings);
+        if($confirmResult['Result'] !== 0)
+        {
+            $result['errors'][] = $confirmResult['Error'];
+        }
+        else
+        {
+            $updDealRes = (new \Ourcompany\Servio\Deal)->updateDeal($fields['id'],[$settings['success']['SERVIO_FIELD_RESERVE_CONFIRM_FILE_ID'] => $confirmResult['DocumentID']]);
+
+            if($updDealRes['errors'])
+            {
+                $result['errors'] = array_merge($result['errors'],$updDealRes['errors']);
+            }
+            else {
+                sleep(2);
+                $fileResult = $this->getDocument($confirmResult['DocumentID'],'servio_confirm_archive',$settings);
+
+                if(!$fileResult['result'])
+                {
+                    $result['errors'] = array_merge($result['errors'],$fileResult['errors']);
+                }
+                else {
+                    //получили файл в массиве по типу $_FILES
+                    $fileArr = $fileResult['result'];
+
+                    $updDealRes = (new \Ourcompany\Servio\Deal)->updateDeal($fields['id'],[$settings['success']['SERVIO_FIELD_RESERVE_CONFIRM_FILE'] => $fileArr]);
+
+                    if($updDealRes['errors'])
+                    {
+                        $result['errors'] = array_merge($result['errors'],$updDealRes['errors']);
+                    }
+                    else
+                    {
+                        $result['result'] = $updDealRes['result'];
+                    }
+
+                    //удаление файлаиз корня после передачи его в сделку
+                    unlink($_SERVER['DOCUMENT_ROOT'].'/'.$fileArr['name']);
+                }
+            }
+
+//            $result['test_document_confirm'] = $fileResult;
+//            $result['test_update_deal'] = $updDealRes;
+
+        }
+        return $result;
+    }
+
+
+    //возврат массива файла по типу $_FILES[]
+    public function getDocument($fileId,$myFileName,$settings)
+    {
+        $result = [
+            'result' => [],
+            'errors' => [],
+        ];
+
+        $docRes = (new \Ourcompany\Servio\Work\Request)->postRequest('GetDocument', ['DocumentID' => $fileId], $settings);
+
+        if($docRes['Result'] !== 0)
+        {
+            $result['errors'][] = $docRes['Error'];
+        }
+        else
+        {
+            if(!$docRes['IsReady'])
+            {
+                $result['errors'][] = 'Файл еще не готов! Попробуйте позже';
+            }
+            else
+            {
+                $fileName = $_SERVER['DOCUMENT_ROOT'].'/'.$myFileName.'_'.strtotime('now').'.zip';
+                $fileCreate = file_put_contents($fileName,base64_decode($docRes['DocumentCode']));
+
+//                $fileCreate = file_put_contents($_SERVER['DOCUMENT_ROOT'].'/'.$myFileName.'_'.strtotime('now').'.zip',base64_decode($docRes['DocumentCode']));
+
+                if($fileCreate)
+                {
+                    $result['result'] = \CFile::MakeFileArray($fileName);
+
+                }
+                else
+                {
+                    $result['errors'][] = 'Ошибка при создании временного файла архива';
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    public function createBill($fields,$servises,$firstPayment,$settings)
+    {
+        $result = [
+            'result' => [],
+            'errors' => [],
+        ];
+        $data = [
+            'Account' => $fields['reserveId'],
+            'Services' => $servises,
+            'Amount' => $firstPayment
+        ];
+
+        $billCreateResult = (new \Ourcompany\Servio\Work\Request)->postRequest('SetReservationBill',
+            [
+                'Account' => $fields['reserveId'],
+                'Services' => $servises,
+                'Amount' => $firstPayment
+            ]
+            , $settings);
+
+//        return [$fields,$servises,$firstPayment];
+
+        return $data;
+//        return $result;
     }
 
 }

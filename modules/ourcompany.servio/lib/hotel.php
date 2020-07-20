@@ -1020,7 +1020,7 @@ class Hotel
             }
             else
             {
-                sleep(3);
+//                sleep(3);
 
                 $fileResult = $this->getDocument($confirmResult['DocumentID'],'servio_confirm_archive');
 
