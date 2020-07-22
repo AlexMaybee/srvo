@@ -26,6 +26,8 @@ $servioFormatsList =  [
     '3' => 'DOC',
 ];
 
+$bitrixLanguages = \Ourcompany\Servio\Work\Mysettings::getBitrixLanguagesList();
+
 
 
 $aTabs = [
@@ -66,6 +68,14 @@ $aTabs = [
                 Loc::getMessage('OUR_COMPANY_SERVIO_BILL_FILE_FORMAT_FIELD_TITLE'),
                 '',
                 ['selectbox', $servioFormatsList]
+            ],
+
+            Loc::getMessage('OUR_COMPANY_SERVIO_OPTIONS_BLOCK_LANGUAGE'),
+            [
+                'SERVIO_EXCHANGE_LANG_ID',
+                Loc::getMessage('OUR_COMPANY_SERVIO_EXCHANGE_LANG_ID_FIELD_TITLE'),
+                '',
+                ['selectbox', $bitrixLanguages]
             ],
         ]
     ],

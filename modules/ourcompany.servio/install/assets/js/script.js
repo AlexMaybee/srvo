@@ -8,7 +8,6 @@ class ServioPopup
 {
     constructor()
     {
-
         this.url = {
             ajax: '/local/modules/ourcompany.servio/ajax.php',
         }
@@ -38,31 +37,49 @@ class ServioPopup
         // 0.1 Получение Id сделки (для получения отве., контакта, записи в поля)
         // this.getDealIdAndReserveId()
 
-        let matchMassive, result = false, self = this,
+        let self = this,
+            matchMassive,
+            dealListPage,
+            dealCategoryPage,
             servioBtn = document.getElementById('servio')
 
-
         matchMassive = window.location.href.match(/\/crm\/deal\/details\/([\d]+)/i)
+        dealListPage = window.location.href.match(/\/crm\/deal\/list/i)
+        dealCategoryPage = window.location.href.match(/\/crm\/deal\/category\/([\d]+)/i)
 
-        if(matchMassive && servioBtn !== null)
+
+        if(servioBtn !== null)
         {
-            this.deal.id = Number(matchMassive[1])
-            // console.log('Search button',servioBtn,this.deal);
-            if(this.deal.id > 0)
-            {
+            this.toggleClockLoaderToBtn(servioBtn)
 
-                servioBtn.onclick = function () {
-                    self.decideWichWindow(servioBtn);
+            if(matchMassive)
+            {
+                this.deal.id = Number(matchMassive[1])
+                // console.log('Search button',servioBtn,this.deal);
+                if(this.deal.id > 0)
+                {
+
+                    servioBtn.onclick = function () {
+                        self.decideWichWindow(servioBtn);
+                    }
+                }
+
+                //если ID сделки == 0, то  в попапе сделать бронь нельзя
+                else
+                {
+                    // console.log('iiooo',this.deal);
+                    // self.loadFormV6()
                 }
             }
-
-            //если ID сделки == 0, то  в попапе сделать бронь нельзя
-            else
+            if(dealListPage || dealCategoryPage)
             {
-                // console.log('iiooo',this.deal);
-                self.loadFormV6()
+                servioBtn.onclick = function () {
+                    // self.decideWichWindow(servioBtn);
+                    self.loadFormV6()
+                }
             }
         }
+
 
     }
 
@@ -98,7 +115,6 @@ class ServioPopup
                     else if(self.deal.id > 0 && self.deal.reserveId > 0)
                     {
                         //здесь popup с полученным по id данными резерва
-                        // self.loadServioPopupWithReserervation()
                         self.loadServioPopupWithReserervationV4()
                     }
                     else
@@ -132,26 +148,26 @@ class ServioPopup
     /*
      * Universal ajax request
       *  */
-    makeAjaxRequest(urlS,dataS,closeFunction = false)
-    {
-        if(!closeFunction)
-        {
-            closeFunction = function () {}
-        }
-
-        let self = this
-        BX.ajax
-        ({
-            method: "POST",
-            url: urlS,
-            data: dataS,
-            dataType: "json",
-            onsuccess: function (response) {
-                // console.log('Custom Ajax request',response)
-                closeFunction(response)
-            }
-        })
-    }
+    // makeAjaxRequest(urlS,dataS,closeFunction = false)
+    // {
+    //     if(!closeFunction)
+    //     {
+    //         closeFunction = function () {}
+    //     }
+    //
+    //     let self = this
+    //     BX.ajax
+    //     ({
+    //         method: "POST",
+    //         url: urlS,
+    //         data: dataS,
+    //         dataType: "json",
+    //         onsuccess: function (response) {
+    //             // console.log('Custom Ajax request',response)
+    //             closeFunction(response)
+    //         }
+    //     })
+    // }
 
 
 
@@ -279,7 +295,8 @@ class ServioPopup
     {
         if(windowObj !== null && windowObj instanceof Object === true)
         {
-            let elems = windowObj.querySelectorAll('.custom-error, .custom-Success')
+            let elems = windowObj.querySelectorAll('.custom-error, .custom-success')
+
             if(elems.length > 0)
             {
                 for(let notice of elems)
@@ -310,7 +327,7 @@ class ServioPopup
         }
         else
         {
-            'ERRoR custom! WRONG Form Object or Type!'
+            console.log('ERRoR custom! WRONG Form Object or Type!');
         }
 
         return fields
@@ -344,7 +361,7 @@ class ServioPopup
                 .then(
                     (reserveAjaxObj) =>
                     {
-                        console.log('SUCC Reserve obj',reserveAjaxObj);
+                        console.log('1 SUCC Reserve obj',reserveAjaxObj);
 
                         if(reserveAjaxObj.data.errors.length > 0)
                         {
@@ -490,85 +507,92 @@ class ServioPopup
                        </select>
                     </div>
                 </div>
-                                
                 
-               <div class="form-row">
+                <div class="form-row">
                    <div class="form-group col-sm">
                         <label for="lpAuthCode">Loyality Programm Code</label>
                         <input id="lpAuthCode" name="lpAuthCode" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">
                    </div>
-               </div>
+                </div>
                 
-               <div class="form-group form-check">
+                <div class="form-group form-check">
                     <input type="checkbox" class="form-check-input" id="extraBed" name="extraBed" value="">
                     <label class="form-check-label" for="extraBed">Need Extra Bed</label>
-               </div>
+                </div>
                 
-               <div class="form-group form-check">
+                <div class="form-group form-check">
                     <input type="checkbox" class="form-check-input" id="transport" name="transport" value="">
                     <label class="form-check-label" for="transport">Need Transport</label>
-               </div>
+                </div>
                 
-               <div class="form-group form-check">
+                <div class="form-group form-check">
                     <input type="checkbox" class="form-check-input" id="touristTax" name="touristTax" value="">
                     <label class="form-check-label" for="touristTax">Tourist Tax</label>
-               </div>
+                </div>
                 
-               
-               <input type="hidden" name="companyId" id="companyId" value="">
-               <input type="hidden" name="companyName" id="companyName" value="">
-               <input type="hidden" name="companyCodeId" id="companyCodeId" value="">
-               <input type="hidden" name="roomCategory" id="roomCategory" value="">
                 
-               <div class="ui-btn-container ui-btn-container-center text-right hidden-input">
+                <input type="hidden" name="companyId" id="companyId" value="">
+                <input type="hidden" name="companyName" id="companyName" value="">
+                <input type="hidden" name="companyCodeId" id="companyCodeId" value="">
+                <input type="hidden" name="roomCategory" id="roomCategory" value="">
+                
+                <div class="ui-btn-container ui-btn-container-center text-right hidden-input">
                   <button type="button" id="servio_step1" class="mt-2 ui-btn ui-btn-primary-dark ui-btn-right ui-btn-icon-business">
                       Next Step
                   </button>
-               </div>
+                </div>
                       
-               <div class="form-row servio-step-1-elem hidden-input">      
+                <div class="form-row servio-step-1-elem hidden-input">      
                    <div class="form-group col-sm">
                        <label for="contractCondition">Contract Condition</label>
                        <select id="contractCondition" name="contractCondition" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">
                        </select>
                    </div>
-               </div>
+                </div>
                 
-               <div class="form-row servio-step-1-elem hidden-input">
+                <div class="form-row servio-step-1-elem hidden-input">
                    <div class="form-group col-sm">
                       <label for="paidType">Paid Type</label>
                       <select id="paidType" name="paidType" class="form-control form-control-sm tm-popup-task-form-textbox bx-focus">
                       </select>
                    </div>
-               </div>
+                </div>
                 
-               <div class="ui-btn-container ui-btn-container-center text-right hidden-input">
+                <div class="ui-btn-container ui-btn-container-center text-right hidden-input">
                   <button type="button" id="servio_search" class="mt-2 ui-btn ui-btn-primary-dark ui-btn-right ui-btn-icon-search">
                       Search
                   </button>
-               </div>
-                                
-               <div class="form-row reserve-hidden hidden-input">
-                   <div class="form-group col-sm">
-                       <label for="address">Address</label>
-                       <textarea class="form-control" id="address" name="address" rows="2"></textarea>
-                   </div>
-               </div>
+                </div>
                
-                <div class="form-row reserve-hidden hidden-input">
-                   <div class="form-group col-sm">
-                       <label for="comment">Comment</label>
-                       <textarea class="form-control" id="comment" name="comment" rows="3"></textarea>
-                   </div>
-               </div>
+               
+               ${  (self.deal.id ==  0)
+                ? ``
+                :
+                `
+                        <div class="form-row reserve-hidden hidden-input">
+                           <div class="form-group col-sm">
+                               <label for="address">Address</label>
+                               <textarea class="form-control" id="address" name="address" rows="2"></textarea>
+                           </div>
+                        </div>
+                        
+                        <div class="form-row reserve-hidden hidden-input">
+                           <div class="form-group col-sm">
+                               <label for="comment">Comment</label>
+                               <textarea class="form-control" id="comment" name="comment" rows="3"></textarea>
+                           </div>
+                        </div>
+                    `
+                }                 
+              
                   
-               <div id="servio_price_info" class="text-center">
+                <div id="servio_price_info" class="text-center">
                    
-               </div>
+                </div>
                   
-             <!--  <button type="button" id="add_servio_reserve" class="mt-2 ui-btn ui-btn-danger-dark ui-btn-icon-cloud">
-                  Reserve!
-               </button>-->
+                <!--  <button type="button" id="add_servio_reserve" class="mt-2 ui-btn ui-btn-danger-dark ui-btn-icon-cloud">
+                    Reserve!
+                </button>-->
             </form>`
 
         popupObj = self.makePopupV2('servio-hotel-reservation', html, 'Hotel Reservation')
@@ -1023,7 +1047,7 @@ class ServioPopup
                 }
             }
 
-            console.log('validate Form Data',formData);
+            // console.log('validate Form Data',formData);
 
             //валидация и вывод ошибок
 
@@ -1348,213 +1372,6 @@ class ServioPopup
 
     }
 
-    loadServioPopupWithReserervation()
-    {
-        let self= this,
-            servioBtn = document.getElementById('servio'),
-            popupObj = {},
-            html = `<div id="servio_reserve_view"></div>`,
-            popupBody,
-            servisesTable = '',
-            servisesTableInner = '',
-            reserveDataHtml = '',
-            cancelBtn, confirmBtn, billBtn,
-            k = 1
-
-
-        popupObj = self.makePopupV2('servio-hotel-reservation-view',html,'Hotel Reservation View',)
-
-        //получаем данные резерва
-        this.makeAjaxRequest(this.url.ajax, {'ACTION': 'GET_RESERVE_BY_ID', 'RESERVE_ID': this.deal.reserveId},
-            function (response) {
-
-                console.log('Load Reserve',response);
-                popupBody = document.getElementById('servio_reserve_view')
-
-                // if(popupBody !== null)
-                // {}
-
-                if(response.error.length > 0)
-                {
-                    reserveDataHtml =
-                        `<div class="ui-alert ui-alert-danger custom-error">
-                            <span class="ui-alert-message"><strong>Error! </strong>${response.error}</span>
-                        </div>`
-                }
-                else
-                {
-                    if(response.result.ResultServises.length > 0)
-                    {
-
-                        //Разбор сервисов в th, td
-                        let thService = '',
-                            tdServicePrice = ''
-
-                        for(let thServ of response.result.ThServises)
-                        {
-                            thService += `<th>${thServ.ServiceName}, ${response.result.ValuteShort}</th>`
-                        }
-
-                        for(let resultPrices of response.result.ResultServises){
-
-                            tdServicePrice = ''
-
-                            for(let servPrice of resultPrices.ServicePrices)
-                            {
-                                tdServicePrice += `<td>${servPrice}</td>`
-                            }
-
-                            servisesTableInner +=
-                                `<tr>
-                                    <td>${k}</td>
-                                    <td>${resultPrices.Date}</td>
-                                    ${tdServicePrice}
-                                    <td>${resultPrices.Price}</td>
-                                    <td class="ui-alert ${(resultPrices.IsPaid === true) ? 'ui-alert-success' : 'ui-alert-danger'}">${resultPrices.IsPaid}</td>
-
-                                    ${
-                                    (resultPrices.IsPaid !== true)
-                                        ?`<td><button class="ui-btn ui-btn-xs ui-btn-primary pay-the-day data-account-id="${resultPrices.CustomerAccount}">To Pay</button></td>`
-                                        : `<td></td>`
-                                    }
-                                </tr>`
-                            k++
-                        }
-
-                        servisesTable =
-                            `<div class="row">
-                                <table class="table table-sm table-responsive text-center">
-                                    <thead>
-                                        <th>#</th>
-                                        <th>Date</th>
-                                        ${thService}
-                                        <th>Total Day Price, ${response.result.ValuteShort}</th>
-                                        <th>Is Paid</th>
-                                        <th></th>
-                                    </thead>
-                                    <tbody>
-                                        ${servisesTableInner}
-                                    </tbody>
-                                </table>
-                            </div>`
-                    }
-
-                    reserveDataHtml =
-                        `<div class="row">
-                            <div class="col-sm-6 ui-alert ui-alert-default">Serviceprovider Name</div>
-                                <div class="col-sm-6 ui-alert ui-alert-primary">
-                                    <span class="ui-alert-message"><strong>${response.result.ServiceProviderName}</strong></span>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-6 ui-alert ui-alert-default">Reserve Status</div>
-                                <div class="col-sm-6 ui-alert ui-alert-danger">
-                                    <span class="ui-alert-message"><strong>${response.result.StatusName}</strong></span>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-6 ui-alert ui-alert-default">Account Name</div>
-                                <div class="col-sm-6 ui-alert ui-alert-primary">${response.result.AccountName}</div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-6 ui-alert ui-alert-default">Email</div>
-                                <div class="col-sm-6 ui-alert ui-alert-primary">${response.result.Email}</div>
-                            </div>
-                              <div class="row">
-                                <div class="col-sm-6 ui-alert ui-alert-default">Date From</div>
-                                <div class="col-sm-6 ui-alert ui-alert-primary">${response.result.DateArrival}</div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-6 ui-alert ui-alert-default">Date To</div>
-                                <div class="col-sm-6 ui-alert ui-alert-primary">${response.result.DateDeparture}</div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-6 ui-alert ui-alert-default">Adults</div>
-                                <div class="col-sm-6 ui-alert ui-alert-primary">${response.result.Adults}</div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-6 ui-alert ui-alert-default">Childs</div>
-                                <div class="col-sm-6 ui-alert ui-alert-primary">${response.result.Childs}</div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-6 ui-alert ui-alert-default">Room Type</div>
-                                <div class="col-sm-6 ui-alert ui-alert-primary">${response.result.RoomType}</div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-6 ui-alert ui-alert-default">Paid Type</div>
-                                <div class="col-sm-6 ui-alert ui-alert-primary">${response.result.PaidTypeText}</div>
-                            </div>
-                            
-                            ${servisesTable}
-                                    
-                                    
-                            ${
-                            (Number(self.deal.reserveId) > 0)
-                                ? '<button class="ui-btn ui-btn-danger" id="reserveCancelBtn">Отменить</button>'
-                                : ''
-                            }
-                                    
-                            ${
-                            (
-                                Number(self.deal.reserveId) > 0 &&
-                                (self.deal.reserveConfirmFileId > 0) != true &&
-                                self.deal.reserveId != null
-                            )
-                                ? '<button class="ui-btn ui-btn-success" id="reserveAcceptBtn">Подтвердить</button>'
-                                : ''
-                            }
-                                    
-                            <button class="ui-btn ui-btn-secondary" id="getReserveBill">Счет</button>`
-                }
-
-
-                // console.log('OOOOOO',self.deal);
-                popupBody.innerHTML = reserveDataHtml
-
-
-                //НАЖАТИЕ НА КНОПКИ
-                cancelBtn = document.getElementById('reserveCancelBtn')
-                confirmBtn = document.getElementById('reserveAcceptBtn')
-                billBtn = document.getElementById('getReserveBill')
-
-                // console.log(cancelBtn,confirmBtn);
-
-                if(cancelBtn !== null)
-                {
-                    cancelBtn.onclick = () =>
-                    {
-                        // console.log('cancelBtn');
-
-                        self.cancelReserve(popupObj,cancelBtn)
-                    }
-                }
-
-                if(confirmBtn !== null)
-                {
-                    confirmBtn.onclick = () =>
-                    {
-                        // console.log('confirmBtn');
-                        self.confirmReserve(confirmBtn)
-                        // self.testGetDocument(28199)
-                    }
-                }
-
-                if(billBtn !== null)
-                {
-                    billBtn.onclick = () =>
-                    {
-                        console.log('billBtn');
-                        self.getBillForReserve(billBtn)
-                    }
-                }
-
-            }
-        )
-
-        //show popup
-        popupObj.show()
-    }
-
     disableElement(elemObj)
     {
         if(!elemObj.classList.contains('servio-custom-disable'))
@@ -1580,30 +1397,6 @@ class ServioPopup
             btnObj.classList.remove('servio-tmp-disable')
         }
     }
-
-    //отображение/скрытие 2х полей - old
-    // toggleReserveFields(flag)
-    // {
-    //     let form = document.getElementById('servio_popup'),
-    //         hiddenBlocks = document.querySelectorAll('.reserve-hidden')
-    //
-    //     if(hiddenBlocks.length > 0 )
-    //     {
-    //         hiddenBlocks.forEach(elem => {
-    //             // console.log(222,elem);
-    //             if(flag === true /*&& elem.classList.contains('hidden-input')*/)
-    //             {
-    //                 elem.classList.remove('hidden-input')
-    //             }
-    //             else
-    //             {
-    //                 elem.classList.add('hidden-input')
-    //             }
-    //         })
-    //     }
-    //     // console.log('UUUU',hiddenBlocks);
-    //
-    // }
 
     toggleShowDOM(domObj,flag)
     {
@@ -1712,48 +1505,6 @@ class ServioPopup
             )
     }
 
-    //old
-    // cancelReserve(popupObj,cancelBtn)
-    // {
-    //     let self = this,
-    //         viewPopup = document.getElementById('servio_reserve_view'),
-    //         firstRow = viewPopup.querySelector('.row')
-    //
-    //     //удаление ошибок и сообщений
-    //     self.deleteErrorsinForm(viewPopup);
-    //
-    //     self.toggleClockLoaderToBtn(cancelBtn)
-    //
-    //     this.makeAjaxRequest(this.url.ajax, {'ACTION': 'ABORT_RESERVE', 'FIELDS': self.deal},
-    //         function (response) {
-    //             console.log('Abort Ajax:',response)
-    //
-    //             if(response.error)
-    //             {
-    //                 self.addErrorsBeforeFormNew(firstRow,response.error,'error')
-    //                 self.toggleClockLoaderToBtn(cancelBtn)
-    //
-    //             }
-    //             else
-    //             {
-    //                 self.addErrorsBeforeFormNew(firstRow,'Резерв отменен!','success')
-    //
-    //                 self.toggleClockLoaderToBtn(cancelBtn)
-    //
-    //                 setTimeout(() => {
-    //                     popupObj.destroy()
-    //
-    //                     self.deal.reserveId = response.result
-    //                     location.reload()
-    //                 }, 2000)
-    //             }
-    //
-    //         }
-    //     )
-    //
-    //     console.log('Test Abort Reserve');
-    // }
-
 
     confirmReserveV2(btnObj)
     {
@@ -1808,35 +1559,6 @@ class ServioPopup
 
     }
 
-    //old
-    // confirmReserve(btnObj)
-    // {
-    //     let self = this,
-    //         viewPopup = document.getElementById('servio_reserve_view'),
-    //         firstRow = viewPopup.querySelector('.row')
-    //
-    //     this.deleteErrorsinForm(viewPopup)
-    //
-    //     this.toggleClockLoaderToBtn(btnObj)
-    //
-    //     this.makeAjaxRequest(this.url.ajax, {'ACTION': 'CONFIRM_RESERVE', 'FIELDS': self.deal},
-    //         function (response) {
-    //             console.log('CONFIRM RESERVE', response)
-    //
-    //             if(response.error)
-    //             {
-    //                 self.addErrorsBeforeFormNew(firstRow,response.error,'error')
-    //             }
-    //             else
-    //             {
-    //                 self.addErrorsBeforeFormNew(firstRow,'Файл потверждения сохранен в сделке! Обновите страницу!','success')
-    //             }
-    //
-    //             self.disableElement(btnObj)
-    //             self.toggleClockLoaderToBtn(btnObj)
-    //         }
-    //     )
-    // }
 
     showBillBtn(clientServises)
     {
@@ -1881,9 +1603,6 @@ class ServioPopup
                 self.getBillForReserveV2(billBtn,selectedDates,clientServises)
             }
         }
-
-
-        // console.log('get for work!',document.forms['servio-dates-bill'])
     }
 
     // getBillForReserveV2(btnObj,servises)
@@ -1897,18 +1616,35 @@ class ServioPopup
 
         this.toggleClockLoaderToBtn(btnObj)
 
-        BX.ajax.runAction('ourcompany:servio.nmspc.handler.createBillReserve', {
+        BX.ajax.runAction('ourcompany:servio.nmspc.handler.createBill', {
             data: {
-                FIELDS: this.deal,
                 SERVICES: clientServises,
                 DATES: selectedDates,
-                FIRST_PAY: '2799.00'
             }
         })
             .then(
                 (createBillRequestObj) =>
                 {
                     console.log('Success Create Bill reserve result',createBillRequestObj);
+
+
+                    if(createBillRequestObj.data.result.length == 0)
+                    {
+                        for(let error of createBillRequestObj.data.errors)
+                        {
+                            self.addErrorsBeforeFormNew(firstRow,error,'error')
+                        }
+
+                        // self.toggleClockLoaderToBtn(btnObj)
+                    }
+                    else
+                    {
+                        self.addErrorsBeforeFormNew(firstRow,'Счет создан и сохранен в сделке. Обновите страницу!','success')
+                        // self.toggleClockLoaderToBtn(btnObj)
+                        // self.disableElement(btnObj)
+                    }
+
+
 
                     self.toggleClockLoaderToBtn(btnObj)
                 }
@@ -1918,38 +1654,15 @@ class ServioPopup
                 {
                     console.log('Error Create Bill reserve result',createBillRequestObj);
 
+                    for(let ccErr of createBillRequestObj.errors)
+                    {
+                        self.addErrorsBeforeFormNew(firstRow, ccErr.message, 'error')
+                    }
+
                     self.toggleClockLoaderToBtn(btnObj)
                 }
             )
-    }
 
-    getBillForReserve(btnObj)
-    {
-        let self = this,
-            viewPopup = document.getElementById('servio_reserve_view'),
-            firstRow = viewPopup.querySelector('.row')
-
-        this.deleteErrorsinForm(viewPopup)
-
-        this.toggleClockLoaderToBtn(btnObj)
-
-        // ajax to get bill
-        this.makeAjaxRequest(this.url.ajax, {'ACTION': 'GET_BILL_FOR_RESERVE', 'FIELDS': self.deal},
-            function (response) {
-                console.log('RESERVE BILL DATA', response)
-
-                if(response.error)
-                {
-                    self.addErrorsBeforeFormNew(firstRow,response.error,'error')
-                }
-                else
-                {
-                    self.addErrorsBeforeFormNew(firstRow,'Файл о счетом ПОКА ЕЩЕ НЕ сохранен в сделке! Обновите страницу!','success')
-                }
-
-                self.toggleClockLoaderToBtn(btnObj)
-            }
-        )
     }
 
 

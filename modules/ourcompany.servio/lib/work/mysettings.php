@@ -31,6 +31,9 @@ class Mysettings
         'SERVIO_COMPANY_CODE',
         'SERVIO_RESERVE_CONFIRM_FILE_FORMAT',
         'SERVIO_BILL_FILE_FORMAT',
+
+
+
         'SERVIO_FIELD_RESERVE_ID',
         'SERVIO_FIELD_COMPANY_ID',
         'SERVIO_FIELD_COMPANY_ADDRESS',
@@ -41,6 +44,8 @@ class Mysettings
         'SERVIO_FIELD_RESERVE_CONFIRM_FILE',
         'SERVIO_FIELD_BILL_FILE_ID',
         'SERVIO_FIELD_BILL_FILE',
+
+//                'SERVIO_EXCHANGE_LANG_ID',
     ];
 
     //массив полей для /install/index.php
@@ -364,6 +369,18 @@ class Mysettings
                 300 => Loc::getMessage("OUR_COMPANY_MYSETTINGS_PAY_TYPE_CASHLESS")
             ];
         }
+    }
+
+    public function getBitrixLanguagesList()
+    {
+        $result = [];
+        $languagesObj = \Bitrix\Main\Localization\LanguageTable::getList(['select' => ['NAME','LID','CULTURE_ID'], 'filter' => ['ACTIVE' => 'Y']]);
+        while($ob =  $languagesObj->fetch())
+        {
+//            $result[$ob['LID']] = ['CULTURE_ID' => $ob['CULTURE_ID'],'NAME' => $ob['NAME']];
+            $result[$ob['LID']] = $ob['NAME'];
+        }
+        return $result;
     }
 
 }

@@ -382,6 +382,10 @@ class Servio
                     'eMail' => $email,
                 ];
 
+                $result['test_reserve_data'] = $data;
+
+//                $this->logData(['Company test',$data]);
+
 //                return $data;
 //                $reserveRes = $this->postRequest('AddRoomReservation', $data);
                 $reserveRes = (new \Ourcompany\Servio\Work\Request)->postRequest('AddRoomReservation', $data, $settings);
@@ -395,6 +399,8 @@ class Servio
                     //запись Id резерва в поле сделки
                     //закрытие формы и открытие окна с данными резерва
                     //очистка формы и отображение резерва с кнопками продолжения или отмены
+
+//                    $this->logData(['reserve add result:',$reserveRes]);
 
                     $result['result'] = $reserveRes['Account'];
                     $dealFields[$settings['success']['SERVIO_FIELD_RESERVE_ID']] = $reserveRes['Account'];
@@ -489,6 +495,7 @@ class Servio
         $result = [
             'result' => [],
             'errors' => [],
+            'language' => LANGUAGE_ID,
         ];
 
 
@@ -508,7 +515,7 @@ class Servio
 
             $servicesResultArray = [];
             $servisesArr = []; //для формирования массива услуг в th
-            $servisesByDate = []; //разбивка сервисов по дням
+//            $servisesByDate = []; //разбивка сервисов по дням
 
             if($reserveData['Services'])
             {
@@ -534,7 +541,7 @@ class Servio
                         $servicesResultArray[$rDate]['ServiceProviderID'] = $oneDate['ServiceProviderID'];
                         $servicesResultArray[$rDate]['ServiceProviderName'] = $oneDate['ServiceProviderName'];
                         $servicesResultArray[$rDate]['ServicePrices'][] = $oneDate['Price'];
-                        $servisesByDate[$rDate][] = $service;
+//                        $servisesByDate[$rDate][] = $service;
                     }
                 }
             }
@@ -543,7 +550,7 @@ class Servio
             $reserveData['ThServises'] = $servisesArr;
             //Formated Servises Prices By Dates
             $reserveData['ResultServises'] = array_values($servicesResultArray);
-            $reserveData['ServicesByDates'] = $servisesByDate;
+//            $reserveData['ServicesByDates'] = $servisesByDate;
 
             $result['result'] = $reserveData;
         }
@@ -715,13 +722,15 @@ class Servio
         return $result;
     }
 
-    public function createBill($fields,$servises,$dates,$firstPayment,$settings)
+    public function createBill($servises,$dates,$settings)
     {
         $result = [
             'result' => [],
             'errors' => [],
         ];
 
+        $account = '';
+        $totalSum = 0;
         $realServises = [];
         foreach ($servises as $servise)
         {
@@ -736,6 +745,9 @@ class Servio
                         'Price' => $priceDate['Price'],
                         'CustomerAccount' => $priceDate['CustomerAccount'],
                     ];
+
+                    $account = $priceDate['CustomerAccount'];
+                    $totalSum += $priceDate['Price'];
                 }
             }
 
@@ -749,28 +761,64 @@ class Servio
             ];
         }
 
+
+        //потом удалить
         $data = [
-            'Account' => $fields['reserveId'],
+            'Account' => $account,
             'Services' => $realServises,
-//            'TTT_SERVICES' => $servises,
-            'Amount' => $firstPayment,
+//            'Services' => $servises,
+//            'TTT_PRICE' => $totalSum,
+            'Amount' => round($totalSum,2),
 
         ];
 
-//        return $data;
+//        $this->logData($data);
 
+        //попытка получить счет - пока жопа!
         $billCreateResult = (new \Ourcompany\Servio\Work\Request)->postRequest('SetReservationBill',
             [
-                'Account' => $fields['reserveId'],
-                'Services' => $servises,
-                'Amount' => $firstPayment
+                'Account' => $account,
+                'Services' => $realServises,
+                'Amount' => round($totalSum,2),
             ]
             , $settings);
 
-//        return [$fields,$servises,$firstPayment];
+        $result['test_create_bill'] = $billCreateResult;
+
+        if($billCreateResult['Result'] !== 0)
+        {
+            $result['errors'][] = $billCreateResult['Error'];
+        }
+        else
+        {
+            sleep(3);
+
+            $billDocumentResult = (new \Ourcompany\Servio\Work\Request)->postRequest('GetAccountBill',
+                [
+                    'Account' => $billCreateResult['Account'],
+                    'IsoLanguage'  => 'ru',
+                    'Format' => $settings['success']['SERVIO_RESERVE_CONFIRM_FILE_FORMAT'],
+                ]
+                , $settings);
+
+            $result['test_get_bill_doc'] = $billDocumentResult;
+            if($billDocumentResult['Result'] !== 0)
+            {
+                $result['errors'][] = $billDocumentResult['Error'];
+            }
+            else
+            {
+                $result['test_get_bill_doc'] = $billDocumentResult;
+            }
+        }
+
+        return $result;
+    }
 
 
-        return $billCreateResult;
+    public function logData($data){
+        $file = $_SERVER["DOCUMENT_ROOT"].'/test.log';
+        file_put_contents($file, print_r([date('d.m.Y H:i:s'),$data],true), FILE_APPEND | LOCK_EX);
     }
 
 }

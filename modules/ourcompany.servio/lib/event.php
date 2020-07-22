@@ -383,7 +383,13 @@ class Event
         //если что-то не заполнено в настройках, не подключаем файлы с кнопками и скриптами
 
 
-        if(preg_match('#^/crm/deal/details/[0-9]+/#',$APPLICATION->GetCurPage()))
+        if(
+            preg_match('#^/crm/deal/details/[0-9]+/#',$APPLICATION->GetCurPage())
+            ||
+            preg_match('#^/crm/deal/list/#',$APPLICATION->GetCurPage())
+            ||
+            preg_match('#^/crm/deal/category/[0-9]+/#',$APPLICATION->GetCurPage())
+        )
         {
 
             $dir = implode('_',explode('.',self::MODULE_ID));
@@ -401,7 +407,7 @@ class Event
 
             if(!self::$settingErrors)
             {
-                $html = '<button class="ui-btn ui-btn-success ui-btn-icon-task ui-btn-round mar-rl-1" id="servio">Servio!</button>';
+                $html = '<button class="ui-btn ui-btn-success ui-btn-icon-task ui-btn-round mar-rl-1 ui-btn-clock servio-tmp-disable" id="servio">Servio!</button>';
                 $APPLICATION->AddViewContent('inside_pagetitle', $html,50000);
             }
             else
