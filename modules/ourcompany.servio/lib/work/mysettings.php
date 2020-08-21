@@ -31,9 +31,7 @@ class Mysettings
         'SERVIO_COMPANY_CODE',
         'SERVIO_RESERVE_CONFIRM_FILE_FORMAT',
         'SERVIO_BILL_FILE_FORMAT',
-
-
-
+        'SERVIO_EXCHANGE_LANG_ID', //язык в сервио, если en - выдает ошибку соединения
         'SERVIO_FIELD_RESERVE_ID',
         'SERVIO_FIELD_COMPANY_ID',
         'SERVIO_FIELD_COMPANY_ADDRESS',
@@ -44,8 +42,6 @@ class Mysettings
         'SERVIO_FIELD_RESERVE_CONFIRM_FILE',
         'SERVIO_FIELD_BILL_FILE_ID',
         'SERVIO_FIELD_BILL_FILE',
-
-//                'SERVIO_EXCHANGE_LANG_ID',
     ];
 
     //массив полей для /install/index.php

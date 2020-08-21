@@ -7,364 +7,8 @@ use \Bitrix\Main\Page\Asset,
 
 class Event
 {
-    const MODULE_ID = 'ourcompany.servio';
-
-    const SETTINGS_OPTIONS = [
-        'SERVIO_URI_LINK',
-        'SERVIO_REST_KEY',
-        'SERVIO_COMPANY_CODE',
-        'SERVIO_RESERVE_CONFIRM_FILE_FORMAT',
-        'SERVIO_BILL_FILE_FORMAT',
-        'SERVIO_FIELD_RESERVE_ID',
-        'SERVIO_FIELD_COMPANY_ID',
-        'SERVIO_FIELD_COMPANY_ADDRESS',
-        'SERVIO_FIELD_CONTACT_ID',
-        'SERVIO_FIELD_CONTACT_ADDRESS',
-        'SERVIO_FIELD_COMPANY_ADDRESS',
-        'SERVIO_FIELD_RESERVE_CONFIRM_FILE_ID',
-        'SERVIO_FIELD_RESERVE_CONFIRM_FILE',
-        'SERVIO_FIELD_BILL_FILE_ID',
-        'SERVIO_FIELD_BILL_FILE',
-        ];
-
-    private $techFields = [
-        'SERVIO_FIELD_RESERVE_ID' =>
-            [
-                'ENTITY_ID' => 'CRM_DEAL',
-                'FIELD_NAME' => 'UF_CRM_HMS_RESERVE_ID',
-                'USER_TYPE_ID' => 'double',
-                'XML_ID' => '',
-                'SORT' => 100,
-                'MULTIPLE' => 'N',  //множ
-                'MANDATORY' => 'N', //обязательное
-                'SHOW_FILTER' => 'I',   //показывать в фильтре
-                'SHOW_IN_LIST' => '1', //показывать в списке
-                'EDIT_IN_LIST' => '',  //редактировать в списке
-                'IS_SEARCHABLE' => 'Y', //участвует в поиске
-                'EDIT_FORM_LABEL' => [  //подпись в карточке
-                    'ru' => 'ID резерва в Servio',
-                    'en' => 'Reserve ID in Servio',
-                ],
-                'LIST_COLUMN_LABEL' => [ //название в списке
-                    'ru' => 'ID резерва в Servio',
-                    'en' => 'Reserve ID in Servio',
-                ],
-                'LIST_FILTER_LABEL' => [ //название в списке фильтра
-                    'ru' => 'ID резерва в Servio',
-                    'en' => 'Reserve ID in Servio',
-                ],
-                'ERROR_MESSAGE' => [ //название в списке фильтра
-                    'ru' => 'Ошибка в поле "ID резерва в Servio"',
-                    'en' => 'Error in field "Reserve ID in Servio"',
-                ],
-            ],
-        'SERVIO_FIELD_CONTACT_ID' =>
-            [
-                'ENTITY_ID' => 'CRM_CONTACT',
-                'FIELD_NAME' => 'UF_CRM_HMS_CONTACT_ID',
-                'USER_TYPE_ID' => 'double',
-                'XML_ID' => '',
-                'SORT' => 100,
-                'MULTIPLE' => 'N',  //множ
-                'MANDATORY' => 'N', //обязательное
-                'SHOW_FILTER' => 'I',   //показывать в фильтре
-                'SHOW_IN_LIST' => '1', //показывать в списке
-                'EDIT_IN_LIST' => '',  //редактировать в списке
-                'IS_SEARCHABLE' => 'Y', //участвует в поиске
-                'EDIT_FORM_LABEL' => [  //подпись в карточке
-                    'ru' => 'ID контакта в Servio',
-                    'en' => 'Contact ID in Servio',
-                ],
-                'LIST_COLUMN_LABEL' => [ //название в списке
-                    'ru' => 'ID контакта в Servio',
-                    'en' => 'Contact ID in Servio',
-                ],
-                'LIST_FILTER_LABEL' => [ //название в списке фильтра
-                    'ru' => 'ID контакта в Servio',
-                    'en' => 'Contact ID in Servio',
-                ],
-                'ERROR_MESSAGE' => [ //название в списке фильтра
-                    'ru' => 'Ошибка в поле "ID контакта в Servio"',
-                    'en' => 'Error in field "Contact ID in Servio"',
-                ],
-            ],
-        'SERVIO_FIELD_CONTACT_ADDRESS' =>
-            [
-                'ENTITY_ID' => 'CRM_CONTACT',
-                'FIELD_NAME' => 'UF_CRM_HMS_CONTACT_ADDRESS',
-                'USER_TYPE_ID' => 'string',
-                'XML_ID' => '',
-                'SORT' => 100,
-                'MULTIPLE' => 'N',  //множ
-                'MANDATORY' => 'N', //обязательное
-                'SHOW_FILTER' => 'I',   //показывать в фильтре
-                'SHOW_IN_LIST' => '1', //показывать в списке
-                'EDIT_IN_LIST' => '',  //редактировать в списке
-                'IS_SEARCHABLE' => 'Y', //участвует в поиске
-                'EDIT_FORM_LABEL' => [  //подпись в карточке
-                    'ru' => 'Адресс контакта в Servio',
-                    'en' => 'Contact Address in Servio',
-                ],
-                'LIST_COLUMN_LABEL' => [ //название в списке
-                    'ru' => 'Адресс контакта в Servio',
-                    'en' => 'Contact Address in Servio',
-                ],
-                'LIST_FILTER_LABEL' => [ //название в списке фильтра
-                    'ru' => 'Адресс контакта в Servio',
-                    'en' => 'Contact Address in Servio',
-                ],
-                'ERROR_MESSAGE' => [ //название в списке фильтра
-                    'ru' => 'Ошибка в поле "Адресс контакта в Servio"',
-                    'en' => 'Error in field "Contact Address in Servio"',
-                ],
-                'SETTINGS' => [
-                    'ROWS' => '3',
-                    /* Минимальная длина строки (0 - не проверять) */
-//                    'MIN_LENGTH'    => '0',
-                    /* Максимальная длина строки (0 - не проверять) */
-//                    'MAX_LENGTH'    => '0',
-                    /* Регулярное выражение для проверки */
-//                    'REGEXP'        => '',
-                ],
-            ],
-
-        'SERVIO_FIELD_COMPANY_ID' =>
-            [
-                'ENTITY_ID' => 'CRM_COMPANY',
-                'FIELD_NAME' => 'UF_CRM_HMS_COMPANY_ID',
-                'USER_TYPE_ID' => 'double',
-                'XML_ID' => '',
-                'SORT' => 100,
-                'MULTIPLE' => 'N',  //множ
-                'MANDATORY' => 'N', //обязательное
-                'SHOW_FILTER' => 'I',   //показывать в фильтре
-                'SHOW_IN_LIST' => '1', //показывать в списке
-                'EDIT_IN_LIST' => '',  //редактировать в списке
-                'IS_SEARCHABLE' => 'Y', //участвует в поиске
-                'EDIT_FORM_LABEL' => [  //подпись в карточке
-                    'ru' => 'ID компании в Servio',
-                    'en' => 'Company ID in Servio',
-                ],
-                'LIST_COLUMN_LABEL' => [ //название в списке
-                    'ru' => 'ID компании в Servio',
-                    'en' => 'Company ID in Servio',
-                ],
-                'LIST_FILTER_LABEL' => [ //название в списке фильтра
-                    'ru' => 'ID компании в Servio',
-                    'en' => 'Company ID in Servio',
-                ],
-                'ERROR_MESSAGE' => [ //название в списке фильтра
-                    'ru' => 'Ошибка в поле "ID компании в Servio"',
-                    'en' => 'Error in field "Company ID in Servio"',
-                ],
-            ],
-        'SERVIO_FIELD_COMPANY_ADDRESS' =>
-            [
-                'ENTITY_ID' => 'CRM_COMPANY',
-                'FIELD_NAME' => 'UF_CRM_HMS_COMPANY_ADDRESS',
-                'USER_TYPE_ID' => 'string',
-                'XML_ID' => '',
-                'SORT' => 100,
-                'MULTIPLE' => 'N',  //множ
-                'MANDATORY' => 'N', //обязательное
-                'SHOW_FILTER' => 'I',   //показывать в фильтре
-                'SHOW_IN_LIST' => '1', //показывать в списке
-                'EDIT_IN_LIST' => '',  //редактировать в списке
-                'IS_SEARCHABLE' => 'Y', //участвует в поиске
-                'EDIT_FORM_LABEL' => [  //подпись в карточке
-                    'ru' => 'Адресс компании в Servio',
-                    'en' => 'Company Address in Servio',
-                ],
-                'LIST_COLUMN_LABEL' => [ //название в списке
-                    'ru' => 'Адресс компании в Servio',
-                    'en' => 'Company Address in Servio',
-                ],
-                'LIST_FILTER_LABEL' => [ //название в списке фильтра
-                    'ru' => 'Адресс компании в Servio',
-                    'en' => 'Company Address in Servio',
-                ],
-                'ERROR_MESSAGE' => [ //название в списке фильтра
-                    'ru' => 'Ошибка в поле "Адресс компании в Servio"',
-                    'en' => 'Error in field "Company Address in Servio"',
-                ],
-                'SETTINGS' => [
-                    'ROWS' => '3',
-                    /* Минимальная длина строки (0 - не проверять) */
-//                    'MIN_LENGTH'    => '0',
-                    /* Максимальная длина строки (0 - не проверять) */
-//                    'MAX_LENGTH'    => '0',
-                    /* Регулярное выражение для проверки */
-//                    'REGEXP'        => '',
-                ],
-            ],
-
-        'SERVIO_FIELD_RESERVE_CONFIRM_FILE_ID' =>
-            [
-                'ENTITY_ID' => 'CRM_DEAL',
-                'FIELD_NAME' => 'UF_CRM_HMS_RESERVE_CONFIRM_FILE_ID',
-                'USER_TYPE_ID' => 'double',
-                'XML_ID' => '',
-                'SORT' => 100,
-                'MULTIPLE' => 'N',  //множ
-                'MANDATORY' => 'N', //обязательное
-                'SHOW_FILTER' => 'I',   //показывать в фильтре
-                'SHOW_IN_LIST' => '1', //показывать в списке
-                'EDIT_IN_LIST' => '',  //редактировать в списке
-                'IS_SEARCHABLE' => 'Y', //участвует в поиске
-                'EDIT_FORM_LABEL' => [  //подпись в карточке
-                    'ru' => 'ID файла подтверждения резерва в Servio',
-                    'en' => 'Reserve Confirm File ID in Servio',
-                ],
-                'LIST_COLUMN_LABEL' => [ //название в списке
-                    'ru' => 'ID файла подтверждения резерва в Servio',
-                    'en' => 'Reserve Confirm File ID in Servio',
-                ],
-                'LIST_FILTER_LABEL' => [ //название в списке фильтра
-                    'ru' => 'ID файла подтверждения резерва в Servio',
-                    'en' => 'Reserve Confirm File ID in Servio',
-                ],
-                'ERROR_MESSAGE' => [ //название в списке фильтра
-                    'ru' => 'ID файла подтверждения резерва в Servio',
-                    'en' => 'Reserve Confirm File ID in Servio',
-                ],
-            ],
-
-        'SERVIO_FIELD_RESERVE_CONFIRM_FILE' =>
-            [
-                'ENTITY_ID' => 'CRM_DEAL',
-                'FIELD_NAME' => 'UF_CRM_HMS_RESERVE_CONFIRM_FILE',
-                'USER_TYPE_ID' => 'file',
-                'XML_ID' => '',
-                'SORT' => 100,
-                'MULTIPLE' => 'N',  //множ
-                'MANDATORY' => 'N', //обязательное
-                'SHOW_FILTER' => 'I',   //показывать в фильтре
-                'SHOW_IN_LIST' => '1', //показывать в списке
-                'EDIT_IN_LIST' => '',  //редактировать в списке
-                'IS_SEARCHABLE' => 'Y', //участвует в поиске
-                'EDIT_FORM_LABEL' => [  //подпись в карточке
-                    'ru' => 'Файл подтверждения резерва в Servio',
-                    'en' => 'Reserve Confirm File in Servio',
-                ],
-                'LIST_COLUMN_LABEL' => [ //название в списке
-                    'ru' => 'Файл подтверждения резерва в Servio',
-                    'en' => 'Reserve Confirm File in Servio',
-                ],
-                'LIST_FILTER_LABEL' => [ //название в списке фильтра
-                    'ru' => 'Файл подтверждения резерва в Servio',
-                    'en' => 'Reserve Confirm File in Servio',
-                ],
-                'ERROR_MESSAGE' => [ //название в списке фильтра
-                    'ru' => 'Файл подтверждения резерва в Servio',
-                    'en' => 'Reserve Confirm File in Servio',
-                ],
-            ],
-
-        'SERVIO_FIELD_BILL_FILE_ID' =>
-            [
-                'ENTITY_ID' => 'CRM_DEAL',
-                'FIELD_NAME' => 'UF_CRM_HMS_BILL_FILE_ID',
-                'USER_TYPE_ID' => 'double',
-                'XML_ID' => '',
-                'SORT' => 100,
-                'MULTIPLE' => 'Y',  //множ
-                'MANDATORY' => 'N', //обязательное
-                'SHOW_FILTER' => 'I',   //показывать в фильтре
-                'SHOW_IN_LIST' => '1', //показывать в списке
-                'EDIT_IN_LIST' => '',  //редактировать в списке
-                'IS_SEARCHABLE' => 'Y', //участвует в поиске
-                'EDIT_FORM_LABEL' => [  //подпись в карточке
-                    'ru' => 'ID файла счета в Servio',
-                    'en' => 'Bill File ID in Servio',
-                ],
-                'LIST_COLUMN_LABEL' => [ //название в списке
-                    'ru' => 'ID файла счета в Servio',
-                    'en' => 'Bill File ID in Servio',
-                ],
-                'LIST_FILTER_LABEL' => [ //название в списке фильтра
-                    'ru' => 'ID файла счета в Servio',
-                    'en' => 'Bill File ID in Servio',
-                ],
-                'ERROR_MESSAGE' => [ //название в списке фильтра
-                    'ru' => 'ID файла счета в Servio',
-                    'en' => 'Bill File ID in Servio',
-                ],
-            ],
-
-        'SERVIO_FIELD_BILL_FILE' =>
-            [
-                'ENTITY_ID' => 'CRM_DEAL',
-                'FIELD_NAME' => 'UF_CRM_HMS_BILL_FILE',
-                'USER_TYPE_ID' => 'file',
-                'XML_ID' => '',
-                'SORT' => 100,
-                'MULTIPLE' => 'Y',  //множ
-                'MANDATORY' => 'N', //обязательное
-                'SHOW_FILTER' => 'I',   //показывать в фильтре
-                'SHOW_IN_LIST' => '1', //показывать в списке
-                'EDIT_IN_LIST' => '',  //редактировать в списке
-                'IS_SEARCHABLE' => 'Y', //участвует в поиске
-                'EDIT_FORM_LABEL' => [  //подпись в карточке
-                    'ru' => 'Файл счета из Servio',
-                    'en' => 'Bill File from Servio',
-                ],
-                'LIST_COLUMN_LABEL' => [ //название в списке
-                    'ru' => 'Файл счета из Servio',
-                    'en' => 'Bill File from Servio',
-                ],
-                'LIST_FILTER_LABEL' => [ //название в списке фильтра
-                    'ru' => 'Файл счета из Servio',
-                    'en' => 'Bill File from Servio',
-                ],
-                'ERROR_MESSAGE' => [ //название в списке фильтра
-                    'ru' => 'Файл счета из Servio',
-                    'en' => 'Bill File from Servio',
-                ],
-            ],
-    ];
-
-    //
-    public static $settings = [
-//        'SERVIO_URI_LINK' => false,
-//        'SERVIO_REST_KEY' => false,
-//        'SERVIO_COMPANY_CODE' => false,
-//        'SERVIO_FIELD_RESERVE_ID' => false,
-//        'SERVIO_FIELD_COMPANY_ID' => false,
-//        'SERVIO_FIELD_CONTACT_ID' => false,
-//        'SERVIO_RESERVE_CONFIRM_FILE_FORMAT' => false,
-//        'SERVIO_BILL_FILE_FORMAT' => false,
-    ];
-    public static $settingErrors = [];
-
-
-//    public function __construct()
-//    {
-//        self::getSettings();
-//    }
-
-    public function getSettings()
-    {
-        foreach (self::SETTINGS_OPTIONS as $option)
-        {
-            $optionValue = \Bitrix\Main\Config\Option::get(self::MODULE_ID, $option);
-            if(trim($optionValue) != '')
-            {
-                self::$settings[$option] = trim($optionValue);
-
-//                self::logData([self::$settings[$option] => trim($optionValue)]);
-            }
-            else
-            {
-                self::$settingErrors[] = Loc::getMessage("OUR_COMPANY_SETTINGS_{$option}_ERROR");
-            }
-//            self::logData([$option => trim($optionValue)]);
-        }
-    }
-
-
     public function addButtonAndScripts()
     {
-        self::getSettings();
 
         //Подключение б24 библиотеки типа бутстрапа
         \Bitrix\Main\Ui\Extension::load('ui.buttons');
@@ -382,7 +26,6 @@ class Event
 
         //если что-то не заполнено в настройках, не подключаем файлы с кнопками и скриптами
 
-
         if(
             preg_match('#^/crm/deal/details/[0-9]+/#',$APPLICATION->GetCurPage())
             ||
@@ -392,7 +35,7 @@ class Event
         )
         {
 
-            $dir = implode('_',explode('.',self::MODULE_ID));
+            $dir = implode('_',explode('.',\Ourcompany\Servio\Work\Mysettings::MODULE_ID));
 
             \CJSCore::RegisterExt($dir, array(
                 "js" => "/bitrix/js/{$dir}/script.js",
@@ -400,36 +43,30 @@ class Event
             ));
             \CJSCore::init($dir);
 
-            //Штатная библиотека
-//            if(!\CJSCore::Init(["jquery2"]))
-//                \CJSCore::Init(["jquery2"]);
+            //настройки
+            $settingObj = new \Ourcompany\Servio\Work\Mysettings;
 
-
-            if(!self::$settingErrors)
+            if(!$settingObj->settings['errors'])
             {
-                $html = '<button class="ui-btn ui-btn-success ui-btn-icon-task ui-btn-round mar-rl-1 ui-btn-clock servio-tmp-disable" id="servio">Servio!</button>';
+                $html = '<button class="ui-btn ui-btn-success ui-btn-icon-task mar-rl-1 ui-btn-clock servio-tmp-disable" id="servio">Бронирование</button>';
                 $APPLICATION->AddViewContent('inside_pagetitle', $html,50000);
             }
             else
             {
                 $html = '<button class="ui-btn ui-btn-danger mar-rl-1 "
-                    title="'.implode("\n",array_values(self::$settingErrors)).'">Servio Error</button>';
+                    title="'.implode("\n",array_values($settingObj->settings['errors'])).'">Бронирование Error</button>';
                 $APPLICATION->AddViewContent('inside_pagetitle', $html,50000);
             }
-
-
         }
 
+//        self::logData($settingObj->settings);
 
-
-//        self::logData([self::$settings,self::$settingErrors]);
-
-        return [self::$settings,self::$settingErrors];
+        return [$settingObj->settings];
     }
 
     public function createFiedsAndOptions()
     {
-        foreach($this->techFields as $cOpt => $field)
+        foreach(\Ourcompany\Servio\Work\Mysettings::TECH_FIELDS as $cOpt => $field)
         {
             $obj = new \CUserTypeEntity;
             $createRes = $obj->add($field);
@@ -442,10 +79,9 @@ class Event
     public function deleteFieds()
     {
         $fieldNames = [];
-        foreach ($this->techFields as $cOpt => $val)
+        foreach (\Ourcompany\Servio\Work\Mysettings::TECH_FIELDS as $cOpt => $val)
         {
             $fieldNames[] = $val['FIELD_NAME'];
-//            delCoption($cOpt);
 
             if($fieldNames)
             {
@@ -464,7 +100,7 @@ class Event
     }
 
     private function setCoptionValue($name,$value){
-        return \Bitrix\Main\Config\Option::set(self::MODULE_ID,$name,$value);
+        return \Bitrix\Main\Config\Option::set(\Ourcompany\Servio\Work\Mysettings::MODULE_ID,$name,$value);
     }
 
     public function logData($data){

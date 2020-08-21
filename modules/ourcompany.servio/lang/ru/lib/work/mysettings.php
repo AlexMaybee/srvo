@@ -5,7 +5,10 @@ $MESS['OUR_COMPANY_MYSETTINGS_SERVIO_REST_KEY_ERROR'] = 'В настройках
 $MESS['OUR_COMPANY_MYSETTINGS_SERVIO_COMPANY_CODE_ERROR'] = 'В настройках модуля не указан код компании для запросов информации в Servio!';
 
 $MESS['OUR_COMPANY_MYSETTINGS_SERVIO_RESERVE_CONFIRM_FILE_FORMAT_ERROR'] = 'В настройках модуля не указан формат получения файлов подтверждения резерва из Servio!';
+
 $MESS['OUR_COMPANY_MYSETTINGS_SERVIO_BILL_FILE_FORMAT_ERROR'] = 'В настройках модуля не указан формат получения счетов из Servio!';
+
+//блок языка
 $MESS['OUR_COMPANY_MYSETTINGS_SERVIO_EXCHANGE_LANG_ID_ERROR'] = 'В настройках модуля не выбран язык работы с Servio!';
 
 $MESS['OUR_COMPANY_MYSETTINGS_SERVIO_FIELD_RESERVE_ID_ERROR'] = 'В настройках модуля не указано ID поля сделки для сохранения резерва из Servio!';

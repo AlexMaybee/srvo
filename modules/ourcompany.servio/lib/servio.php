@@ -366,8 +366,8 @@ class Servio
                     'DateArrival' => $fields['FILTERS']['dateFrom'],
                     'DateDeparture' => $fields['FILTERS']['dateTo'],
                     'Fax' => '',
-                    'GuestLastName' => $clientName,
-                    'GuestFirstName' => $clientLastName,
+                    'GuestLastName' => $clientLastName,
+                    'GuestFirstName' => $clientName,
                     'HotelID' => intval($fields['ROOM_CATEGORY']['HotelId']),
                     'IsExtraBedUsed' => (bool)$fields['FILTERS']['extraBed'],
                     'IsTouristTax' => intval($fields['FILTERS']['touristTax']), //это будет в popup

@@ -5,6 +5,7 @@ use Bitrix\Main\ModuleManager,
     Bitrix\Main\EventManager;
 
 require_once $_SERVER['DOCUMENT_ROOT'].'/local/modules/ourcompany.servio/lib/event.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/local/modules/ourcompany.servio/lib/work/mysettings.php';
 
 Loc::loadMessages(__FILE__);
 
@@ -70,7 +71,7 @@ class ourcompany_servio extends \cModule
 
         //удаление полей
         (new \Ourcompany\Servio\Event)->deleteFieds();
-//        \Bitrix\Main\Config\Option::delete($this->MODULE_ID);
+        \Bitrix\Main\Config\Option::delete($this->MODULE_ID);
 
         $this->UnInstallEvents();
         $this->UninstallFiles();
