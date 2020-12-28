@@ -2,7 +2,8 @@
 
 namespace Ourcompany\Servio\Work;
 
-use \Bitrix\Main\Localization\Loc;
+use \Bitrix\Main\Localization\Loc,
+    \Bitrix\Main\Loader;
 
 class Mysettings
 {
@@ -24,6 +25,9 @@ class Mysettings
     //нужен для получения cOption
     const MODULE_ID = 'ourcompany.servio';
 
+    //саисок сущностей, поля которых мы будем получать и проверять на существование при установке
+    const USER_FIELD_ENTITIES_FILTER = ['CRM_CONTACT','CRM_COMPANY','CRM_DEAL'];
+
     //названия Options ( в т.ч. в options.php)
     const SETTINGS_OPTIONS = [
         'SERVIO_URI_LINK',
@@ -32,12 +36,12 @@ class Mysettings
         'SERVIO_RESERVE_CONFIRM_FILE_FORMAT',
         'SERVIO_BILL_FILE_FORMAT',
         'SERVIO_EXCHANGE_LANG_ID', //язык в сервио, если en - выдает ошибку соединения
+        'SERVIO_EXCHANGE_DEAL_CATEGORIES', //категории сделок
         'SERVIO_FIELD_RESERVE_ID',
         'SERVIO_FIELD_COMPANY_ID',
         'SERVIO_FIELD_COMPANY_ADDRESS',
         'SERVIO_FIELD_CONTACT_ID',
         'SERVIO_FIELD_CONTACT_ADDRESS',
-        'SERVIO_FIELD_COMPANY_ADDRESS',
         'SERVIO_FIELD_RESERVE_CONFIRM_FILE_ID',
         'SERVIO_FIELD_RESERVE_CONFIRM_FILE',
         'SERVIO_FIELD_BILL_FILE_ID',
@@ -52,7 +56,7 @@ class Mysettings
                 'FIELD_NAME' => 'UF_CRM_HMS_RESERVE_ID',
                 'USER_TYPE_ID' => 'double',
                 'XML_ID' => '',
-                'SORT' => 100,
+                'SORT' => 1000,
                 'MULTIPLE' => 'N',  //множ
                 'MANDATORY' => 'N', //обязательное
                 'SHOW_FILTER' => 'I',   //показывать в фильтре
@@ -82,7 +86,7 @@ class Mysettings
                 'FIELD_NAME' => 'UF_CRM_HMS_CONTACT_ID',
                 'USER_TYPE_ID' => 'double',
                 'XML_ID' => '',
-                'SORT' => 100,
+                'SORT' => 1000,
                 'MULTIPLE' => 'N',  //множ
                 'MANDATORY' => 'N', //обязательное
                 'SHOW_FILTER' => 'I',   //показывать в фильтре
@@ -112,7 +116,7 @@ class Mysettings
                 'FIELD_NAME' => 'UF_CRM_HMS_CONTACT_ADDRESS',
                 'USER_TYPE_ID' => 'string',
                 'XML_ID' => '',
-                'SORT' => 100,
+                'SORT' => 1000,
                 'MULTIPLE' => 'N',  //множ
                 'MANDATORY' => 'N', //обязательное
                 'SHOW_FILTER' => 'I',   //показывать в фильтре
@@ -152,7 +156,7 @@ class Mysettings
                 'FIELD_NAME' => 'UF_CRM_HMS_COMPANY_ID',
                 'USER_TYPE_ID' => 'double',
                 'XML_ID' => '',
-                'SORT' => 100,
+                'SORT' => 1000,
                 'MULTIPLE' => 'N',  //множ
                 'MANDATORY' => 'N', //обязательное
                 'SHOW_FILTER' => 'I',   //показывать в фильтре
@@ -182,7 +186,7 @@ class Mysettings
                 'FIELD_NAME' => 'UF_CRM_HMS_COMPANY_ADDRESS',
                 'USER_TYPE_ID' => 'string',
                 'XML_ID' => '',
-                'SORT' => 100,
+                'SORT' => 1000,
                 'MULTIPLE' => 'N',  //множ
                 'MANDATORY' => 'N', //обязательное
                 'SHOW_FILTER' => 'I',   //показывать в фильтре
@@ -207,12 +211,6 @@ class Mysettings
                 ],
                 'SETTINGS' => [
                     'ROWS' => '3',
-                    /* Минимальная длина строки (0 - не проверять) */
-//                    'MIN_LENGTH'    => '0',
-                    /* Максимальная длина строки (0 - не проверять) */
-//                    'MAX_LENGTH'    => '0',
-                    /* Регулярное выражение для проверки */
-//                    'REGEXP'        => '',
                 ],
             ],
 
@@ -222,7 +220,7 @@ class Mysettings
                 'FIELD_NAME' => 'UF_CRM_HMS_RESERVE_CONFIRM_FILE_ID',
                 'USER_TYPE_ID' => 'double',
                 'XML_ID' => '',
-                'SORT' => 100,
+                'SORT' => 1000,
                 'MULTIPLE' => 'N',  //множ
                 'MANDATORY' => 'N', //обязательное
                 'SHOW_FILTER' => 'I',   //показывать в фильтре
@@ -253,7 +251,7 @@ class Mysettings
                 'FIELD_NAME' => 'UF_CRM_HMS_RESERVE_CONFIRM_FILE',
                 'USER_TYPE_ID' => 'file',
                 'XML_ID' => '',
-                'SORT' => 100,
+                'SORT' => 1000,
                 'MULTIPLE' => 'N',  //множ
                 'MANDATORY' => 'N', //обязательное
                 'SHOW_FILTER' => 'I',   //показывать в фильтре
@@ -285,7 +283,7 @@ class Mysettings
                 'FIELD_NAME' => 'UF_CRM_HMS_BILL_FILE_ID',
                 'USER_TYPE_ID' => 'double',
                 'XML_ID' => '',
-                'SORT' => 100,
+                'SORT' => 1000,
                 'MULTIPLE' => 'Y',  //множ
                 'MANDATORY' => 'N', //обязательное
                 'SHOW_FILTER' => 'I',   //показывать в фильтре
@@ -309,8 +307,7 @@ class Mysettings
                     'en' => 'Bill File ID in Servio',
                 ],
             ],
-
-
+        
         //МНОЖ
         'SERVIO_FIELD_BILL_FILE' =>
             [
@@ -318,7 +315,7 @@ class Mysettings
                 'FIELD_NAME' => 'UF_CRM_HMS_BILL_FILE',
                 'USER_TYPE_ID' => 'file',
                 'XML_ID' => '',
-                'SORT' => 100,
+                'SORT' => 1000,
                 'MULTIPLE' => 'Y',  //множ
                 'MANDATORY' => 'N', //обязательное
                 'SHOW_FILTER' => 'I',   //показывать в фильтре
@@ -376,6 +373,24 @@ class Mysettings
 //            $result[$ob['LID']] = ['CULTURE_ID' => $ob['CULTURE_ID'],'NAME' => $ob['NAME']];
             $result[$ob['LID']] = $ob['NAME'];
         }
+        return $result;
+    }
+
+    public function getDealCategories()
+    {
+        Loader ::includeModule( 'crm' );
+        
+        $result = [];
+        $categoriesArr = \Bitrix\Crm\Category\DealCategory::getAll(true, ['ID' => 'ASC']);
+
+        if($categoriesArr)
+        {
+            foreach ($categoriesArr as $category)
+            {
+                $result[$category['ID']] = $category['NAME'];
+            }
+        }
+
         return $result;
     }
 

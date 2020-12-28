@@ -8,9 +8,9 @@ class ServioPopup
 {
     constructor()
     {
-        this.url = {
-            ajax: '/local/modules/ourcompany.servio/ajax.php',
-        }
+        // this.url = {
+        //     ajax: '/local/modules/ourcompany.servio/ajax.php',
+        // }
 
         this.filters = {
             dateFrom: '',
@@ -178,8 +178,8 @@ class ServioPopup
             width: 700, // ширина окна
             zIndex: 100, // z-index
             closeIcon: { // объект со стилями для иконки закрытия, при null - иконки не будет
-                opacity: 1,
-                backgroundColor: '#000'
+                // opacity: 1,
+                // backgroundColor: '#000'
             },
             offsetTop: 0,
             titleBar: popupTitle,
@@ -238,8 +238,24 @@ class ServioPopup
         let date = dateObject,
             month, day;
 
-        if (date.getMonth() < 10) month = '0' + (date.getMonth() + 1);
-        else month = date.getMonth() + 1;
+        // if (date.getMonth() < 10) month = '0' + (date.getMonth() + 1);
+        // else month = date.getMonth() + 1;
+
+        let curMonth = date.getMonth();
+
+        if (Number(curMonth) < 10)
+        {
+            if((curMonth + 1) == 10)
+            {
+                month = (curMonth + 1)
+            }
+            else
+            {
+                month = '0' + (curMonth + 1);
+            }
+        }
+        else month = Number(curMonth) + 1 ;
+
 
         if (date.getDate() < 10) day = '0' + date.getDate();
         else day = date.getDate();
@@ -583,7 +599,7 @@ class ServioPopup
                            </div>
                         </div>
                     `
-                }                 
+            }                 
               
                   
                 <div id="servio_price_info" class="text-center">
@@ -782,6 +798,8 @@ class ServioPopup
             //данные формы
             formData = self.getFromFieldsData(form)
 
+            console.log('form',formData);
+
             self.toggleClockLoaderToBtn(searchBtn)
 
             //валидация полей(кроме CC и PT)
@@ -828,7 +846,7 @@ class ServioPopup
                                             self.deal.id > 0
                                                 ? '<td><button class="ui-btn ui-btn-xs ui-btn-primary-dark add-reserve ' + ((row.FreeRoom == 0) ? 'servio-custom-disable' : '')  +  '" data-category-id="' + row.ID + '">Reserve</button></td>'
                                                 : '<td></td>'
-                                            }
+                                        }
                                         </tr>`
 
                                     i++
@@ -999,7 +1017,32 @@ class ServioPopup
                     {
                         this.value = 1
                     }
+
+                    //Отобрадение строки с возрастом детей
+                    else if(this.name === 'childs')
+                    {
+                        // console.log('llooool')
+                        if(Number(this.value.trim()) > 0)
+                        {
+                            self.toggleShowDOM(chuldAgesField.closest('.form-row'), true)
+                        }
+                        else
+                        {
+                            self.toggleShowDOM(chuldAgesField.closest('.form-row'));
+                            chuldAgesField.value = ''
+                        }
+                    }
                 }
+            }
+        }
+
+        //4.2 Изменение поля childAges
+        chuldAgesField.onkeyup = function ()
+        {
+            console.log('childAges', this.value)
+            if(this.value.trim().length > 0)
+            {
+                this.value = this.value.replace(/[.*&!\'\"\s]/gim,',').replace(/[^0-9,]/gim,'')//.replace(/,*$/,'')
             }
         }
 
@@ -1077,6 +1120,27 @@ class ServioPopup
                 const chlds = form.querySelector('#childs')
                 chlds.classList.add('my-error-field')
                 this.addErrorsBeforeFormNew(form,`Set childs number or 0!`, 'error')
+                errorFlag = false
+            }
+
+            // console.log('child',Number(formData.childs),formData.childAges.trim().length,formData.childAges.trim().split(/[\s,]/).length)
+            if(
+                Number(formData.childs) > 0
+                &&
+                (
+                    (formData.childAges.trim().length == 0)
+                    ||
+                    (
+                        Number(formData.childs) != formData.childAges.trim().split(/[\s,]/).length
+                    )
+                )
+            )
+            {
+                let chlds = form.querySelector('#childs'),
+                    chldsAgs = form.querySelector('#childAges')
+                chlds.classList.add('my-error-field')
+                chldsAgs.classList.add('my-error-field')
+                this.addErrorsBeforeFormNew(form,`Number of childs must be equal numbers in child ages!`, 'error')
                 errorFlag = false
             }
 
@@ -1167,10 +1231,10 @@ class ServioPopup
                     {
                         if(reserveAjaxObj.data.result.ResultServises.length > 0)
                         {
-                            for(let thServ of reserveAjaxObj.data.result.ThServises)
-                            {
-                                thService += `<th>${thServ.ServiceName}, ${reserveAjaxObj.data.result.ValuteShort}</th>`
-                            }
+                            // for(let thServ of reserveAjaxObj.data.result.ThServises)
+                            // {
+                            //     thService += `<th>${thServ.ServiceName}, ${reserveAjaxObj.data.result.ValuteShort}</th>`
+                            // }
 
                             for(let resultPrices of reserveAjaxObj.data.result.ResultServises)
                             {
@@ -1183,37 +1247,61 @@ class ServioPopup
                                 }
 
                                 servisesTableInner +=
-                                    `<tr>
-                                        <td>${k}</td>
-                                        <td>${resultPrices.Date}</td>
-                                        ${tdServicePrice}
-                                        <td>${resultPrices.Price}</td>
-                                        <td class="ui-alert ${(resultPrices.IsPaid === true) ? 'ui-alert-success' : 'ui-alert-danger'}">${resultPrices.IsPaid}</td>
-    
-                                        ${
-                                        (resultPrices.IsPaid !== true)
-                                            ?`<td>
-                                                <label class="ui-ctl ui-ctl-checkbox">
-                                                    <input type="checkbox" name="${resultPrices.Date}" class="ui-ctl-element servio-date-bill" value="${resultPrices.Date}">
-                                                </label>
-                                              </td>`
-                                            : `<td></td>`
-                                        }
+                                    // `<tr id="">
+                                    //     <td>${k}</td>
+                                    //     <td>${resultPrices.Date}</td>
+                                    //     ${tdServicePrice}
+                                    //     <td>${resultPrices.Price}</td>
+                                    //     <td class="ui-alert ${(resultPrices.IsPaid === true) ? 'ui-alert-success' : 'ui-alert-danger'}">${resultPrices.IsPaid}</td>
+                                    //
+                                    //     ${
+                                    //     (resultPrices.IsPaid !== true)
+                                    //         ?`<td>
+                                    //             <label class="ui-ctl ui-ctl-checkbox">
+                                    //                 <input type="checkbox" name="${resultPrices.Date}" class="ui-ctl-element servio-date-bill" value="${resultPrices.Date}">
+                                    //             </label>
+                                    //           </td>`
+                                    //         : `<td></td>`
+                                    // }
+                                    // </tr>`
+                                    `<tr class="${(resultPrices.IsPaid === true) ? 'table-success' : 'table-danger'}">
+                                        <th scope="row">${k}</th>
+                                        <th>${resultPrices.Date}</td>
+                                        <th>${resultPrices.Price.toFixed(2)}</th>
+                                        <td>${(resultPrices.ServiceListString).join(',<br>')}</td>
+                                        <td>${(resultPrices.IsPaid === true) ? 'Да' : 'Нет'}</td>
                                     </tr>`
+
                                 k++
                             }
 
                             servisesTable =
+                                // `<div class="row">
+                                //     <form id="servio-dates-bill" name="servio-dates-bill">
+                                //         <table class="table table-sm table-responsive text-center">
+                                //             <thead>
+                                //                 <th>#</th>
+                                //                 <th>Date</th>
+                                //                 ${thService}
+                                //                 <th>Total Day Price, ${reserveAjaxObj.data.result.ValuteShort}</th>
+                                //                 <th>Is Paid</th>
+                                //                 <th>Add To Bill</th>
+                                //             </thead>
+                                //             <tbody>
+                                //                 ${servisesTableInner}
+                                //             </tbody>
+                                //         </table>
+                                //     </form>
+                                // </div>`
                                 `<div class="row">
-                                    <form id="servio-dates-bill" name="servio-dates-bill">
-                                        <table class="table table-sm table-responsive text-center">
+                                    <form id="servio-dates-bill" name="servio-dates-bill" class="block-width-100">
+                                        <table class="table table-responsive text-center full-width-table">
                                             <thead>
-                                                <th>#</th>
-                                                <th>Date</th>
-                                                ${thService}
-                                                <th>Total Day Price, ${reserveAjaxObj.data.result.ValuteShort}</th>
-                                                <th>Is Paid</th>
-                                                <th>Add To Bill</th>
+                                                <th scope="col">#</th>
+                                                <th scope="col">Date</th>
+                                                <th scope="col">Total Day Price, ${reserveAjaxObj.data.result.ValuteShort}</th>
+                                                <th scope="col">Services</th>
+                                                <th scope="col">Is Paid</th>
                                             </thead>
                                             <tbody>
                                                 ${servisesTableInner}
@@ -1221,6 +1309,7 @@ class ServioPopup
                                         </table>
                                     </form>
                                 </div>`
+
                         }
 
                         reserveDataHtml =
@@ -1270,13 +1359,12 @@ class ServioPopup
                             </div>
                             
                             ${servisesTable}
-                                    
-                                    
+                                                                      
                             ${
                                 (Number(self.deal.reserveId) > 0)
                                     ? '<button class="ui-btn ui-btn-danger" id="reserveCancelBtn">Отменить</button>'
                                     : ''
-                                }
+                            }
                                     
                             ${
                                 (
@@ -1286,7 +1374,7 @@ class ServioPopup
                                 )
                                     ? '<button class="ui-btn ui-btn-success" id="reserveAcceptBtn">Подтвердить</button>'
                                     : ''
-                                }
+                            }
                                     
                             <button class="ui-btn ui-btn-secondary hidden-input" id="getReserveBill">Счет</button>`
 
@@ -1556,7 +1644,6 @@ class ServioPopup
                     self.toggleClockLoaderToBtn(btnObj)
                 }
             )
-
     }
 
 
@@ -1645,7 +1732,6 @@ class ServioPopup
                     }
 
 
-
                     self.toggleClockLoaderToBtn(btnObj)
                 }
             )
@@ -1664,10 +1750,5 @@ class ServioPopup
             )
 
     }
-
-
-
-
-
 
 }

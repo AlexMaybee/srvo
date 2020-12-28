@@ -40,6 +40,19 @@ class Servio
             'error' => false,
         ];
 
+
+//        $childAgerResArr = [];
+//        if($fields['childAges'])
+//        {
+////            foreach (explode(' ',$fields['childAges']) as $age)
+//            foreach (preg_split('/[\s,]/',trim($fields['childAges'],',')) as $age)
+//            {
+//                $childAgerResArr[] = intval(trim($age));
+//            }
+//        }
+//        $fields['childAges'] = $childAgerResArr;
+        $fields['childAges'] = $this->returnChildAgesArray($fields['childAges']);
+
         $data = [
             'CompanyCodeID' => intval($fields['companyCodeId']),
             'HotelID' => intval($fields['hotelId']),
@@ -49,7 +62,8 @@ class Servio
             'Adults' => intval($fields['adults']),
             'Childs' => intval($fields['childs']),
             'IsExtraBedUsed' => boolval($fields['extraBed']),
-            'IsoLanguage'  => 'ru',
+//            'IsoLanguage'  => 'ru',
+            'IsoLanguage'  => $settings['success']['SERVIO_EXCHANGE_LANG_ID'], //в доках нет, но без него не робыть!
             'TimeArrival' =>  '', //пока константы
             'TimeDeparture' =>  '',  //пока константы
         ];
@@ -119,21 +133,23 @@ class Servio
             }
         }
 
-        $childAgerResArr = [];
-        if($fields['childAges'])
-        {
-            foreach (explode(' ',$fields['childAges']) as $age)
-            {
-                $childAgerResArr[] = intval($age);
-            }
-        }
-        $fields['childAges'] = $childAgerResArr;
+//        $childAgerResArr = [];
+//        if($fields['childAges'])
+//        {
+////            foreach (explode(' ',$fields['childAges']) as $age)
+//            foreach (preg_split('/[\s,]/',trim($fields['childAges'],',')) as $age)
+//            {
+//                $childAgerResArr[] = intval(trim($age));
+//            }
+//        }
+//        $fields['childAges'] = $childAgerResArr;
+        $fields['childAges'] = $this->returnChildAgesArray($fields['childAges']);
 
         //названия комнат
         $roomCatNames = (new \Ourcompany\Servio\Work\Request)->postRequest('GetRoomTypesList', ['HotelID' => $fields['hotelId']], $settings);
         if($roomCatNames['Error'])
         {
-            $result['errors'][] = $roomCatNames['Error'];
+            $result['errors'][] = $roomCatNames['Error'].' _ GetRoomTypesList';
         }
         else
         {
@@ -147,7 +163,8 @@ class Servio
                     'Adults' => intval($fields['adults']),
                     'Childs' => intval($fields['childs']),
                     'IsExtraBedUsed' => boolval($fields['extraBed']),
-                    'IsoLanguage'  => 'ru',
+//                    'IsoLanguage'  => 'ru',
+                    'IsoLanguage'  => $settings['success']['SERVIO_EXCHANGE_LANG_ID'], //в доках нет, но без него не робыть!
                     'TimeArrival' =>  '', //пока константы
                     'TimeDeparture' =>  '',  //пока константы
                 ]
@@ -162,41 +179,76 @@ class Servio
             {
                 $roomsCatFilter = [];
 
-                foreach ($roomsData['RoomTypes'] as $roomCategory)
-                {
-                    //НЕ БЕРЕМ категории, где комнаты должны только освободиться!!!
-//                if($roomCategory['FreeRoom'] > 0)
+//                foreach ($roomsData['RoomTypes'] as $roomCategory)
 //                {
-                    $roomsCatFilter[] = $roomCategory['ID'];
+//                    //НЕ БЕРЕМ категории, где комнаты должны только освободиться!!!
+////                if($roomCategory['FreeRoom'] > 0)
+////                {
+//                    $roomsCatFilter[] = $roomCategory['ID'];
+////                }
 //                }
-                }
+
+               $testPriceArr =  [
+                    'HotelID' => intval($fields['hotelId']),
+                    'CompanyID' => intval($fields['companyId']),
+                    'DateArrival' => $fields['dateFrom'],
+                    'DateDeparture' => $fields['dateTo'],
+                    'TimeArrival' =>  '',
+                    'TimeDeparture' =>  '',
+                    'Adults' => intval($fields['adults']),
+                    'Childs' => intval($fields['childs']),
+                    'ChildAges' => $fields['childAges'],
+                    'IsExtraBedUsed' => boolval($fields['extraBed']),
+//                    'IsoLanguage'  => 'ru',
+                    'IsoLanguage'  => $settings['success']['SERVIO_EXCHANGE_LANG_ID'],
+//                    'RoomTypeIDs' => $roomsCatFilter, // [1,2,3,5],
+                    'RoomTypeIDs' => array_column($roomsData['RoomTypes'],'ID'), // [1,2,3,5],
+                    'СontractConditionID' => intval($fields['contractCondition']),
+                    'PaidType' => intval($fields['paidType']),
+                    'NeedTransport' => $fields['transport'],
+                    'IsTouristTax' => $fields['touristTax'],
+//                    'LPAuthCode' => $fields['lpAuthCode'], // 02.11 - заменил на LoyaltyAuthCode
+                    'LoyaltyAuthCode' => $fields['lpAuthCode'],
+                    'AgentCategory' => 0,
+                    'AgentCategories' => [],
+                ];
+
+                $result['test_prices_IDS'] = array_column($roomsData['RoomTypes'],'ID');
+                $result['test_prices_arr'] = $testPriceArr;
+                $result['test_settings_arr'] = $settings;
 
                 //цены комнат
                 $roomsPrices = (new \Ourcompany\Servio\Work\Request)->postRequest('GetPrices',
-                    [
-                        'HotelID' => intval($fields['hotelId']),
-                        'CompanyID' => intval($fields['companyId']),
-                        'DateArrival' => $fields['dateFrom'],
-                        'DateDeparture' => $fields['dateTo'],
-                        'TimeArrival' =>  '',
-                        'TimeDeparture' =>  '',
-                        'Adults' => intval($fields['adults']),
-                        'Childs' => intval($fields['childs']),
-                        'ChildAges' => $fields['childAges'],
-                        'IsExtraBedUsed' => boolval($fields['extraBed']),
-                        'IsoLanguage'  => 'ru',
-                        'RoomTypeIDs' => $roomsCatFilter, // [1,2,3,5],
-                        'СontractConditionID' => 0,
-                        'PaidType' => $fields['paidType'],
-                        'NeedTransport' => $fields['transport'],
-                        'IsTouristTax' => $fields['touristTax'],
-                        'LPAuthCode' => '',
-                    ]
+                    $testPriceArr
+//                    [
+//                        'HotelID' => intval($fields['hotelId']),
+//                        'CompanyID' => intval($fields['companyId']),
+//                        'DateArrival' => $fields['dateFrom'],
+//                        'DateDeparture' => $fields['dateTo'],
+//                        'TimeArrival' =>  '',
+//                        'TimeDeparture' =>  '',
+//                        'Adults' => intval($fields['adults']),
+//                        'Childs' => intval($fields['childs']),
+//                        'ChildAges' => $fields['childAges'],
+//                        'IsExtraBedUsed' => boolval($fields['extraBed']),
+//                        'IsoLanguage'  => 'ru',
+//                        'RoomTypeIDs' => $roomsCatFilter, // [1,2,3,5],
+////                        'СontractConditionID' => 0,
+//                        'СontractConditionID' => intval($fields['contractCondition']),
+//                        'PaidType' => $fields['paidType'],
+//                        'NeedTransport' => $fields['transport'],
+//                        'IsTouristTax' => $fields['touristTax'],
+//                        'LPAuthCode' => '',
+//                        'AgentCategory' => 0,
+//                        'AgentCategories' => [],
+//                    ]
                     , $settings);
+
+                $result['test_prices_resp'] = $roomsPrices;
 
                 if($roomsPrices['Error'])
                 {
-                    $result['errors'][] = $roomsPrices['Error'];
+                    $result['errors'][] = $roomsPrices['Error'].' _ GetPrices';;
                 }
                 else
                 {
@@ -292,6 +344,18 @@ class Servio
             'errors' => [],
         ];
 
+//        $childAgerResArr = [];
+//        if($fields['childAges'])
+//        {
+//            foreach (preg_split('/[\s,]/',trim($fields['childAges'],',')) as $age)
+//            {
+//                $childAgerResArr[] = intval(trim($age));
+//            }
+//        }
+//        $fields['childAges'] = $childAgerResArr;
+        $fields['FILTERS']['childAges'] = $this->returnChildAgesArray($fields['FILTERS']['childAges']);
+//        $result['ttt111'] = gettype($fields['FILTERS']['childAges']);
+
         if($settings['errors'])
         {
             $result['errors'] = $settings['errors'];
@@ -354,14 +418,16 @@ class Servio
                 $data = [
                     'Address' => trim($address),
                     'Adults' => $fields['FILTERS']['adults'],
-                    'ChildAges' => [], //$fields['FILTERS'][''] //это будет в popup
+//                    'ChildAges' => [], //$fields['FILTERS'][''] //это будет в popup
+                    'ChildAges' => $fields['FILTERS']['childAges'], //это будет в popup
                     'Childs' => $fields['FILTERS']['childs'],
                     'ClientInfo' => $GLOBALS['USER']->getFullName().', '.$_SERVER['REMOTE_ADDR'], //ЗАМЕНИТЬ НА ФИО ЗАПОЛНЯЮЩЕГО
                     'Comment' => $comment,
                     'Company' => $company,  //НАФИГА???!!!
                     'CompanyID' => $fields['FILTERS']['companyId'], //113
                     'ContactName' => $contactName,
-                    'ContractConditionID' => 1, //это брать где-то...
+//                    'ContractConditionID' => 1, //это брать где-то...
+                    'ContractConditionID' => intval($fields['FILTERS']['contractCondition']), //из формы
                     'Country' => 'Ukraine',
                     'DateArrival' => $fields['FILTERS']['dateFrom'],
                     'DateDeparture' => $fields['FILTERS']['dateTo'],
@@ -384,15 +450,17 @@ class Servio
 
                 $result['test_reserve_data'] = $data;
 
-//                $this->logData(['Company test',$data]);
+//                $this->logData(['Company test 124',$data]);
 
 //                return $data;
 //                $reserveRes = $this->postRequest('AddRoomReservation', $data);
                 $reserveRes = (new \Ourcompany\Servio\Work\Request)->postRequest('AddRoomReservation', $data, $settings);
 
+                $result['test_childe_res'] = $reserveRes;
+
                 if($reserveRes['Result'] !== 0)
                 {
-                    $result['errors'][] = $reserveRes['Error'];
+                    $result['errors'][] = $reserveRes['Error'].'add_child err';
                 }
                 else
                 {
@@ -495,11 +563,16 @@ class Servio
         $result = [
             'result' => [],
             'errors' => [],
-            'language' => LANGUAGE_ID,
+            'language' => LANGUAGE_ID, //системная константа битрикс
         ];
 
 
         $reserveData = (new \Ourcompany\Servio\Work\Request)->postRequest('GetReservationInfo', ['Account' => intval($id)], $settings);
+
+//        $result['test_reserve_data'] = $reserveData;
+
+//        $this->logData($reserveData);
+
         if($reserveData['Result'] !== 0)
         {
             $result['errors'][] = $reserveData['Error'];
@@ -514,22 +587,21 @@ class Servio
             $reserveData['DateDeparture'] = date('d.m.Y H:i',strtotime($reserveData['DateDeparture']));
 
             $servicesResultArray = [];
-            $servisesArr = []; //для формирования массива услуг в th
-//            $servisesByDate = []; //разбивка сервисов по дням
+//            $servisesArr = []; //для формирования массива услуг в th
 
             if($reserveData['Services'])
             {
                 foreach ($reserveData['Services'] as $service)
                 {
-                    $servisesArr[] = [
-                        'ServiceID' => $service['ServiceID'],
-                        'ServiceName' => $service['ServiceName'],
-                        'ServiceTypeName' => $service['ServiceTypeName']
-                    ];
+//                    $servisesArr[] = [
+//                        'ServiceID' => $service['ServiceID'],
+//                        'ServiceName' => $service['ServiceName'],
+//                        'ServiceTypeName' => $service['ServiceTypeName']
+//                    ];
 
-                    foreach ($service['PriceDate'] as $oneDate) {
-
-                        $rDate = date('d.m.Y',strtotime($oneDate['Date']));
+                    foreach ($service['PriceDate'] as $oneDate)
+                    {
+                        $rDate = date('d.m.Y', strtotime($oneDate['Date']));
 
                         $servicesResultArray[$rDate]['Price'] += $oneDate['Price'];
                         $servicesResultArray[$rDate]['CustomerAccount'] = $oneDate['CustomerAccount'];
@@ -541,16 +613,17 @@ class Servio
                         $servicesResultArray[$rDate]['ServiceProviderID'] = $oneDate['ServiceProviderID'];
                         $servicesResultArray[$rDate]['ServiceProviderName'] = $oneDate['ServiceProviderName'];
                         $servicesResultArray[$rDate]['ServicePrices'][] = $oneDate['Price'];
-//                        $servisesByDate[$rDate][] = $service;
+
+                        //список сервисов
+                        $servicesResultArray[$rDate]['ServiceListString'][] = $service['ServiceName'];
                     }
                 }
             }
 
             //th
-            $reserveData['ThServises'] = $servisesArr;
+//            $reserveData['ThServises'] = $servisesArr;
             //Formated Servises Prices By Dates
             $reserveData['ResultServises'] = array_values($servicesResultArray);
-//            $reserveData['ServicesByDates'] = $servisesByDate;
 
             $result['result'] = $reserveData;
         }
@@ -628,7 +701,8 @@ class Servio
         $confirmResult = (new \Ourcompany\Servio\Work\Request)->postRequest('GetAccountConfirm',
             [
                 'Account' => $fields['reserveId'],
-                'IsoLanguage'  => 'ru',
+//                'IsoLanguage'  => 'ru',
+                'IsoLanguage'  => $settings['success']['SERVIO_EXCHANGE_LANG_ID'],
                 'Format' => $settings['success']['SERVIO_RESERVE_CONFIRM_FILE_FORMAT'],
             ],
             $settings);
@@ -796,7 +870,8 @@ class Servio
             $billDocumentResult = (new \Ourcompany\Servio\Work\Request)->postRequest('GetAccountBill',
                 [
                     'Account' => $billCreateResult['Account'],
-                    'IsoLanguage'  => 'ru',
+//                    'IsoLanguage'  => 'ru',
+                    'IsoLanguage'  => $settings['success']['SERVIO_EXCHANGE_LANG_ID'],
                     'Format' => $settings['success']['SERVIO_RESERVE_CONFIRM_FILE_FORMAT'],
                 ]
                 , $settings);
@@ -820,5 +895,22 @@ class Servio
         $file = $_SERVER["DOCUMENT_ROOT"].'/test.log';
         file_put_contents($file, print_r([date('d.m.Y H:i:s'),$data],true), FILE_APPEND | LOCK_EX);
     }
+
+    /*
+     * return array for childAges
+     * */
+    private function returnChildAgesArray($childAges)
+    {
+        $result = [];
+        if($childAges)
+        {
+            foreach (preg_split('/[\s,]/',trim($childAges,',')) as $age)
+            {
+                $result[] = intval(trim($age));
+            }
+        }
+        return $result;
+    }
+
 
 }

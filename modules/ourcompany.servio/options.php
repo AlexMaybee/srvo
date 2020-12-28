@@ -26,9 +26,11 @@ $servioFormatsList =  [
     '3' => 'DOC',
 ];
 
+//языки
 $bitrixLanguages = \Ourcompany\Servio\Work\Mysettings::getBitrixLanguagesList();
 
-
+//направления сделок
+$bitrixCategories= \Ourcompany\Servio\Work\Mysettings::getDealCategories();
 
 $aTabs = [
     [
@@ -76,6 +78,16 @@ $aTabs = [
                 Loc::getMessage('OUR_COMPANY_SERVIO_EXCHANGE_LANG_ID_FIELD_TITLE'),
                 '',
                 ['selectbox', $bitrixLanguages]
+            ],
+
+            //multiselectbox
+
+            Loc::getMessage('OUR_COMPANY_SERVIO_OPTIONS_BLOCK_D_CATEGORIES'),
+            [
+                'SERVIO_EXCHANGE_DEAL_CATEGORIES',
+                Loc::getMessage('OUR_COMPANY_SERVIO_EXCHANGE_DEAL_CATEGORIES'),
+                '',
+                ['multiselectbox', $bitrixCategories]
             ],
         ]
     ],

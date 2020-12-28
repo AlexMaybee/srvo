@@ -70,7 +70,7 @@ class ourcompany_servio extends \cModule
     public function DoUninstall(){
 
         //удаление полей
-        (new \Ourcompany\Servio\Event)->deleteFieds();
+//        (new \Ourcompany\Servio\Event)->deleteFieds();
         \Bitrix\Main\Config\Option::delete($this->MODULE_ID);
 
         $this->UnInstallEvents();

@@ -20,6 +20,12 @@
     opacity: .9;
 }
 
+.block-width-100{
+    width: 100%;
+}
+.table-responsive.full-width-table{
+    display: table;
+}
 
 /*.reserve-hidden{*/
 /*display: none!important;*/

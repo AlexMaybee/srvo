@@ -21,6 +21,10 @@ $MESS['OUR_COMPANY_SERVIO_BILL_FILE_FORMAT_FIELD_TITLE'] = 'Формат пол�
 $MESS['OUR_COMPANY_SERVIO_OPTIONS_BLOCK_LANGUAGE'] = 'Настройка языка взаимодействия с servio';
 $MESS['OUR_COMPANY_SERVIO_EXCHANGE_LANG_ID_FIELD_TITLE'] = 'Язык взаимодействия с servio';
 
+//Направления сделок для отображения
+$MESS['OUR_COMPANY_SERVIO_OPTIONS_BLOCK_D_CATEGORIES'] = 'Отображать кнопку в направлениях сделок servio';
+$MESS['OUR_COMPANY_SERVIO_EXCHANGE_DEAL_CATEGORIES'] = ' Отображение кнопок с направлениях сделок:';
+
 
 //таб 2
 $MESS['OUR_COMPANY_SERVIO_OPTIONS_TAB_2'] = 'Настройки полей';
